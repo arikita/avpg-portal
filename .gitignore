@@ -1,0 +1,11 @@
+# File cấu hình của trình soạn thảo (nếu có)
+.vscode/
+.idea/
+
+# File rác hệ thống
+.DS_Store
+Thumbs.db
+
+# Các file backup tạm thời
+*.bak
+*.tmp

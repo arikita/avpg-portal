@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVP Group - Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container" id="container">
+        <div class="form-container sign-up-container">
+            <form action="#">
+                <h1>Welcome to AVP Group</h1>
+                <button type="button"
+                		onclick="window.location.href='http://newstaff.anvietphatgroup.com:5173/'"
+                		style="margin-top: 10px;">
+                	Welcome to new employee
+                </button>
+                </a>
+            </form>
+        </div>
+
+        <div class="form-container sign-in-container">
+            <form action="#">
+                <button class="btn-pass">Pass the interview</button><p></p>
+                <button class="btn-fail">Fail the interview</button>
+            </form>
+        </div>
+
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1 class="white-text">Welcome to new employee</h1>
+                    <p>Together growing strong & success</p>
+                    <button class="ghost" id="signIn">Recruitment</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1 class="white-text">Recruitment</h1>
+                    <p>Welcome to AVP Group</p>
+                    <button class="ghost" id="signUp">New employee</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="canvas1"></canvas>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
