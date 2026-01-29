@@ -1,0 +1,4 @@
+# Script tương tự nhưng phần script chỉ cần:
+script: |
+  cd /home/dksvr/Documents/portal
+  git pull origin main
