@@ -108,7 +108,8 @@ form {
 }
 
 /* Modern Input Fields */
-input {
+input,
+select {
     background-color: transparent;
     border: none;
     border-bottom: 2px solid #ddd;
@@ -119,7 +120,8 @@ input {
     transition: border-color 0.3s;
 }
 
-input:focus {
+input:focus,
+select:focus {
     outline: none;
     border-bottom-color: #6a11cb;
 }
@@ -291,4 +293,66 @@ input::placeholder {
     z-index: -1;
     background: #ece9e6;
     background: linear-gradient(to right, #ece9e6, #ffffff);
+}
+
+/* Modal Styling */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.5); 
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 8% auto; 
+    padding: 30px;
+    border: 1px solid #888;
+    width: 500px;
+    max-width: 90%;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    transition: color 0.3s;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #333;
+    text-decoration: none;
+}
+
+.modal textarea {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 8px 0;
+    border: none;
+    border-bottom: 2px solid #ddd;
+    font-family: 'Poppins', sans-serif;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.3s;
+    background: transparent;
+}
+
+.modal textarea:focus {
+    border-bottom-color: #6a11cb;
+}
 }

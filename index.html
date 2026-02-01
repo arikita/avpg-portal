@@ -7,6 +7,53 @@
     <title>AVP Group - Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Tăng chiều rộng cho popup */
+        .modal-content {
+            width: 60% !important; /* Mở rộng ra 60% màn hình */
+            max-width: 800px;      /* Giới hạn tối đa để không quá lớn trên màn hình to */
+        }
+
+        /* Style cho nút chuyển đổi mẫu email (Segmented Control) */
+        .template-toggle {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 25px;
+            padding: 2px;
+            margin: 0 auto 20px auto; /* Canh giữa và tạo khoảng cách dưới */
+            border: 1px solid #ddd;
+            width: fit-content;       /* Thu gọn chiều rộng lại vừa đủ nội dung */
+        }
+        .template-toggle input {
+            display: none; /* Ẩn nút radio mặc định */
+        }
+        .template-toggle label {
+            flex: 1;
+            text-align: center;
+            padding: 5px 15px; /* Giảm độ dày, tăng chiều ngang một chút cho cân đối */
+            cursor: pointer;
+            border-radius: 20px;
+            font-size: 11px;   /* Giảm cỡ chữ cho tinh tế hơn */
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            margin: 0 !important;
+            text-transform: uppercase; /* Chữ in hoa */
+            white-space: nowrap;       /* Ngăn xuống dòng */
+        }
+        /* Hiệu ứng khi được chọn - Mẫu 1 (Màu Xanh Tím) */
+        .template-toggle input#tpl1:checked + label {
+            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(37, 117, 252, 0.3);
+        }
+        /* Hiệu ứng khi được chọn - Mẫu 2 (Màu Cam Đỏ) */
+        .template-toggle input#tpl2:checked + label {
+            background: linear-gradient(to right, #ff416c 0%, #ff4b2b 100%);
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(255, 75, 43, 0.3);
+        }
+    </style>
 </head>
 
 <body>
@@ -25,7 +72,7 @@
         <div class="form-container sign-in-container">
             <form action="#">
                 <button class="btn-pass">Pass the interview</button><p></p>
-                <button class="btn-fail">Fail the interview</button>
+                <button class="btn-fail" id="btnFail">Fail the interview</button>
             </form>
         </div>
 
@@ -42,6 +89,38 @@
                     <button class="ghost" id="signUp">New employee</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Gửi Email -->
+    <div id="emailModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 style="text-align: center; text-transform: uppercase;">Gửi Email Thông Báo</h2>
+            <form id="emailForm">
+                <!-- Phần chọn mẫu email mới: Đưa lên đầu & Thiết kế đẹp hơn -->
+                <div class="template-toggle">
+                    <input type="radio" id="tpl1" name="emailTemplate" value="template1" checked>
+                    <label for="tpl1">Đã có ứng viên</label>
+                    
+                    <input type="radio" id="tpl2" name="emailTemplate" value="template2">
+                    <label for="tpl2">Chưa phù hợp</label>
+                </div>
+
+                <input type="email" id="candidateEmail" placeholder="Email người nhận" required>
+                <div style="display: flex; gap: 10px; width: 100%;">
+                    <input type="text" id="candidateName" placeholder="Họ và tên" required style="flex: 2;">
+                    <select id="candidateGender" required style="flex: 1;">
+                        <option value="" disabled selected>Giới tính</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                    </select>
+                </div>
+                <input type="text" id="candidatePosition" placeholder="Vị trí ứng tuyển" required>
+                <input type="text" id="emailSubject" placeholder="Tiêu đề" value="Thông báo kết quả phỏng vấn - AVP Group">
+                <textarea id="emailContent" rows="12" placeholder="Nội dung email..."></textarea>
+                <button type="submit" style="margin-top: 15px;">Gửi Email</button>
+            </form>
         </div>
     </div>
 
