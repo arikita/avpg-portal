@@ -227,17 +227,15 @@ if (emailForm) {
         // Tạo liên kết mailto để mở ứng dụng email mặc định (Outlook)
         const mailtoUrl = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-        // Sử dụng window.open nhắm vào iframe để khắc phục triệt để lỗi canceled
+        // Sử dụng iframe ẩn và gán src trực tiếp để tránh lỗi window.open trên HTTPS
         const iframe = document.createElement('iframe');
-        iframe.name = 'hiddenEmailFrame';
         iframe.style.display = 'none';
         document.body.appendChild(iframe);
-        
-        window.open(mailtoUrl, 'hiddenEmailFrame');
+        iframe.src = mailtoUrl;
         
         setTimeout(() => {
             document.body.removeChild(iframe);
-        }, 1000);
+        }, 2000); // Tăng thời gian chờ để đảm bảo Outlook kịp nhận lệnh
     });
 }
 
