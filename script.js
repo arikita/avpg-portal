@@ -227,13 +227,13 @@ if (emailForm) {
         // Tạo liên kết mailto để mở ứng dụng email mặc định (Outlook)
         const mailtoUrl = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-        // Sử dụng iframe ẩn và contentWindow để mở Outlook, giảm thiểu lỗi console
+        // Sử dụng window.open nhắm vào iframe để khắc phục triệt để lỗi canceled
         const iframe = document.createElement('iframe');
+        iframe.name = 'hiddenEmailFrame';
         iframe.style.display = 'none';
         document.body.appendChild(iframe);
         
-        // Điều hướng iframe sang link mailto
-        iframe.contentWindow.location.href = mailtoUrl;
+        window.open(mailtoUrl, 'hiddenEmailFrame');
         
         setTimeout(() => {
             document.body.removeChild(iframe);
