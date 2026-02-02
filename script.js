@@ -230,10 +230,13 @@ if (emailForm) {
         // Sử dụng thẻ a ẩn để tránh lỗi "status canceled" trên một số trình duyệt
         const tempLink = document.createElement('a');
         tempLink.href = mailtoUrl;
+        tempLink.target = '_blank';
         tempLink.style.display = 'none';
         document.body.appendChild(tempLink);
         tempLink.click();
-        document.body.removeChild(tempLink);
+        setTimeout(() => {
+            document.body.removeChild(tempLink);
+        }, 200);
     });
 }
 
