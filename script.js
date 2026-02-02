@@ -225,7 +225,15 @@ if (emailForm) {
         const body = document.getElementById("emailContent").value;
 
         // Tạo liên kết mailto để mở ứng dụng email mặc định (Outlook)
-        window.location.href = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        const mailtoUrl = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+        // Sử dụng thẻ a ẩn để tránh lỗi "status canceled" trên một số trình duyệt
+        const tempLink = document.createElement('a');
+        tempLink.href = mailtoUrl;
+        tempLink.style.display = 'none';
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        document.body.removeChild(tempLink);
     });
 }
 
