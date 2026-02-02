@@ -1,3 +1,8 @@
+// Tự động chuyển hướng nếu người dùng truy cập từ tên miền cũ/local
+if (window.location.hostname === 'local.anvietphatgroup.com') {
+    window.location.replace('https://arikita.github.io/avpg-portal/');
+}
+
 // --- Form Toggle Logic ---
 const signUpButton = document.getElementById('signUp');
 const signInButton = document.getElementById('signIn');
