@@ -345,7 +345,8 @@ input::placeholder {
     margin: 8px 0;
     border: none;
     border-bottom: 2px solid #ddd;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Aptos', 'Segoe UI', sans-serif;
+    font-size: 12px;
     resize: vertical;
     outline: none;
     transition: border-color 0.3s;
@@ -354,5 +355,4 @@ input::placeholder {
 
 .modal textarea:focus {
     border-bottom-color: #6a11cb;
-}
 }
