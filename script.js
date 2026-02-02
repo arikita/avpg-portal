@@ -227,16 +227,15 @@ if (emailForm) {
         // Tạo liên kết mailto để mở ứng dụng email mặc định (Outlook)
         const mailtoUrl = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-        // Sử dụng thẻ a ẩn để tránh lỗi "status canceled" trên một số trình duyệt
-        const tempLink = document.createElement('a');
-        tempLink.href = mailtoUrl;
-        tempLink.target = '_blank';
-        tempLink.style.display = 'none';
-        document.body.appendChild(tempLink);
-        tempLink.click();
+        // Sử dụng iframe ẩn để mở Outlook mà không mở tab mới hay báo lỗi canceled
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = mailtoUrl;
+        document.body.appendChild(iframe);
+        
         setTimeout(() => {
-            document.body.removeChild(tempLink);
-        }, 200);
+            document.body.removeChild(iframe);
+        }, 1000);
     });
 }
 
