@@ -227,24 +227,16 @@ if (emailForm) {
         // Tạo liên kết mailto để mở ứng dụng email mặc định (Outlook)
         const mailtoUrl = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-        // Sử dụng iframe ẩn làm đích (target) để tránh lỗi script.js:234
+        // Sử dụng iframe ẩn và contentWindow để mở Outlook, giảm thiểu lỗi console
         const iframe = document.createElement('iframe');
-        iframe.name = 'hiddenEmailFrame';
         iframe.style.display = 'none';
         document.body.appendChild(iframe);
         
-        // Tạo thẻ a để kích hoạt mailto vào iframe
-        const tempLink = document.createElement('a');
-        tempLink.href = mailtoUrl;
-        tempLink.target = 'hiddenEmailFrame';
-        tempLink.style.display = 'none';
-        document.body.appendChild(tempLink);
-        
-        tempLink.click();
+        // Điều hướng iframe sang link mailto
+        iframe.contentWindow.location.href = mailtoUrl;
         
         setTimeout(() => {
             document.body.removeChild(iframe);
-            document.body.removeChild(tempLink);
         }, 1000);
     });
 }
