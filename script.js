@@ -188,35 +188,25 @@ function updateEmailTemplate() {
         }
     }
 
-    if (isTemplate2) {
-        emailContent.value = `Dear ${title}. ${name}
+    // Nội dung chung
+    const intro = `Dear ${title}. ${name}
 
 Cảm ơn ${pronoun} đã dành thời gian tham gia phỏng vấn cho vị trí ${position}. 
 
-Chúng tôi đánh giá cao sự cố gắng và nhiệt tình của ${pronoun} đối với Công Ty Cổ Phần Năng Lượng An Việt Phát cũng như những gì ${pronoun} thể hiện trong buổi phỏng vấn và cam kết đóng góp của ${pronoun} đối với mục tiêu của công ty.
+Chúng tôi đánh giá cao sự cố gắng và nhiệt tình của ${pronoun} đối với Công Ty Cổ Phần Năng Lượng An Việt Phát cũng như những gì ${pronoun} thể hiện trong buổi phỏng vấn và cam kết đóng góp của ${pronoun} đối với mục tiêu của công ty.`;
 
-Tuy nhiên, sau khi cân nhắc tổng thể giữa yêu cầu công việc và kinh nghiệm hiện tại của ${pronoun}. Chúng tôi nhận thấy hồ sơ của ${pronoun} chưa thực sự phù hợp với định hướng tuyển dụng ở thời điểm này.
-
-Chúng tôi sẽ giữ lại hồ sơ của ${pronoun} và xin được liên hệ lại khi có bất kỳ một cơ hội nào phù hợp trong tương lai.
+    const outro = `Chúng tôi sẽ giữ lại hồ sơ của ${pronoun} và xin được liên hệ lại khi có bất kỳ một cơ hội nào phù hợp trong tương lai.
 
 Chúc ${title}. ${name} may mắn trong quá trình tìm việc.
 
 Trân trọng,`;
-    } else {
-        emailContent.value = `Dear ${title}. ${name}
 
-Cảm ơn ${pronoun} đã dành thời gian tham gia phỏng vấn cho vị trí ${position}. 
+    // Nội dung riêng biệt
+    const reason = isTemplate2 
+        ? `Tuy nhiên, sau khi cân nhắc tổng thể giữa yêu cầu công việc và kinh nghiệm hiện tại của ${pronoun}. Chúng tôi nhận thấy hồ sơ của ${pronoun} chưa thực sự phù hợp với định hướng tuyển dụng ở thời điểm này.`
+        : `Tuy nhiên, chúng tôi đã phỏng vấn một số ứng viên ấn tượng và quyết định đồng hành với họ tại thời điểm này. Chúng tôi đã cân nhắc rất nhiều trước khi đưa ra quyết định.`;
 
-Chúng tôi đánh giá cao sự cố gắng và nhiệt tình của ${pronoun} đối với Công Ty Cổ Phần Năng Lượng An Việt Phát cũng như những gì ${pronoun} thể hiện trong buổi phỏng vấn và cam kết đóng góp của ${pronoun} đối với mục tiêu của công ty.
-
-Tuy nhiên, chúng tôi đã phỏng vấn một số ứng viên ấn tượng và quyết định đồng hành với họ tại thời điểm này. Chúng tôi đã cân nhắc rất nhiều trước khi đưa ra quyết định.
-
-Chúng tôi sẽ giữ lại hồ sơ của ${pronoun} và xin được liên hệ lại khi có bất kỳ một cơ hội nào phù hợp trong tương lai.
-
-Chúc ${title}. ${name} may mắn trong quá trình tìm việc.
-
-Trân trọng,`;
-    }
+    emailContent.value = `${intro}\n\n${reason}\n\n${outro}`;
 }
 
 if (btnFail) {
