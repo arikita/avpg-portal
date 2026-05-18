@@ -87,7 +87,7 @@ GitHub Pages tự động cập nhật trong vài giây.
 
 ## Quản lý từ server
 
-Repository được clone tại server `kontumenery` (`clasvr`):
+Repository được clone tại server `clasvr`:
 ```
 /home/clasvr/projects/avpg-portal/
 ```

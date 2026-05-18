@@ -29,7 +29,7 @@ GitHub Pages cập nhật trong vài giây, không cần thêm bước nào.
 - **Gửi email dùng `mailto:`** — mở Outlook/ứng dụng email trên máy người dùng, không qua server. Nếu muốn gửi thật qua server thì phải tích hợp EmailJS hoặc n8n webhook.
 - **"Pass the interview"** hiện chưa có chức năng — `class="btn-pass"` nhưng không có JS handler.
 - **Domain cũ** `local.anvietphatgroup.com` đang redirect về GitHub Pages (hardcode trong `script.js`).
-- Repo SSH alias: `github-avpg-portal` (deploy key trên server `kontumenery`).
+- Repo SSH alias: `github-avpg-portal` (deploy key trên server `clasvr`).
 
 ## Liên hệ hệ thống
 - App nhân viên mới: https://avpg-newemployee.vercel.app/ (repo: `arikita/avpg-newemployee`)
