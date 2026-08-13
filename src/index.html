@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <title>AVP Group - Cổng thông tin nội bộ</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cổng thông tin nội bộ & hướng dẫn nhân viên mới của An Việt Phát (AVP Group). Internal portal & new-employee onboarding guide.">
+  <meta name="theme-color" content="#5b5bf5">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/brand/icon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/brand/icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <!-- Apply saved theme + language before first paint (no flash) -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('avp.theme');
+        if (t !== 'light' && t !== 'dark') {
+          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+        var l = localStorage.getItem('avp.lang');
+        document.documentElement.setAttribute('lang', (l === 'vi' || l === 'en') ? l : 'vi');
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

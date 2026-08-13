@@ -1,0 +1,252 @@
+/* Khung hoi thoai — dung chung cho khung noi va trang /chat. */
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+/* ------------------------------------------------------------- dong tin -- */
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 14px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  scrollbar-width: thin;
+}
+
+.older {
+  align-self: center;
+  margin-bottom: 10px;
+  padding: 5px 14px;
+  border-radius: var(--pill);
+  border: 1px solid var(--border-2);
+  background: var(--surface);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  &:hover { color: var(--brand); border-color: var(--brand); }
+}
+
+.day {
+  align-self: center;
+  margin: 12px 0 8px;
+  span {
+    padding: 3px 12px;
+    border-radius: var(--pill);
+    background: var(--surface-3);
+    color: var(--text-3);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  /* Cum tin lien tiep sat nhau; cum ket thuc moi tha them khoang tho. */
+  margin-bottom: 1px;
+  &.tail { margin-bottom: 10px; }
+  &.mine { flex-direction: row-reverse; }
+}
+/* Cho trong bang dung avatar => tin trong cung mot cum thang hang. */
+.slot { width: 28px; flex-shrink: 0; }
+.row.mine .slot { display: none; }
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: min(74%, 460px);
+}
+.row.mine .stack { align-items: flex-end; }
+
+.who {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-3);
+  margin: 6px 0 3px 12px;
+}
+.who.small { margin-left: 12px; }
+
+.bub-line { display: flex; align-items: center; gap: 6px; }
+.row.mine .bub-line { flex-direction: row-reverse; }
+
+.bub {
+  padding: 9px 14px;
+  border-radius: 18px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  word-break: break-word;
+  animation: pop 0.16s ease-out;
+}
+.row.mine .bub {
+  background: linear-gradient(135deg, var(--brand), var(--violet));
+  border-color: transparent;
+  color: #fff;
+}
+/* Goc nhon o phia nguoi noi, chi o tin CUOI cum — nhin ra ai dang noi. */
+.row.tail:not(.mine) .bub { border-bottom-left-radius: 6px; }
+.row.tail.mine .bub { border-bottom-right-radius: 6px; }
+.bub.pic { padding: 4px; }
+.bub.gone { background: transparent; border-style: dashed; }
+
+@keyframes pop {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+.txt {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  font-size: 0.92rem;
+  a { color: inherit; text-decoration: underline; }
+}
+.recalled { font-size: 0.85rem; color: var(--text-3); }
+
+.shot {
+  display: block;
+  border-radius: 14px;
+  overflow: hidden;
+  img { display: block; max-width: 100%; max-height: 260px; object-fit: cover; }
+}
+.bub .txt + .shot, .bub .shot + .txt { margin-top: 6px; }
+
+.at { font-size: 0.68rem; color: var(--text-3); margin: 3px 12px 0; }
+
+/* Nut thu hoi: chi hien khi re chuot len tin cua chinh minh. */
+.recall {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: opacity 0.14s, color 0.14s;
+  app-icon { width: 13px; height: 13px; }
+  &:hover { color: var(--danger); }
+}
+.row:hover .recall { opacity: 1; }
+
+/* Ba cham nhay — bao doi phuong dang go. */
+.bub.typing {
+  display: inline-flex;
+  gap: 4px;
+  padding: 12px 14px;
+  i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-3);
+    animation: blink 1.2s infinite;
+  }
+  i:nth-child(2) { animation-delay: 0.2s; }
+  i:nth-child(3) { animation-delay: 0.4s; }
+}
+@keyframes blink {
+  0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* --------------------------------------------------------------- o soan -- */
+.composer {
+  border-top: 1px solid var(--border);
+  padding: 8px 10px 10px;
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.pending {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 8px;
+  img { max-height: 90px; border-radius: var(--r-sm); display: block; }
+  button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(12, 16, 32, 0.68);
+    color: #fff;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    app-icon { width: 12px; height: 12px; }
+  }
+}
+
+.emoji-row {
+  display: flex;
+  gap: 1px;
+  margin-bottom: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.emo {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.05rem;
+  line-height: 1;
+  padding: 4px 5px;
+  border-radius: 8px;
+  transition: transform 0.12s, background 0.12s;
+  &:hover { transform: scale(1.25); background: var(--surface-3); }
+}
+
+.input-row { display: flex; align-items: flex-end; gap: 6px; }
+.input-row textarea {
+  flex: 1;
+  min-height: 40px;
+  max-height: 120px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.92rem;
+  resize: none;
+  overflow-y: auto;
+  &:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+}
+
+.tool, .send {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.14s, transform 0.14s;
+  app-icon { width: 17px; height: 17px; }
+}
+.tool {
+  background: var(--surface-3);
+  color: var(--text-2);
+  &:hover { color: var(--brand); }
+}
+.send {
+  background: linear-gradient(135deg, var(--brand), var(--violet));
+  color: #fff;
+  &:hover { transform: scale(1.06); }
+}

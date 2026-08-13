@@ -1,0 +1,82 @@
+<!-- Hero -->
+<section class="hero" style="padding-block: clamp(40px,6vw,60px)">
+  <div class="hero-blobs"><span class="blob b1"></span><span class="blob b3"></span></div>
+  <div class="container">
+    <span class="eyebrow" appReveal><app-icon name="users" /> {{ lang() === 'vi' ? 'Danh bạ' : 'Directory' }}</span>
+    <h1 class="mt-3" appReveal>{{ lang() === 'vi' ? 'Danh bạ nội bộ' : 'Internal directory' }}</h1>
+    <p class="lead mt-2" appReveal>{{ lang() === 'vi' ? 'Tra nhanh số máy nhánh theo phòng ban. Gõ tên hoặc số để tìm.' : 'Quickly find extensions by department. Type a name or number.' }}</p>
+    <div class="row wrap mt-3" style="gap:10px" appReveal>
+      <span class="chip brand"><app-icon name="hash" /> {{ totalPeople() }} {{ lang() === 'vi' ? 'nhân sự' : 'people' }}</span>
+      <span class="chip"><app-icon name="grid" /> {{ deptCount() }} {{ lang() === 'vi' ? 'phòng ban' : 'departments' }}</span>
+    </div>
+    <div class="search mt-3" style="max-width:480px" appReveal>
+      <app-icon name="search" class="si" />
+      <input
+        type="search"
+        [value]="query()"
+        (input)="onSearch($event)"
+        [attr.placeholder]="lang() === 'vi' ? 'Tìm tên, phòng ban, số máy…' : 'Search name, department, extension…'"
+        aria-label="Search directory"
+      />
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 18px">
+  <div class="container">
+    @for (d of departments(); track d.name.vi) {
+      <div class="card mb-3" appReveal>
+        <div class="row between wrap mb-3">
+          <div class="row">
+            <div class="icon-badge sm"><app-icon [name]="d.icon" /></div>
+            <div>
+              <h3 style="font-size:1.1rem">{{ d.name | tr: lang() }}</h3>
+              @if (d.floor) { <span class="muted-3" style="font-size:.82rem">{{ d.floor | tr: lang() }}</span> }
+            </div>
+          </div>
+          <span class="chip">{{ d.count }} {{ lang() === 'vi' ? 'nhân sự' : 'people' }}</span>
+        </div>
+        <div class="grid grid-auto" style="gap:10px">
+          @for (r of d.rows; track r.ext) {
+            <div class="field ext-row">
+              <span class="nm">
+                @for (n of r.names; track n.name) {
+                  @if (n.username) {
+                    <a class="dir-person" [routerLink]="['/profile', n.username]">
+                      <app-avatar [name]="n.name" [username]="n.username" [size]="24" />
+                      <span>{{ n.name }}</span>
+                    </a>
+                  } @else {
+                    <span style="display:block">{{ n.name }}</span>
+                  }
+                }
+              </span>
+              <span class="v">{{ r.ext }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (!loading() && departments().length === 0) {
+      <div class="card center"><p>{{ lang() === 'vi' ? 'Không tìm thấy kết quả phù hợp.' : 'No matching results.' }}</p></div>
+    }
+
+    <!-- Meeting rooms -->
+    <div class="card mb-3" appReveal>
+      <div class="row mb-3"><div class="icon-badge sm violet"><app-icon name="calendar" /></div><h3 style="font-size:1.1rem">{{ lang() === 'vi' ? 'Phòng họp' : 'Meeting rooms' }}</h3></div>
+      <div class="grid grid-auto" style="gap:10px">
+        @for (r of roomRows; track r.ext) {
+          <div class="field ext-row">
+            <span class="nm">
+              @for (n of r.names; track n.name) {
+                <span style="display:block">{{ n.name }}</span>
+              }
+            </span>
+            <span class="v">{{ r.ext }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>

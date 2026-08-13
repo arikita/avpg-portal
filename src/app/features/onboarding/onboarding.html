@@ -1,0 +1,88 @@
+<!-- Hero -->
+<section class="hero" style="padding-block: clamp(40px,6vw,72px)">
+  <div class="hero-blobs"><span class="blob b1"></span><span class="blob b2"></span></div>
+  <div class="container">
+    <span class="eyebrow" appReveal><app-icon name="compass" /> {{ lang() === 'vi' ? 'Hội nhập' : 'Onboarding' }}</span>
+    <h1 class="mt-3" appReveal>{{ lang() === 'vi' ? 'Hành trình nhân viên mới' : 'Your onboarding journey' }}</h1>
+    <p class="lead mt-2" appReveal>{{ intro() | tr: lang() }}</p>
+  </div>
+</section>
+
+<!-- Progress + checklist -->
+<section class="section-sm">
+  <div class="container">
+    <div class="card card-pad-lg" appReveal>
+      <div class="row between wrap">
+        <div class="row">
+          <div class="icon-badge"><app-icon name="list-checks" /></div>
+          <div>
+            <h3>{{ lang() === 'vi' ? 'Danh sách việc cần làm' : 'Your checklist' }}</h3>
+            <p class="muted-3">{{ lang() === 'vi' ? 'Tiến độ được lưu trên máy của bạn' : 'Progress saved on your device' }}</p>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:1.7rem;font-weight:800;line-height:1">{{ doneCount() }}<span class="muted-3" style="font-size:1rem">/{{ total() }}</span></div>
+          <div class="muted-3" style="font-size:.85rem">{{ percent() }}%</div>
+        </div>
+      </div>
+
+      <div class="progress-track mt-3"><div class="progress-fill" [style.width.%]="percent()"></div></div>
+
+      @if (percent() === 100) {
+        <div class="callout success mt-3">
+          <span class="ic"><app-icon name="award" /></span>
+          <div>
+            <strong>{{ lang() === 'vi' ? 'Tuyệt vời! 🎉' : 'All done! 🎉' }}</strong>
+            <p>{{ lang() === 'vi' ? 'Bạn đã hoàn thành onboarding. Chúc bạn khởi đầu thật suôn sẻ!' : 'You have completed onboarding. Have a great start!' }}</p>
+          </div>
+        </div>
+      }
+
+      <div class="grid grid-2 mt-3">
+        @for (item of checklist(); track item.id) {
+          <button type="button" class="check" [class.done]="isDone(item.id)" (click)="toggle(item.id)">
+            <span class="box"><app-icon name="check" /></span>
+            <span>
+              <span class="c-title">{{ item.text | tr: lang() }}</span>
+              @if (item.hint) { <span class="c-hint">{{ item.hint | tr: lang() }}</span> }
+            </span>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Guide sections with sticky side-nav -->
+<section class="section" style="padding-top: 6px">
+  <div class="container">
+    <div class="doc">
+      <aside class="side" aria-label="Sections">
+        @for (s of sections(); track s.id) {
+          <a [routerLink]="[]" [fragment]="s.id" [class.active]="activeId() === s.id">
+            <app-icon [name]="s.icon" /> {{ s.title | tr: lang() }}
+          </a>
+        }
+      </aside>
+
+      <div>
+        @for (s of sections(); track s.id) {
+          <article class="section-block" [id]="s.id" data-sec>
+            <div class="row" style="gap:14px;align-items:flex-start">
+              <div class="icon-badge"><app-icon [name]="s.icon" /></div>
+              <div>
+                @if (s.eyebrow) { <span class="tag">{{ s.eyebrow | tr: lang() }}</span> }
+                <h2 style="margin-top:2px">{{ s.title | tr: lang() }}</h2>
+              </div>
+            </div>
+            @if (s.intro) { <p class="lead-sm mt-2">{{ s.intro | tr: lang() }}</p> }
+            @if (s.readMin) {
+              <span class="chip mt-2"><app-icon name="clock" /> {{ s.readMin }} {{ lang() === 'vi' ? 'phút đọc' : 'min read' }}</span>
+            }
+            <div class="mt-3"><app-content-blocks [blocks]="s.blocks" /></div>
+          </article>
+        }
+      </div>
+    </div>
+  </div>
+</section>

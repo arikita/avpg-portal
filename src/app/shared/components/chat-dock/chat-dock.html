@@ -1,0 +1,85 @@
+@if (!onChatPage()) {
+  @if (open()) {
+    <div class="panel" role="dialog" [attr.aria-label]="vi() ? 'Trò chuyện' : 'Chat'">
+      <header class="ph">
+        @if (view() === 'thread' && active(); as c) {
+          <button class="hb" (click)="back()" [attr.aria-label]="vi() ? 'Quay lại' : 'Back'">
+            <app-icon name="chevron-left" />
+          </button>
+          <span class="who">
+            @if (c.kind === 'group') {
+              <span class="gi"><app-icon name="users" /></span>
+            } @else {
+              <app-avatar [name]="c.name" [username]="c.peer" [size]="30" />
+            }
+            <span class="wt">
+              <b>{{ c.name }}</b>
+              <i>
+                @if (c.kind === 'group') {
+                  {{ c.members.length }} {{ vi() ? 'thành viên' : 'members' }}
+                } @else {
+                  {{ c.online ? (vi() ? 'Đang trực tuyến' : 'Online') : (vi() ? 'Ngoại tuyến' : 'Offline') }}
+                }
+              </i>
+            </span>
+          </span>
+        } @else {
+          <span class="who">
+            <span class="wt">
+              <b>{{ vi() ? 'Trò chuyện' : 'Chat' }}</b>
+              <i [class.live]="chat.connected()">
+                {{ chat.connected() ? (vi() ? 'Đã kết nối' : 'Connected') : (vi() ? 'Đang kết nối…' : 'Connecting…') }}
+              </i>
+            </span>
+          </span>
+        }
+        <span class="hact">
+          <a class="hb" routerLink="/chat" (click)="toFullPage()" [attr.title]="vi() ? 'Mở toàn màn hình' : 'Open full screen'">
+            <app-icon name="maximize" />
+          </a>
+          <button class="hb" (click)="minimize()"
+                  [attr.title]="vi() ? 'Thu nhỏ — giữ cuộc trò chuyện' : 'Minimise — keep the conversation'"
+                  [attr.aria-label]="vi() ? 'Thu nhỏ' : 'Minimise'">
+            <app-icon name="minus" />
+          </button>
+          <button class="hb" (click)="close()"
+                  [attr.title]="vi() ? 'Đóng hẳn' : 'Close'"
+                  [attr.aria-label]="vi() ? 'Đóng' : 'Close'">
+            <app-icon name="x" />
+          </button>
+        </span>
+      </header>
+
+      <div class="pbody">
+        @if (view() === 'thread' && active()) {
+          <app-chat-thread [compact]="true" />
+        } @else {
+          <app-chat-list (picked)="onPicked()" />
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Chong bong bong: moi cuoc dang thu nho mot bong, xep dan LEN TREN nut
+       chat chinh. Vi tri tinh bang --i nen them bao nhieu cai cung khong de
+       len nhau. Cai vua thu nho nam duoi cung (gan tay nhat). -->
+  @for (c of bubbles(); track c.id; let i = $index) {
+    <button class="bubble face" [style.--i]="i" (click)="openBubble(c)"
+            [attr.title]="(vi() ? 'Quay lại: ' : 'Back to: ') + c.name"
+            [attr.aria-label]="(vi() ? 'Quay lại: ' : 'Back to: ') + c.name">
+      @if (c.kind === 'group') {
+        <span class="bgi"><app-icon name="users" /></span>
+      } @else {
+        <app-avatar [name]="c.name" [username]="c.peer" [size]="52" />
+      }
+      @if (c.unread) { <span class="ub">{{ c.unread > 9 ? '9+' : c.unread }}</span> }
+    </button>
+  }
+
+  <!-- Nut chat chinh: luon o cho cu duoi cung. -->
+  <button class="bubble" [class.on]="open()" (click)="toggle()"
+          [attr.aria-label]="vi() ? 'Trò chuyện' : 'Chat'">
+    <app-icon [name]="open() ? 'x' : 'message'" />
+    @if (!open() && otherUnread()) { <span class="ub">{{ otherUnread() > 9 ? '9+' : otherUnread() }}</span> }
+  </button>
+}

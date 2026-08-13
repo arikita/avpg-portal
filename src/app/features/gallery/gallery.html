@@ -1,0 +1,74 @@
+<section class="hero gal-hero">
+  <div class="container">
+    @if (album(); as a) {
+      <a class="back" routerLink="/gallery"><app-icon name="arrow-right" /> {{ lang() === 'vi' ? 'Tất cả album' : 'All albums' }}</a>
+      <h1 class="mt-2">{{ a.title | tr: lang() }}</h1>
+      <p class="lead mt-2">{{ a.desc | tr: lang() }}</p>
+      <p class="muted-3 mt-1">{{ a.count }} {{ lang() === 'vi' ? 'ảnh' : 'photos' }}@if (a.date) { · {{ a.date }} }</p>
+    } @else {
+      <span class="eyebrow"><app-icon name="images" /> {{ lang() === 'vi' ? 'Thư viện ảnh' : 'Gallery' }}</span>
+      <h1 class="mt-3">{{ lang() === 'vi' ? 'Khoảnh khắc An Việt Phát' : 'AVP moments' }}</h1>
+      <p class="lead mt-2">{{ lang() === 'vi' ? 'Hình ảnh các hoạt động, sự kiện của tập đoàn.' : 'Photos from company events and activities.' }}</p>
+    }
+  </div>
+</section>
+
+<section class="section-sm">
+  <div class="container">
+    @if (loading()) {
+      <div class="gal-grid">
+        @for (i of [1,2,3,4,5,6,7,8]; track i) { <div class="ph-skel"></div> }
+      </div>
+    } @else if (error()) {
+      <div class="empty"><app-icon name="alert-triangle" /><p>{{ error() }}</p></div>
+    } @else if (album()) {
+      @if (!photos().length) {
+        <div class="empty"><app-icon name="images" /><p>{{ lang() === 'vi' ? 'Album chưa có ảnh.' : 'This album is empty.' }}</p></div>
+      } @else {
+        <div class="gal-grid">
+          @for (p of visible(); track p.thumb) {
+            <button type="button" class="ph" (click)="open($index)">
+              <img [src]="p.thumb" alt="" loading="lazy" decoding="async" />
+            </button>
+          }
+        </div>
+        @if (photos().length > shown()) {
+          <div class="more-wrap">
+            <button class="btn btn-ghost" (click)="more()">
+              {{ lang() === 'vi' ? 'Xem thêm' : 'Show more' }} ({{ photos().length - shown() }})
+            </button>
+          </div>
+        }
+      }
+    } @else {
+      @if (!albums().length) {
+        <div class="empty"><app-icon name="images" /><p>{{ lang() === 'vi' ? 'Chưa có album nào.' : 'No albums yet.' }}</p></div>
+      } @else {
+        <div class="alb-grid">
+          @for (a of albums(); track a.slug) {
+            <a class="alb" [routerLink]="['/gallery', a.slug]">
+              <div class="alb-cover">
+                @if (a.cover) { <img [src]="a.cover" alt="" loading="lazy" /> } @else { <app-icon name="images" /> }
+                <span class="alb-count">{{ a.count }} {{ lang() === 'vi' ? 'ảnh' : 'photos' }}</span>
+              </div>
+              <div class="alb-body">
+                <h3>{{ a.title | tr: lang() }}</h3>
+                <p class="muted">{{ a.desc | tr: lang() }}</p>
+              </div>
+            </a>
+          }
+        </div>
+      }
+    }
+  </div>
+</section>
+
+@if (current(); as p) {
+  <div class="lb" (click)="close()">
+    <button class="lb-x" (click)="close()" [attr.aria-label]="lang() === 'vi' ? 'Đóng' : 'Close'"><app-icon name="x" /></button>
+    <button class="lb-nav prev" (click)="step(-1); $event.stopPropagation()" aria-label="Prev"><app-icon name="chevron-left" /></button>
+    <img class="lb-img" [src]="p.full" alt="" (click)="$event.stopPropagation()" />
+    <button class="lb-nav next" (click)="step(1); $event.stopPropagation()" aria-label="Next"><app-icon name="chevron-right" /></button>
+    <div class="lb-count">{{ (viewing() ?? 0) + 1 }} / {{ photos().length }}</div>
+  </div>
+}

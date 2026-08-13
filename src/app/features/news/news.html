@@ -1,0 +1,241 @@
+<section class="container news-wrap">
+  <header class="news-head">
+    <div>
+      <span class="eyebrow">{{ lang() === 'vi' ? 'Nội bộ' : 'Internal' }}</span>
+      <h1>{{ lang() === 'vi' ? 'Tin tức & Thông báo' : 'News & Announcements' }}</h1>
+      <p class="lead-sm">
+        {{ lang() === 'vi'
+          ? 'Tin công ty, sự kiện và thông báo từ Nhân sự & Truyền thông.'
+          : 'Company news, events and announcements from HR & Marketing.' }}
+      </p>
+    </div>
+    <div class="head-actions">
+      <button class="icon-btn search-toggle" [class.on]="searchOn()" (click)="toggleSearch()"
+        [attr.aria-label]="lang() === 'vi' ? 'Tìm kiếm' : 'Search'"
+        [title]="lang() === 'vi' ? 'Tìm bài viết' : 'Search posts'">
+        <app-icon name="search" />
+      </button>
+      @if (canPost()) {
+        <a class="btn btn-primary" routerLink="/news/new">
+          <app-icon name="edit" /> {{ lang() === 'vi' ? 'Đăng bài' : 'New post' }}
+        </a>
+      }
+    </div>
+  </header>
+
+  @if (searchOn()) {
+    <div class="search-bar">
+      <app-icon name="search" />
+      <input
+        type="search"
+        [value]="query()"
+        (input)="onQuery($any($event.target).value)"
+        (keydown.escape)="toggleSearch()"
+        [placeholder]="lang() === 'vi' ? 'Tìm theo tiêu đề, tóm tắt, nội dung…' : 'Search title, summary, content…'"
+        autofocus
+      />
+      @if (query()) {
+        <button class="icon-btn sm" (click)="clearQuery()" [attr.aria-label]="lang() === 'vi' ? 'Xoá' : 'Clear'"><app-icon name="x" /></button>
+      }
+    </div>
+  }
+
+  <div class="cat-bar">
+    <button class="chip-btn" [class.on]="activeCat() === null" (click)="setCat(null)">
+      {{ lang() === 'vi' ? 'Tất cả' : 'All' }}
+    </button>
+    @for (c of categories; track c.id) {
+      <button class="chip-btn" [class.on]="activeCat() === c.id" (click)="setCat(c.id)">
+        <app-icon [name]="c.icon" /> {{ c.label | tr: lang() }}
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="news-grid">
+      @for (i of [1, 2, 3, 4]; track i) { <div class="post-card skeleton"></div> }
+    </div>
+  } @else if (error()) {
+    <div class="empty">
+      <app-icon name="alert-triangle" />
+      <p>{{ lang() === 'vi' ? 'Không tải được tin tức.' : 'Could not load news.' }} {{ error() }}</p>
+      <button class="btn btn-ghost btn-sm" (click)="load()">{{ lang() === 'vi' ? 'Thử lại' : 'Retry' }}</button>
+    </div>
+  } @else if (!posts().length) {
+    <div class="empty">
+      <app-icon name="search" />
+      @if (query().trim()) {
+        <p>{{ lang() === 'vi' ? 'Không tìm thấy bài nào khớp “' + query().trim() + '”.' : 'No posts match “' + query().trim() + '”.' }}</p>
+      } @else {
+        <p>{{ lang() === 'vi' ? 'Chưa có tin nào ở mục này.' : 'No posts in this category yet.' }}</p>
+      }
+    </div>
+  } @else {
+    @if (hero(); as h) {
+      <article class="hero-post">
+        <a class="hero-media" [routerLink]="['/news', h.id]" [class.blank]="!h.cover" [style.--cover]="h.cover ? 'url(' + h.cover + ')' : null">
+          @if (h.cover) { <img [src]="h.cover" [alt]="(h.title | tr: lang())" /> } @else { <app-icon name="sparkles" /> }
+        </a>
+        <div class="hero-info">
+          <div class="hero-tags">
+            @if (h.pinned) { <span class="pill pin"><app-icon name="star" /> {{ lang() === 'vi' ? 'Nổi bật' : 'Featured' }}</span> }
+            @if (h.status !== 'published') { <span class="pill draft">{{ h.status === 'draft' ? (lang() === 'vi' ? 'Nháp' : 'Draft') : (lang() === 'vi' ? 'Ẩn' : 'Hidden') }}</span> }
+            <span class="pill cat">{{ catLabel(h.category) | tr: lang() }}</span>
+            @if (h.hasPoll) { <span class="pill poll"><app-icon name="check-square" /> {{ lang() === 'vi' ? 'Bình chọn' : 'Poll' }}</span> }
+          </div>
+          <a class="hero-title" [routerLink]="['/news', h.id]">{{ h.title | tr: lang() }}</a>
+          @if ((h.summary | tr: lang())) { <p class="hero-sum">{{ h.summary | tr: lang() }}</p> }
+          <div class="card-meta">
+            <app-avatar [name]="h.authorName" [username]="h.author" [size]="26" [link]="true" />
+            <a class="who" [routerLink]="['/profile', h.author]">{{ h.authorName }}</a>
+            <span class="dot-sep">•</span>
+            <time>{{ rel(h.publishedAt || h.createdAt) }}</time>
+          </div>
+          <div class="hero-foot">
+            <div class="react-row">
+              @for (e of emojis(); track e) {
+                <button class="rx" [class.mine]="h.reactions.mine === e" (click)="react(h, e, $event)" [attr.aria-label]="'React ' + e">{{ e }}</button>
+              }
+            </div>
+            <div class="counts">
+              @if (h.reactions.total) {
+                <span class="rx-stack" [title]="rxTitle(h)">
+                  @for (e of topEmojis(h); track e) { <span class="rx-emo">{{ e }}</span> }
+                  @for (f of rxFaces(h); track $index) {
+                    <app-avatar class="rx-face" [name]="f.name" [username]="f.username" [size]="20" />
+                  }
+                  <span class="rx-sum">{{ h.reactions.total }}</span>
+                </span>
+              }
+              <span class="count-chip"><app-icon name="message" /> {{ h.commentCount || 0 }}</span>
+              <span class="count-chip"><app-icon name="eye" /> {{ h.views || 0 }}</span>
+            </div>
+            <a class="btn btn-soft btn-sm read-cta" [routerLink]="['/news', h.id]">{{ lang() === 'vi' ? 'Đọc bài' : 'Read' }} <app-icon name="arrow-right" /></a>
+          </div>
+        </div>
+      </article>
+    }
+
+    @if (rest().length) {
+      <div class="more-label">{{ lang() === 'vi' ? 'Bài viết khác' : 'More posts' }}</div>
+    }
+    <div class="news-grid">
+      @for (p of rest(); track p.id; let i = $index) {
+        <article
+          class="post-card"
+          [class.v-overlay]="variantOf(p, i) === 'overlay'"
+          [class.v-accent]="variantOf(p, i) === 'accent'"
+          [class.v-wide]="variantOf(p, i) === 'wide'"
+          [style.--tone]="tone(i)"
+        >
+          @switch (variantOf(p, i)) {
+            @case ('overlay') {
+              <a class="pc-media overlay" [routerLink]="['/news', p.id]" [style.--cover]="'url(' + p.cover + ')'">
+                <img [src]="p.cover" [alt]="(p.title | tr: lang())" loading="lazy" />
+                <span class="scrim"></span>
+                <div class="pc-tags">
+                  @if (p.pinned) { <span class="pill pin"><app-icon name="star" /></span> }
+                  <span class="pill cat">{{ catLabel(p.category) | tr: lang() }}</span>
+                  @if (p.hasPoll) { <span class="pill poll"><app-icon name="check-square" /></span> }
+                </div>
+                <div class="overlay-body">
+                  <h3 class="pc-title">{{ p.title | tr: lang() }}</h3>
+                  <div class="pc-meta light">
+                    <app-avatar [name]="p.authorName" [username]="p.author" [size]="26" />
+                    <span class="who">{{ p.authorName }}</span><span class="dot-sep">•</span><time>{{ rel(p.publishedAt || p.createdAt) }}</time>
+                  </div>
+                </div>
+              </a>
+            }
+            @case ('accent') {
+              <a class="pc-accent" [routerLink]="['/news', p.id]">
+                <div class="pc-tags flow">
+                  @if (p.pinned) { <span class="pill on-accent"><app-icon name="star" /></span> }
+                  @if (p.status !== 'published') { <span class="pill draft">{{ p.status === 'draft' ? (lang() === 'vi' ? 'Nháp' : 'Draft') : (lang() === 'vi' ? 'Ẩn' : 'Hidden') }}</span> }
+                  <span class="pill on-accent">{{ catLabel(p.category) | tr: lang() }}</span>
+                  @if (p.hasPoll) { <span class="pill on-accent"><app-icon name="check-square" /></span> }
+                </div>
+                <h3 class="accent-title">{{ p.title | tr: lang() }}</h3>
+                @if ((p.summary | tr: lang())) { <p class="accent-sum">{{ p.summary | tr: lang() }}</p> }
+                <div class="pc-meta light">
+                  <app-avatar [name]="p.authorName" [username]="p.author" [size]="26" />
+                  <span class="who">{{ p.authorName }}</span><span class="dot-sep">•</span><time>{{ rel(p.publishedAt || p.createdAt) }}</time>
+                </div>
+              </a>
+            }
+            @case ('wide') {
+              <a class="pc-split" [routerLink]="['/news', p.id]">
+                <div class="pc-media" [style.--cover]="'url(' + p.cover + ')'">
+                  <img [src]="p.cover" [alt]="(p.title | tr: lang())" loading="lazy" />
+                </div>
+                <div class="pc-body">
+                  <div class="pc-tags flow">
+                    @if (p.pinned) { <span class="pill pin"><app-icon name="star" /></span> }
+                    <span class="pill cat">{{ catLabel(p.category) | tr: lang() }}</span>
+                    @if (p.hasPoll) { <span class="pill poll"><app-icon name="check-square" /></span> }
+                  </div>
+                  <span class="pc-title">{{ p.title | tr: lang() }}</span>
+                  @if ((p.summary | tr: lang())) { <p class="card-summary">{{ p.summary | tr: lang() }}</p> }
+                  <div class="pc-meta">
+                    <app-avatar [name]="p.authorName" [username]="p.author" [size]="26" />
+                    <span class="who">{{ p.authorName }}</span><span class="dot-sep">•</span><time>{{ rel(p.publishedAt || p.createdAt) }}</time>
+                  </div>
+                </div>
+              </a>
+            }
+            @default {
+              <a class="pc-media top" [routerLink]="['/news', p.id]" [class.blank]="!p.cover" [style.--cover]="p.cover ? 'url(' + p.cover + ')' : null">
+                @if (p.cover) { <img [src]="p.cover" [alt]="(p.title | tr: lang())" loading="lazy" /> } @else { <app-icon name="sparkles" /> }
+                <div class="pc-tags">
+                  @if (p.pinned) { <span class="pill pin"><app-icon name="star" /></span> }
+                  @if (p.status !== 'published') { <span class="pill draft">{{ p.status === 'draft' ? (lang() === 'vi' ? 'Nháp' : 'Draft') : (lang() === 'vi' ? 'Ẩn' : 'Hidden') }}</span> }
+                  <span class="pill cat">{{ catLabel(p.category) | tr: lang() }}</span>
+                  @if (p.hasPoll) { <span class="pill poll"><app-icon name="check-square" /></span> }
+                </div>
+              </a>
+              <div class="pc-body">
+                <a class="pc-title" [routerLink]="['/news', p.id]">{{ p.title | tr: lang() }}</a>
+                @if ((p.summary | tr: lang())) { <p class="card-summary">{{ p.summary | tr: lang() }}</p> }
+                <div class="pc-meta">
+                  <app-avatar [name]="p.authorName" [username]="p.author" [size]="26" />
+                  <span class="who">{{ p.authorName }}</span>
+                  <span class="dot-sep">•</span>
+                  <time>{{ rel(p.publishedAt || p.createdAt) }}</time>
+                </div>
+              </div>
+            }
+          }
+
+          <footer class="card-foot">
+            <div class="react-row">
+              @for (e of emojis(); track e) {
+                <button
+                  class="rx"
+                  [class.mine]="p.reactions.mine === e"
+                  (click)="react(p, e, $event)"
+                  [attr.aria-label]="'React ' + e"
+                >{{ e }}</button>
+              }
+            </div>
+            <div class="counts">
+              @if (p.reactions.total) {
+                <span class="rx-stack" [title]="rxTitle(p)">
+                  @for (e of topEmojis(p); track e) { <span class="rx-emo">{{ e }}</span> }
+                  @for (f of rxFaces(p); track $index) {
+                    <app-avatar class="rx-face" [name]="f.name" [username]="f.username" [size]="20" />
+                  }
+                  <span class="rx-sum">{{ p.reactions.total }}</span>
+                </span>
+              }
+              <a class="count-chip link" [routerLink]="['/news', p.id]">
+                <app-icon name="message" /> {{ p.commentCount || 0 }}
+              </a>
+              <span class="count-chip"><app-icon name="eye" /> {{ p.views || 0 }}</span>
+              @if (p.hasPoll) { <span class="count-chip poll-chip"><app-icon name="check-square" /></span> }
+            </div>
+          </footer>
+        </article>
+      }
+    </div>
+  }
+</section>

@@ -1,0 +1,57 @@
+/* Nut WorkIT (the bam de dang nhap giup) trong dung nhu the card khac. */
+.tile.as-btn {
+  font: inherit; text-align: left; width: 100%; cursor: pointer;
+  border: 1px solid var(--border-2); background: var(--surface); color: inherit;
+}
+.tile-hint {
+  display: inline-flex; align-items: center; gap: 5px; margin-top: 6px;
+  font-size: .78rem; color: var(--brand); font-weight: 600;
+}
+.tile-hint app-icon { width: 13px; height: 13px; }
+
+/* Hop dang nhap WorkIT */
+.wk-backdrop {
+  position: fixed; inset: 0; z-index: 60;
+  background: color-mix(in srgb, #0b1020 55%, transparent); backdrop-filter: blur(2px);
+}
+.wk-modal {
+  position: fixed; z-index: 61; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: min(440px, calc(100vw - 32px));
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border-2); border-radius: var(--r-md, 16px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .3); padding: 22px;
+}
+.wk-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+.wk-head strong { font-size: 1.08rem; }
+.wk-head .wk-sub { margin: 3px 0 0; color: var(--text-3); font-size: .86rem; }
+.wk-head .icon-badge { flex-shrink: 0; }
+.wk-head .icon-btn { margin-left: auto; }
+
+.wk-form { display: flex; flex-direction: column; gap: 13px; }
+.wk-fld { display: flex; flex-direction: column; gap: 5px; }
+.wk-fld span { font-size: .84rem; color: var(--text-2); font-weight: 600; }
+.wk-fld input {
+  padding: 11px 13px; border-radius: var(--r-sm); font: inherit;
+  border: 1px solid var(--border-2); background: var(--bg, var(--surface)); color: var(--text);
+}
+.wk-fld input:focus {
+  outline: none; border-color: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 16%, transparent);
+}
+.wk-remember { display: flex; align-items: flex-start; gap: 9px; font-size: .9rem; cursor: pointer; }
+.wk-remember input { margin-top: 3px; }
+.wk-note {
+  display: flex; align-items: flex-start; gap: 7px; margin: 0;
+  font-size: .8rem; color: var(--text-3); line-height: 1.45;
+}
+.wk-note app-icon { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; }
+.wk-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: var(--r-sm);
+  border: 1px solid var(--border-2); background: var(--surface); color: var(--text-2);
+  cursor: pointer;
+}
+.icon-btn:hover { color: var(--text); }
+.icon-btn app-icon { width: 18px; height: 18px; }

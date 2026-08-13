@@ -1,0 +1,131 @@
+<!-- Hero -->
+<section class="hero">
+  @if (heroImages().length) {
+    <div class="hero-slideshow" aria-hidden="true">
+      @for (img of heroImages(); track img; let idx = $index) {
+        <div class="hero-slide" [class.on]="idx === heroIndex()" [style.background-image]="'url(' + img + ')'"></div>
+      }
+      <div class="hero-scrim"></div>
+    </div>
+  } @else {
+    <div class="hero-blobs"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
+  }
+  <div class="container">
+    <span class="eyebrow" appReveal><app-icon name="sparkles" /> {{ greeting() }}</span>
+    <h1 class="mt-3" appReveal>
+      {{ lang() === 'vi' ? 'Chào mừng đến với' : 'Welcome to' }}<br />
+      <span class="gradient-text">{{ site.company }}</span>
+    </h1>
+    <p class="lead mt-2" appReveal>{{ lead() | tr: lang() }}</p>
+    <div class="hero-cta" appReveal>
+      <a class="btn btn-primary" routerLink="/onboarding"><app-icon name="rocket" /> {{ lang() === 'vi' ? 'Bắt đầu hành trình' : 'Start the journey' }}</a>
+      <a class="btn btn-ghost" routerLink="/portal"><app-icon name="grid" /> {{ lang() === 'vi' ? 'Cổng công cụ' : 'Open the portal' }}</a>
+    </div>
+    <div class="grid grid-4 mt-4">
+      @for (s of stats(); track $index) {
+        <div class="stat" appReveal><div class="num">{{ s.num }}</div><div class="lbl">{{ s.label | tr: lang() }}</div></div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Quick links -->
+<section class="section-sm">
+  <div class="container">
+    <div class="grid grid-4">
+      @for (l of quickLinks(); track $index) {
+        <a class="card card-hover tile" [routerLink]="path(l.url)" [fragment]="frag(l.url)" appReveal>
+          <div class="icon-badge {{ l.tone }}"><app-icon [name]="l.icon" /></div>
+          <div>
+            <h3>{{ l.label | tr: lang() }}</h3>
+            <p>{{ l.desc | tr: lang() }}</p>
+          </div>
+          <span class="arrow"><app-icon name="arrow-up-right" /></span>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Tin moi nhat -->
+@if (latestNews().length) {
+<section class="section-sm">
+  <div class="container">
+    <div class="row between" style="align-items:center;margin-bottom:16px;gap:12px">
+      <h2 style="margin:0;display:flex;align-items:center;gap:10px"><app-icon name="newspaper" /> {{ lang() === 'vi' ? 'Tin mới nhất' : 'Latest news' }}</h2>
+      <a class="btn btn-ghost btn-sm" routerLink="/news">{{ lang() === 'vi' ? 'Xem tất cả' : 'View all' }} <app-icon name="arrow-right" /></a>
+    </div>
+    <div class="grid grid-3">
+      @for (n of latestNews(); track n.id) {
+        <a class="card card-hover" [routerLink]="['/news', n.id]" appReveal style="padding:0;overflow:hidden;display:flex;flex-direction:column">
+          @if (n.cover) {
+            <img [src]="n.cover" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block" />
+          } @else {
+            <div style="aspect-ratio:16/9;display:grid;place-items:center;background:var(--surface-3);color:var(--brand)"><app-icon name="sparkles" /></div>
+          }
+          <div style="padding:16px 18px;flex:1;display:flex;flex-direction:column;gap:8px">
+            <h3 style="margin:0;font-size:1.05rem;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ n.title | tr: lang() }}</h3>
+            <div class="row" style="gap:8px;color:var(--text-3);font-size:.82rem;margin-top:auto">
+              <span>{{ n.authorName }}</span><span>•</span><time>{{ rel(n.publishedAt || n.createdAt) }}</time>
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+}
+
+<!-- Values / culture -->
+<section class="section">
+  <div class="container">
+    <div class="section-head center" style="margin-inline:auto">
+      <span class="eyebrow" appReveal><app-icon name="star" /> {{ lang() === 'vi' ? 'Văn hóa AVP' : 'Our culture' }}</span>
+      <h2 class="mt-3" appReveal>{{ lang() === 'vi' ? 'Giá trị dẫn lối chúng tôi' : 'The values that guide us' }}</h2>
+      <p appReveal>{{ lang() === 'vi' ? 'Những điều tạo nên tinh thần An Việt Phát mỗi ngày.' : 'What shapes the An Viet Phat spirit every day.' }}</p>
+    </div>
+    <div class="grid grid-4">
+      @for (v of values(); track $index) {
+        <div class="card card-hover" appReveal>
+          <div class="icon-badge sm violet"><app-icon [name]="v.icon" /></div>
+          <h3 class="mt-3">{{ v.title | tr: lang() }}</h3>
+          <p class="mt-1">{{ v.text | tr: lang() }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Journey preview -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow" appReveal><app-icon name="compass" /> {{ lang() === 'vi' ? 'Lộ trình' : 'Your path' }}</span>
+      <h2 class="mt-3" appReveal>{{ lang() === 'vi' ? '8 bước để sẵn sàng' : '8 steps to get ready' }}</h2>
+      <p appReveal>{{ lang() === 'vi' ? 'Nhấp vào một mục để đọc hướng dẫn chi tiết.' : 'Tap a topic to read the full guide.' }}</p>
+    </div>
+    <div class="grid grid-3">
+      @for (s of sections; track s.id) {
+        <a class="card card-hover" routerLink="/onboarding" [fragment]="s.id" appReveal>
+          <div class="row"><div class="icon-badge sm"><app-icon [name]="s.icon" /></div><h3>{{ s.title | tr: lang() }}</h3></div>
+          @if (s.intro) { <p class="mt-2">{{ s.intro | tr: lang() }}</p> }
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section-sm">
+  <div class="container">
+    <div class="card card-pad-lg" style="background:var(--grad-brand);border:0" appReveal>
+      <div class="row between wrap" style="gap:20px">
+        <div>
+          <h2 style="color:#fff">{{ lang() === 'vi' ? 'Cần trợ giúp ngay?' : 'Need help right now?' }}</h2>
+          <p style="color:rgba(255,255,255,.9)">{{ lang() === 'vi' ? 'Bộ phận IT luôn sẵn sàng hỗ trợ bạn.' : 'The IT team is always here to help.' }}</p>
+        </div>
+        <a class="btn" routerLink="/help" style="background:#fff;color:var(--brand-700)"><app-icon name="life-buoy" /> {{ lang() === 'vi' ? 'Gửi yêu cầu hỗ trợ' : 'Open a ticket' }}</a>
+      </div>
+    </div>
+  </div>
+</section>

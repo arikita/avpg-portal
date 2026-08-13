@@ -1,0 +1,75 @@
+<!-- Hero: 2 hanh dong chinh, Spiceworks truoc - email sau -->
+<section class="hero" style="padding-block: clamp(40px,6vw,64px)">
+  <div class="hero-blobs"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
+  <div class="container">
+    <span class="eyebrow" appReveal><app-icon name="life-buoy" /> {{ lang() === 'vi' ? 'Hỗ trợ' : 'Support' }}</span>
+    <h1 class="mt-3" appReveal>{{ lang() === 'vi' ? 'Trung tâm hỗ trợ IT' : 'IT Support Center' }}</h1>
+    <p class="lead mt-2" appReveal>{{ lead() | tr: lang() }}</p>
+
+    <div class="hero-cta" appReveal>
+      <a
+        class="btn btn-primary"
+        [href]="portalUrlRaw()"
+        target="_blank"
+        rel="noopener noreferrer"
+        ><app-icon name="external-link" />
+        {{ lang() === 'vi' ? 'Mở cổng Spiceworks' : 'Open Spiceworks portal' }}</a
+      >
+      <a class="btn btn-ghost" [href]="'mailto:' + site.itEmail"
+        ><app-icon name="send" /> {{ lang() === 'vi' ? 'Gửi email cho IT' : 'Email IT' }}</a
+      >
+    </div>
+
+    <p class="muted-3 mt-2" style="font-size:.82rem" appReveal>
+      {{ lang() === 'vi'
+        ? 'Cổng mở trong tab mới. Ưu tiên gửi qua cổng để theo dõi được tiến độ; email dùng khi không vào được cổng.'
+        : 'The portal opens in a new tab. Prefer the portal so you can track progress; use email if you cannot reach it.' }}
+    </p>
+  </div>
+</section>
+
+<!-- Ghi chu: ticket tu nhan dien qua AD -->
+<section class="section-sm" style="padding-top: 4px">
+  <div class="container">
+    <div class="callout tip" appReveal>
+      <span class="ic"><app-icon name="sparkles" /></span>
+      <div>
+        <p>{{ adNote() | tr: lang() }}</p>
+        <p class="muted-3" style="font-size:.86rem; margin-top:6px">
+          {{ lang() === 'vi' ? 'Email tiếp nhận: ' : 'Ticket mailbox: ' }}
+          <a [href]="'mailto:' + site.itEmail">{{ site.itEmail }}</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 22px">
+  <div class="container" style="max-width: 860px">
+    @for (s of sections(); track s.id) {
+      <article class="mb-4" [id]="s.id" style="scroll-margin-top: calc(var(--nav-h) + 20px)" appReveal>
+        <div class="row" style="gap:12px"><div class="icon-badge sm"><app-icon [name]="s.icon" /></div><h2 style="font-size:1.4rem">{{ s.title | tr: lang() }}</h2></div>
+        <div class="mt-3"><app-content-blocks [blocks]="s.blocks" /></div>
+      </article>
+    }
+
+    <h2 class="mt-4 mb-3" appReveal>{{ lang() === 'vi' ? 'Đầu mối liên hệ IT' : 'IT contacts' }}</h2>
+    <div class="grid grid-3">
+      @for (c of contacts(); track $index) {
+        <div class="card" appReveal>
+          <div class="contact">
+            <div class="ava">{{ initials(c.name) }}</div>
+            <div class="meta">
+              <div class="nm">{{ c.name }}</div>
+              @if (c.role) { <div class="rl">{{ c.role | tr: lang() }}</div> }
+            </div>
+          </div>
+          <div class="contact-links">
+            @if (c.ext) { <span class="chip brand"><app-icon name="hash" /> {{ c.ext }}</span> }
+            @if (c.email) { <a [href]="'mailto:' + c.email"><app-icon name="mail" /> Email</a> }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

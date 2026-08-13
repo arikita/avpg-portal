@@ -1,0 +1,123 @@
+<!-- Hero -->
+<section class="hero" style="padding-block: clamp(40px,6vw,64px)">
+  <div class="hero-blobs"><span class="blob b2"></span><span class="blob b3"></span></div>
+  <div class="container">
+    <span class="eyebrow" appReveal><app-icon name="grid" /> {{ lang() === 'vi' ? 'Cổng nội bộ' : 'Internal portal' }}</span>
+    <h1 class="mt-3" appReveal>{{ lang() === 'vi' ? 'Mọi công cụ, một nơi' : 'All your tools, one place' }}</h1>
+    <p class="lead mt-2" appReveal>{{ lang() === 'vi' ? 'Truy cập nhanh các hệ thống và tài nguyên nội bộ của An Việt Phát.' : 'Quick access to An Viet Phat’s internal systems and resources.' }}</p>
+  </div>
+</section>
+
+<!-- Tool groups -->
+@for (g of groups(); track $index) {
+  <section class="section-sm" style="padding-block: 22px">
+    <div class="container">
+      <h2 class="mb-3" appReveal>{{ g.title | tr: lang() }}</h2>
+      <div class="grid grid-4">
+        @for (l of g.links; track $index) {
+          @if (isInternal(l.url)) {
+            <a class="card card-hover tile" [routerLink]="l.url" appReveal>
+              <div class="icon-badge {{ l.tone }}"><app-icon [name]="l.icon" /></div>
+              <div><h3>{{ l.label | tr: lang() }}</h3><p>{{ l.desc | tr: lang() }}</p></div>
+              <span class="arrow"><app-icon name="arrow-up-right" /></span>
+            </a>
+          } @else if (isWorkit(l.url)) {
+            <button type="button" class="card card-hover tile as-btn" (click)="openWorkit($event)" appReveal>
+              <div class="icon-badge {{ l.tone }}"><app-icon [name]="l.icon" /></div>
+              <div>
+                <h3>{{ l.label | tr: lang() }}</h3>
+                <p>{{ l.desc | tr: lang() }}</p>
+                @if (hasSavedWorkit()) {
+                  <span class="tile-hint"><app-icon name="log-in" /> {{ lang() === 'vi' ? 'Đăng nhập nhanh' : 'Quick sign-in' }}</span>
+                }
+              </div>
+              <span class="arrow"><app-icon name="log-in" /></span>
+            </button>
+          } @else {
+            <a class="card card-hover tile" [href]="l.url" target="_blank" rel="noopener noreferrer" appReveal>
+              <div class="icon-badge {{ l.tone }}"><app-icon [name]="l.icon" /></div>
+              <div><h3>{{ l.label | tr: lang() }}</h3><p>{{ l.desc | tr: lang() }}</p></div>
+              <span class="arrow"><app-icon name="external-link" /></span>
+            </a>
+          }
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<!-- Announcements + downloads -->
+<section class="section">
+  <div class="container">
+    <div class="split">
+      <div>
+        <h2 class="mb-3" appReveal>{{ lang() === 'vi' ? 'Thông báo nội bộ' : 'Announcements' }}</h2>
+        @for (a of announcements(); track $index) {
+          <div class="card mb-2" appReveal>
+            <div class="row between">
+              <span class="chip brand"><app-icon name="message" /> {{ a.tag | tr: lang() }}</span>
+              <span class="muted-3" style="font-size:.85rem">{{ a.date }}</span>
+            </div>
+            <h3 class="mt-2">{{ a.title | tr: lang() }}</h3>
+            @if (a.body) { <p class="mt-1">{{ a.body | tr: lang() }}</p> }
+          </div>
+        }
+      </div>
+      <div>
+        <h2 class="mb-3" appReveal>{{ lang() === 'vi' ? 'Tài liệu & Biểu mẫu' : 'Documents & Forms' }}</h2>
+        <div class="card" appReveal>
+          @for (d of downloads(); track $index) {
+            <a class="dl-row" [href]="d.url">
+              <app-icon name="download" />
+              <span class="flex-1">{{ d.label | tr: lang() }}</span>
+              <span class="tag">{{ d.type }}</span>
+            </a>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WorkIT sign-in dialog -->
+@if (workitOpen()) {
+  <div class="wk-backdrop" (click)="closeWorkit()"></div>
+  <div class="wk-modal" role="dialog" aria-modal="true">
+    <div class="wk-head">
+      <div class="icon-badge teal"><app-icon name="briefcase" /></div>
+      <div>
+        <strong>{{ lang() === 'vi' ? 'Đăng nhập WorkIT' : 'Sign in to WorkIT' }}</strong>
+        <p class="wk-sub">{{ lang() === 'vi' ? 'Dùng tài khoản WorkIT (đồng bộ với tài khoản máy tính).' : 'Use your WorkIT account (synced with your computer login).' }}</p>
+      </div>
+      <button class="icon-btn" (click)="closeWorkit()" [attr.aria-label]="lang() === 'vi' ? 'Đóng' : 'Close'"><app-icon name="x" /></button>
+    </div>
+
+    <form class="wk-form" (submit)="$event.preventDefault(); submitWorkit()">
+      <label class="wk-fld">
+        <span>{{ lang() === 'vi' ? 'Mã đăng nhập' : 'User ID' }}</span>
+        <input type="text" autocomplete="username" [value]="workitUser()" (input)="workitUser.set($any($event.target).value)"
+          [placeholder]="lang() === 'vi' ? 'Mã đăng nhập WorkIT' : 'WorkIT user ID'" />
+      </label>
+      <label class="wk-fld">
+        <span>{{ lang() === 'vi' ? 'Mật khẩu' : 'Password' }}</span>
+        <input type="password" autocomplete="current-password" [value]="workitPass()" (input)="workitPass.set($any($event.target).value)"
+          [placeholder]="lang() === 'vi' ? 'Mật khẩu' : 'Password'" />
+      </label>
+      <label class="wk-remember">
+        <input type="checkbox" [checked]="workitRemember()" (change)="workitRemember.set($any($event.target).checked)" />
+        <span>{{ lang() === 'vi' ? 'Ghi nhớ trên máy này (lần sau đăng nhập một chạm)' : 'Remember on this device (one-tap next time)' }}</span>
+      </label>
+      <p class="wk-note"><app-icon name="lock" /> {{ lang() === 'vi'
+        ? 'Mật khẩu chỉ lưu trên máy này, không gửi về máy chủ cổng.'
+        : 'Your password is stored only on this device, never sent to the portal server.' }}</p>
+      <div class="wk-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="!workitUser().trim() || !workitPass()">
+          <app-icon name="log-in" /> {{ lang() === 'vi' ? 'Đăng nhập' : 'Sign in' }}
+        </button>
+        @if (hasSavedWorkit()) {
+          <button type="button" class="btn btn-ghost" (click)="forgetWorkit()">{{ lang() === 'vi' ? 'Quên mật khẩu đã lưu' : 'Forget saved password' }}</button>
+        }
+      </div>
+    </form>
+  </div>
+}

@@ -1,0 +1,445 @@
+/* ===========================================================================
+   Trang ho so ca nhan.
+
+   Tong mau do NGUOI DUNG chon chi doi hai bien --acc / --acc-2 tren mot lop
+   .acc-<ten> co dinh; KHONG co chuoi nao tu nguoi dung di thang vao CSS.
+   ========================================================================= */
+
+.profile {
+  --acc: var(--brand);
+  --acc-2: var(--violet);
+}
+.acc-brand  { --acc: #5b5bf5; --acc-2: #a855f7; }
+.acc-teal   { --acc: #10c8b6; --acc-2: #22d3ee; }
+.acc-violet { --acc: #a855f7; --acc-2: #6a5bff; }
+.acc-coral  { --acc: #ff6b6b; --acc-2: #ffb03a; }
+.acc-amber  { --acc: #f7a63b; --acc-2: #ff6b6b; }
+.acc-green  { --acc: #16c784; --acc-2: #10c8b6; }
+.acc-cyan   { --acc: #22d3ee; --acc-2: #5b5bf5; }
+.acc-rose   { --acc: #f43f7e; --acc-2: #a855f7; }
+
+/* ------------------------------------------------------------------ bia -- */
+.cover {
+  position: relative;
+  height: clamp(180px, 26vw, 300px);
+  background: linear-gradient(120deg, var(--acc) 0%, var(--acc-2) 100%);
+  overflow: hidden;
+}
+/* Van hoa tinh te khi chua co anh bia, cho khoi la mang mau phang. */
+.cover:not(.has-img)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 90% at 12% 20%, rgba(255, 255, 255, 0.22), transparent 60%),
+    radial-gradient(45% 70% at 88% 15%, rgba(255, 255, 255, 0.16), transparent 55%);
+}
+.cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Dai chuyen mau xuong nen trang => avatar va ten khong bi "dinh" vao mep anh. */
+.cover-wash {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 60%;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--bg) 88%, transparent));
+}
+
+.cover-tools {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 8px;
+}
+.ctool {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border-radius: var(--pill);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(12, 16, 32, 0.42);
+  backdrop-filter: blur(7px);
+  color: #fff;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.14s ease;
+  &:hover { background: rgba(12, 16, 32, 0.62); }
+  app-icon { width: 16px; height: 16px; }
+}
+
+/* ------------------------------------------------------------ dau trang -- */
+.head {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  margin-top: -58px;
+  padding-bottom: 22px;
+  position: relative;
+  z-index: 1;
+}
+.ava-wrap { position: relative; flex-shrink: 0; }
+.ava {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 5px solid var(--bg);
+  background: hsl(var(--hue, 240), 60%, 55%);
+  box-shadow: var(--shadow);
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+}
+.ava-txt { font-size: 2.6rem; font-weight: 800; color: #fff; letter-spacing: 1px; }
+
+.ava-btn {
+  position: absolute;
+  right: 2px;
+  bottom: 6px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--acc);
+  color: #fff;
+  border: 3px solid var(--bg);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.14s ease;
+  &:hover { transform: scale(1.08); }
+  app-icon { width: 17px; height: 17px; }
+}
+
+.head-main { flex: 1; min-width: 0; padding-bottom: 4px; }
+.name {
+  font-size: clamp(1.6rem, 3.4vw, 2.3rem);
+  line-height: 1.15;
+  margin: 0;
+}
+.headline {
+  margin: 6px 0 0;
+  color: var(--text-2);
+  font-size: 1.02rem;
+}
+.head-meta { gap: 8px; margin-top: 12px; }
+.head-meta .chip app-icon { width: 14px; height: 14px; }
+
+.head-act { display: flex; gap: 8px; flex-shrink: 0; padding-bottom: 6px; }
+
+/* --------------------------------------------------------------- huy hieu -- */
+.badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border-radius: var(--pill);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--bt, var(--brand));
+  box-shadow: 0 3px 10px -4px var(--bt, var(--brand));
+  app-icon { width: 15px; height: 15px; }
+}
+.badge.t-brand  { --bt: #5b5bf5; }
+.badge.t-teal   { --bt: #0fb3a3; }
+.badge.t-violet { --bt: #9333ea; }
+.badge.t-amber  { --bt: #e08a1e; }
+.badge.t-rose   { --bt: #e5306e; }
+.badge.t-cyan   { --bt: #0891b2; }
+.badge.t-green  { --bt: #12a86f; }
+
+/* -------------------------------------------------------------- thong ke -- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px 14px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  b {
+    display: block;
+    font-size: 1.7rem;
+    line-height: 1.1;
+    font-weight: 800;
+    background: linear-gradient(120deg, var(--acc), var(--acc-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  span { font-size: 0.82rem; color: var(--text-3); }
+}
+
+/* ---------------------------------------------------------------- 2 cot -- */
+.cols {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 22px;
+  align-items: start;
+  padding-bottom: 60px;
+}
+.ch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  margin-bottom: 14px;
+  app-icon { width: 17px; height: 17px; color: var(--acc); }
+}
+.bio { white-space: pre-wrap; color: var(--text-2); }
+.empty-hint { font-size: 0.9rem; line-height: 1.55; }
+.src { margin-top: 12px; font-size: 0.76rem; color: var(--text-3); }
+
+.kv {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.9rem;
+  }
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-3);
+    flex-shrink: 0;
+  }
+  span app-icon { width: 15px; height: 15px; }
+  a, b { text-align: right; word-break: break-word; }
+  a { color: var(--brand); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+}
+
+/* Luoi dong nghiep cung phong: bam sang ho so cua ho. */
+.mates { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 8px; }
+.mate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--text-2);
+}
+.mate-n {
+  font-size: 0.72rem;
+  text-align: center;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mate:hover .mate-n { color: var(--brand); }
+
+/* Hai nut chuyen giua Tuong va Hoat dong. */
+.panel-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.panel-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: var(--pill);
+  border: 1px solid var(--border-2);
+  background: var(--surface);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+  app-icon { width: 16px; height: 16px; }
+}
+.panel-tabs button:hover { color: var(--acc); border-color: var(--acc); }
+.panel-tabs button.on {
+  background: linear-gradient(135deg, var(--acc), var(--acc-2));
+  border-color: transparent;
+  color: #fff;
+}
+.panel-tabs .n {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: var(--pill);
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: 0.74rem;
+}
+.panel-tabs button.on .n { background: rgba(255, 255, 255, 0.28); color: #fff; }
+
+/* -------------------------------------------------------- dong thoi gian -- */
+.tl { list-style: none; margin: 0; padding: 0; }
+.tl-item {
+  display: flex;
+  gap: 14px;
+  padding-bottom: 20px;
+  position: relative;
+}
+/* Duong noi doc giua cac muc — bo o muc cuoi. */
+.tl-item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 17px;
+  top: 38px;
+  bottom: 2px;
+  width: 2px;
+  background: var(--border);
+}
+.tl-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: var(--surface-3);
+  color: var(--text-2);
+  z-index: 1;
+  app-icon { width: 17px; height: 17px; }
+}
+.tl-dot.k-post { background: color-mix(in srgb, var(--acc) 18%, var(--surface-2)); color: var(--acc); }
+.tl-dot.k-comment { background: color-mix(in srgb, var(--info) 16%, var(--surface-2)); color: var(--info); }
+.tl-emo { font-style: normal; font-size: 1.05rem; line-height: 1; }
+
+.tl-body { min-width: 0; flex: 1; }
+.tl-line { margin: 0; font-size: 0.94rem; line-height: 1.5; }
+.tl-line b { font-weight: 700; }
+.tl-link { color: var(--brand); text-decoration: none; font-weight: 600; }
+.tl-link:hover { text-decoration: underline; }
+.tl-quote {
+  margin: 8px 0 0;
+  padding: 9px 13px;
+  border-left: 3px solid var(--border-2);
+  background: var(--surface-2);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--text-2);
+  font-size: 0.88rem;
+}
+.tl-when { display: block; margin-top: 6px; font-size: 0.78rem; color: var(--text-3); }
+
+.tl-empty {
+  text-align: center;
+  padding: 34px 16px;
+  color: var(--text-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  app-icon { width: 34px; height: 34px; opacity: 0.5; }
+  p { max-width: 380px; font-size: 0.92rem; }
+}
+.more { width: 100%; justify-content: center; }
+
+/* ------------------------------------------------------------- sua ho so -- */
+.edit .fld { display: block; margin-bottom: 16px; }
+.fl {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 7px;
+}
+.cnt { font-style: normal; font-size: 0.78rem; color: var(--text-3); font-weight: 500; }
+.edit input[type='text'],
+.edit textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+  &:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+}
+
+.tag-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  min-height: 46px;
+}
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 6px 4px 12px;
+  border-radius: var(--pill);
+  background: color-mix(in srgb, var(--acc) 14%, var(--surface-2));
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 600;
+  button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-3);
+    display: grid;
+    place-items: center;
+    padding: 2px;
+    &:hover { color: var(--danger); }
+  }
+  app-icon { width: 13px; height: 13px; }
+}
+.tag-in {
+  flex: 1;
+  min-width: 130px;
+  border: none !important;
+  background: transparent !important;
+  padding: 4px 2px !important;
+  &:focus-visible { outline: none !important; }
+}
+
+.acc-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.acc-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--acc), var(--acc-2));
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.14s ease;
+  &:hover { transform: scale(1.12); }
+  &.on {
+    border-color: var(--text);
+    box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--text);
+  }
+}
+
+/* ------------------------------------------------------------ thu nho -- */
+@media (max-width: 1000px) {
+  .cols { grid-template-columns: 1fr; }
+  .mates { grid-template-columns: repeat(6, 1fr); }
+}
+@media (max-width: 760px) {
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: -50px;
+  }
+  .ava { width: 104px; height: 104px; }
+  .ava-txt { font-size: 2rem; }
+  .head-act { width: 100%; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .mates { grid-template-columns: repeat(4, 1fr); }
+}

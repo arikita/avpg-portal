@@ -1,0 +1,103 @@
+<section class="section chat-page">
+  <div class="container">
+    <div class="shell" [class.show-thread]="mobileThread()">
+      <!-- Thu nho / dong: nam ngay trong khung, goc phai tren. -->
+      <div class="winbar">
+        <button class="wb" (click)="minimize()"
+                [attr.title]="vi() ? 'Thu nhỏ — giữ cuộc trò chuyện, về dạng bong bóng' : 'Minimise — keep the conversation as a bubble'"
+                [attr.aria-label]="vi() ? 'Thu nhỏ' : 'Minimise'">
+          <app-icon name="minus" />
+        </button>
+        <button class="wb" (click)="closeChat()"
+                [attr.title]="vi() ? 'Đóng hẳn cuộc trò chuyện' : 'Close the conversation'"
+                [attr.aria-label]="vi() ? 'Đóng' : 'Close'">
+          <app-icon name="x" />
+        </button>
+      </div>
+
+      <!-- ================================================== cột trái ==== -->
+      <aside class="side">
+        <app-chat-list (picked)="onPicked()" />
+      </aside>
+
+      <!-- ================================================== cột phải ==== -->
+      <main class="main">
+        @if (active(); as c) {
+          <header class="th">
+            <button class="back" (click)="backToList()" [attr.aria-label]="vi() ? 'Quay lại' : 'Back'">
+              <app-icon name="chevron-left" />
+            </button>
+
+            @if (c.kind === 'group') {
+              <span class="gi"><app-icon name="users" /></span>
+            } @else {
+              <app-avatar [name]="c.name" [username]="c.peer" [size]="40" [link]="true" />
+            }
+
+            <div class="ti">
+              <b>{{ c.name }}</b>
+              <i>
+                @if (c.kind === 'group') {
+                  {{ c.members.length }} {{ vi() ? 'thành viên' : 'members' }}
+                } @else {
+                  <span [class.on]="c.online">{{ c.online ? (vi() ? 'Đang trực tuyến' : 'Online') : (vi() ? 'Ngoại tuyến' : 'Offline') }}</span>
+                }
+              </i>
+            </div>
+
+            @if (c.kind === 'group') {
+              <div class="tact">
+                <button class="hb" (click)="adding.set(!adding())" [attr.title]="vi() ? 'Thêm thành viên' : 'Add member'">
+                  <app-icon name="user-plus" />
+                </button>
+                <button class="hb danger" (click)="leave()" [attr.title]="vi() ? 'Rời phòng' : 'Leave group'">
+                  <app-icon name="log-in" />
+                </button>
+              </div>
+            }
+          </header>
+
+          @if (adding() && c.kind === 'group') {
+            <div class="addbox">
+              <div class="mem">
+                @for (m of c.members; track m.username) {
+                  <span class="mchip"><app-avatar [name]="m.name" [username]="m.username" [size]="20" /> {{ m.name }}</span>
+                }
+              </div>
+              <input
+                type="search"
+                [value]="addQuery()"
+                (input)="onAddQuery($event)"
+                [attr.placeholder]="vi() ? 'Tìm người để thêm vào phòng…' : 'Search someone to add…'"
+              />
+              <div class="alist">
+                @for (p of addable(); track p.username) {
+                  <button class="arow" (click)="add(p.username)">
+                    <app-avatar [name]="p.name" [username]="p.username" [size]="30" />
+                    <span><b>{{ p.name }}</b><i>{{ p.title }}</i></span>
+                    <app-icon name="user-plus" />
+                  </button>
+                }
+                @if (!addable().length) {
+                  <p class="none">{{ vi() ? 'Không còn ai để thêm.' : 'Nobody left to add.' }}</p>
+                }
+              </div>
+            </div>
+          }
+
+          <app-chat-thread />
+        } @else {
+          <div class="blank">
+            <div class="bi"><app-icon name="message" /></div>
+            <h3>{{ vi() ? 'Chọn một cuộc trò chuyện' : 'Pick a conversation' }}</h3>
+            <p>
+              {{ vi()
+                ? 'Nhắn riêng cho đồng nghiệp hoặc mở một phòng nhóm. Tin nhắn đến ngay, không phải tải lại trang.'
+                : 'Message a colleague or open a group. Messages arrive instantly.' }}
+            </p>
+          </div>
+        }
+      </main>
+    </div>
+  </div>
+</section>

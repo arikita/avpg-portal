@@ -1,0 +1,94 @@
+@for (b of blocks(); track $index) {
+  @let a = any(b);
+  <div class="cb" appReveal>
+    @switch (b.kind) {
+      @case ('p') {
+        <p>{{ a.text | tr: lang() }}</p>
+      }
+      @case ('bullets') {
+        <ul class="cb-list">
+          @for (it of a.items; track $index) {
+            <li>{{ it | tr: lang() }}</li>
+          }
+        </ul>
+      }
+      @case ('steps') {
+        <ol class="steps">
+          @for (it of a.items; track $index) {
+            <li class="step">
+              <div class="n"></div>
+              <div class="body"><p>{{ it | tr: lang() }}</p></div>
+            </li>
+          }
+        </ol>
+      }
+      @case ('callout') {
+        <div class="callout {{ a.tone }}">
+          <span class="ic"><app-icon [name]="iconFor(a.tone)" /></span>
+          <div>
+            @if (a.title) { <strong>{{ a.title | tr: lang() }}</strong> }
+            <p>{{ a.text | tr: lang() }}</p>
+          </div>
+        </div>
+      }
+      @case ('fields') {
+        @if (a.title) { <h4 class="cb-h">{{ a.title | tr: lang() }}</h4> }
+        <div class="fields">
+          @for (f of a.items; track $index) {
+            <div class="field">
+              <span class="k">{{ f.label | tr: lang() }}</span>
+              <span class="v">
+                @if (isUrl(f.value)) {
+                  <a [href]="f.value" target="_blank" rel="noopener noreferrer">{{ f.value }} <app-icon name="external-link" /></a>
+                } @else if (isEmail(f.value)) {
+                  <a [href]="'mailto:' + f.value">{{ f.value }}</a>
+                } @else {
+                  {{ f.value }}
+                }
+              </span>
+            </div>
+          }
+        </div>
+      }
+      @case ('table') {
+        <div class="table-wrap">
+          <table class="t">
+            <thead>
+              <tr>@for (h of a.head; track $index) { <th>{{ h | tr: lang() }}</th> }</tr>
+            </thead>
+            <tbody>
+              @for (row of a.rows; track $index) {
+                <tr>@for (cell of row; track $index) { <td>{{ cell | tr: lang() }}</td> }</tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+      @case ('links') {
+        <div class="grid grid-2">
+          @for (l of a.items; track $index) {
+            <a
+              class="card card-hover tile"
+              [href]="l.url"
+              [attr.target]="l.external ? '_blank' : null"
+              [attr.rel]="l.external ? 'noopener noreferrer' : null"
+            >
+              <div class="icon-badge sm {{ l.tone || '' }}"><app-icon [name]="l.icon" /></div>
+              <div>
+                <h3>{{ l.label | tr: lang() }}</h3>
+                @if (l.desc) { <p>{{ l.desc | tr: lang() }}</p> }
+              </div>
+              <span class="arrow"><app-icon name="arrow-up-right" /></span>
+            </a>
+          }
+        </div>
+      }
+      @case ('image') {
+        <figure class="cb-figure">
+          <img [src]="a.src" [attr.alt]="(a.alt | tr: lang()) || ''" loading="lazy" />
+          @if (a.caption) { <figcaption>{{ a.caption | tr: lang() }}</figcaption> }
+        </figure>
+      }
+    }
+  </div>
+}

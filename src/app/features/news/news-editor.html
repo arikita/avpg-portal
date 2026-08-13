@@ -1,0 +1,172 @@
+<section class="container editor-wrap">
+  <a class="back" routerLink="/news"><app-icon name="arrow-right" /> {{ lang() === 'vi' ? 'Tất cả tin tức' : 'All news' }}</a>
+
+  @if (!canPost()) {
+    <div class="empty">
+      <app-icon name="lock" />
+      <p>{{ lang() === 'vi' ? 'Bạn không có quyền đăng bài. Liên hệ Nhân sự / Truyền thông / IS.' : 'You do not have permission to post.' }}</p>
+    </div>
+  } @else {
+    <h1>{{ isEdit() ? (lang() === 'vi' ? 'Sửa bài viết' : 'Edit post') : (lang() === 'vi' ? 'Đăng bài mới' : 'New post') }}</h1>
+
+    @if (loading()) {
+      <p class="muted">{{ lang() === 'vi' ? 'Đang tải…' : 'Loading…' }}</p>
+    } @else {
+      @if (error()) { <div class="err"><app-icon name="alert-triangle" /> {{ error() }}</div> }
+
+      @if (restorable(); as when) {
+        <div class="draft-bar">
+          <app-icon name="clock" />
+          <span>{{ lang() === 'vi' ? 'Có bản nháp chưa gửi, lưu lúc ' + when : 'Unsent draft from ' + when }}</span>
+          <button class="btn btn-sm btn-primary" (click)="restoreDraft()">{{ lang() === 'vi' ? 'Khôi phục' : 'Restore' }}</button>
+          <button class="btn btn-sm btn-ghost" (click)="dropDraft()">{{ lang() === 'vi' ? 'Bỏ' : 'Discard' }}</button>
+        </div>
+      }
+
+      <label class="fld">
+        <span>{{ lang() === 'vi' ? 'Danh mục' : 'Category' }}</span>
+        <select [value]="category()" (change)="category.set($any($event.target).value)">
+          @for (c of categories; track c.id) { <option [value]="c.id">{{ c.label | tr: lang() }}</option> }
+        </select>
+      </label>
+
+      <label class="fld">
+        <span>{{ lang() === 'vi' ? 'Tiêu đề' : 'Title' }} *</span>
+        <input [value]="titleVi()" (input)="titleVi.set($any($event.target).value)" [placeholder]="lang() === 'vi' ? 'Tiêu đề bài viết' : 'Post title'" />
+      </label>
+
+      <label class="fld">
+        <span>{{ lang() === 'vi' ? 'Tóm tắt' : 'Summary' }}</span>
+        <textarea rows="2" [value]="summaryVi()" (input)="summaryVi.set($any($event.target).value)"
+          [placeholder]="lang() === 'vi' ? 'Một hai câu tóm tắt, hiện ở trang danh sách tin.' : 'One or two lines shown on the news list.'"></textarea>
+      </label>
+
+      <div class="fld">
+        <span>{{ lang() === 'vi' ? 'Ảnh bìa' : 'Cover image' }}</span>
+        <div class="cover-pick">
+          @if (cover()) { <img class="cover-prev" [src]="cover()" alt="cover" /> }
+          <div class="cover-actions">
+            <label class="btn btn-ghost btn-sm">
+              <app-icon name="image" /> {{ cover() ? (lang() === 'vi' ? 'Đổi ảnh' : 'Change') : (lang() === 'vi' ? 'Tải ảnh bìa' : 'Upload cover') }}
+              <input type="file" accept="image/*" hidden (change)="pickCover($event)" />
+            </label>
+            @if (cover()) { <button class="btn btn-ghost btn-sm" (click)="cover.set('')">{{ lang() === 'vi' ? 'Gỡ' : 'Remove' }}</button> }
+          </div>
+        </div>
+      </div>
+
+      <div class="fld">
+        <span>{{ lang() === 'vi' ? 'Nội dung (VI)' : 'Content (VI)' }}</span>
+        <app-rich-editor [text]="bodyVi()" (textChange)="bodyVi.set($event)" [minHeight]="380" (busy)="uploading.set($event)" (failed)="error.set($event)"
+          [placeholder]="lang() === 'vi' ? 'Viết nội dung… Bôi đen chữ rồi bấm nút trên thanh công cụ để định dạng.' : 'Write content… Select text, then use the toolbar.'" />
+      </div>
+
+
+      <div class="fld poll-fld post-options">
+        <span class="opts-label">{{ lang() === 'vi' ? 'Tuỳ chọn bài viết' : 'Post options' }}</span>
+
+        <label class="opt-row">
+          <input type="checkbox" [checked]="commentsOff()" (change)="commentsOff.set($any($event.target).checked)" />
+          <span>
+            <b>{{ lang() === 'vi' ? 'Không cho bình luận bài này' : 'Disable comments on this post' }}</b>
+            <em>{{ lang() === 'vi' ? 'Bình luận đã có vẫn hiển thị, chỉ chặn viết bình luận mới.' : 'Existing comments stay visible; only new comments are blocked.' }}</em>
+          </span>
+        </label>
+
+        @if (hasExistingPoll()) {
+          <div class="poll-note warn">
+            <app-icon name="alert-triangle" />
+            {{ lang() === 'vi'
+              ? 'Bài này đã có bình chọn. Sửa chữ thì phiếu giữ nguyên, nhưng XOÁ một phương án là mất luôn phiếu đã bỏ cho phương án đó.'
+              : 'This post already has a poll. Editing labels keeps votes, but deleting an option deletes its votes.' }}
+          </div>
+        }
+        @if (true) {
+          <label class="opt-row" [class.hide]="hasExistingPoll()">
+            <input type="checkbox" [checked]="pollOn()" (change)="pollOn.set($any($event.target).checked)" />
+            <span><b>{{ lang() === 'vi' ? 'Thêm bình chọn' : 'Add a poll' }}</b></span>
+          </label>
+
+          @if (pollOn()) {
+            @for (q of questions(); track $index; let qi = $index) {
+              <div class="poll-q-block">
+                <div class="poll-q-head">
+                  <span class="poll-q-no">{{ lang() === 'vi' ? 'Câu ' : 'Q' }}{{ qi + 1 }}</span>
+                  @if (questions().length > 1) {
+                    <button type="button" class="opt-del" (click)="removeQuestion(qi)" [title]="lang() === 'vi' ? 'Xoá câu hỏi' : 'Remove question'"><app-icon name="trash" /></button>
+                  }
+                </div>
+
+                <input class="poll-q-in" [value]="q.question" (input)="setQuestion(qi, $any($event.target).value)"
+                  [placeholder]="lang() === 'vi' ? 'Câu hỏi bình chọn' : 'Poll question'" />
+
+                @for (o of q.options; track $index; let oi = $index) {
+                  <div class="poll-opt-row">
+                    <input [value]="o.label" (input)="setOption(qi, oi, $any($event.target).value)"
+                      [placeholder]="(lang() === 'vi' ? 'Lựa chọn ' : 'Option ') + (oi + 1)" />
+                    @if (o.votes) { <span class="opt-votes" [title]="lang() === 'vi' ? 'Số phiếu đã bỏ cho phương án này' : 'Votes cast'">{{ o.votes }} {{ lang() === 'vi' ? 'phiếu' : 'votes' }}</span> }
+                    @if (q.options.length > 2) {
+                      <button type="button" class="opt-del" (click)="removeOption(qi, oi)" aria-label="remove"><app-icon name="trash" /></button>
+                    }
+                  </div>
+                }
+
+                <div class="poll-build-foot">
+                  <button type="button" class="link" (click)="addOption(qi)">+ {{ lang() === 'vi' ? 'Thêm lựa chọn' : 'Add option' }}</button>
+                </div>
+
+                <div class="poll-q-set">
+                  <label class="poll-chk">
+                    <input type="checkbox" [checked]="q.multi" (change)="setMulti(qi, $any($event.target).checked)" />
+                    <span><b>{{ lang() === 'vi' ? 'Cho chọn nhiều phương án' : 'Allow multiple choices' }}</b></span>
+                  </label>
+                  <label class="poll-chk">
+                    <input type="checkbox" [checked]="q.allowAdd" (change)="setAllowAdd(qi, $any($event.target).checked)" />
+                    <span><b>{{ lang() === 'vi' ? 'Cho người bình chọn thêm phương án' : 'Let voters add options' }}</b></span>
+                  </label>
+                </div>
+              </div>
+            }
+
+            <button type="button" class="btn btn-ghost btn-sm add-q" (click)="addQuestion()">
+              + {{ lang() === 'vi' ? 'Thêm câu hỏi' : 'Add question' }}
+            </button>
+
+            <div class="poll-set">
+              <div class="poll-set-tag">{{ lang() === 'vi' ? 'Áp dụng cho cả bình chọn' : 'Applies to the whole poll' }}</div>
+
+              <label class="poll-chk">
+                <input type="checkbox" [checked]="pollAnon()" (change)="pollAnon.set($any($event.target).checked)" />
+                <span>
+                  <b>{{ lang() === 'vi' ? 'Bình chọn ẩn danh' : 'Anonymous voting' }}</b>
+                  <em>{{ lang() === 'vi' ? 'Không ai xem được ai chọn gì — kể cả bạn. Hệ thống vẫn ghi nhận để mỗi người chỉ bỏ phiếu một lần.' : 'Nobody — including you — sees who voted for what.' }}</em>
+                </span>
+              </label>
+
+              <label class="poll-when">
+                <b>{{ lang() === 'vi' ? 'Thời hạn bình chọn' : 'Voting deadline' }}</b>
+                <input type="datetime-local" [value]="pollCloses()" (input)="pollCloses.set($any($event.target).value)" />
+                @if (pollCloses()) {
+                  <button type="button" class="link" (click)="pollCloses.set('')">{{ lang() === 'vi' ? 'Bỏ hạn' : 'Clear' }}</button>
+                } @else {
+                  <em>{{ lang() === 'vi' ? 'Để trống = không giới hạn.' : 'Empty = no deadline.' }}</em>
+                }
+              </label>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="editor-actions">
+        <button class="btn btn-primary" [disabled]="saving() || uploading()" (click)="save('published')">
+          <app-icon name="send" /> {{ isEdit() ? (lang() === 'vi' ? 'Cập nhật & đăng' : 'Update & publish') : (lang() === 'vi' ? 'Đăng ngay' : 'Publish') }}
+        </button>
+        <button class="btn btn-ghost" [disabled]="saving() || uploading()" (click)="save('draft')">
+          {{ lang() === 'vi' ? 'Lưu nháp' : 'Save draft' }}
+        </button>
+        <a class="btn btn-ghost" routerLink="/news">{{ lang() === 'vi' ? 'Huỷ' : 'Cancel' }}</a>
+        @if (uploading()) { <span class="muted up">{{ lang() === 'vi' ? 'Đang tải ảnh…' : 'Uploading…' }}</span> }
+      </div>
+    }
+  }
+</section>

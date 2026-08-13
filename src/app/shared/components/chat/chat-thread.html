@@ -1,0 +1,97 @@
+<div class="thread" [class.compact]="compact()">
+  <!-- ================================================== dòng tin nhắn ==== -->
+  <div class="scroll" #scroller (scroll)="onScroll()">
+    @if (canLoadOlder()) {
+      <button class="older" (click)="loadOlder()">
+        {{ vi() ? 'Xem tin cũ hơn' : 'Older messages' }}
+      </button>
+    }
+
+    @for (r of rows(); track r.key) {
+      @if (r.t === 'day') {
+        <div class="day"><span>{{ r.label }}</span></div>
+      } @else {
+        <div class="row" [class.mine]="r.mine" [class.tail]="r.tail">
+          <span class="slot">
+            @if (!r.mine && r.tail) {
+              <app-avatar [name]="r.m.senderName" [username]="r.m.sender" [size]="28" [link]="true" />
+            }
+          </span>
+
+          <div class="stack">
+            @if (r.head && !r.mine) { <span class="who">{{ r.m.senderName }}</span> }
+
+            <div class="bub-line">
+              <div class="bub" [class.gone]="r.m.deleted" [class.pic]="!!r.m.image && !r.m.body">
+                @if (r.m.deleted) {
+                  <em class="recalled">{{ vi() ? 'Tin nhắn đã được thu hồi' : 'Message recalled' }}</em>
+                } @else {
+                  @if (r.m.image) {
+                    <a class="shot" [href]="r.m.image" target="_blank" rel="noopener noreferrer">
+                      <img [src]="r.m.image" [alt]="vi() ? 'Ảnh' : 'Image'" loading="lazy" />
+                    </a>
+                  }
+                  @if (r.m.body) {
+                    <p class="txt">@for (s of segs(r.m.body); track $index) {@if (s.href) {<a [href]="s.href" target="_blank" rel="noopener noreferrer">{{ s.text }}</a>} @else {{{ s.text }}}}</p>
+                  }
+                }
+              </div>
+
+              @if (r.mine && !r.m.deleted) {
+                <button class="recall" (click)="recall(r.m)" [attr.title]="vi() ? 'Thu hồi' : 'Recall'">
+                  <app-icon name="trash" />
+                </button>
+              }
+            </div>
+
+            @if (r.tail) { <time class="at">{{ time(r.m.at) }}</time> }
+          </div>
+        </div>
+      }
+    }
+
+    @if (typingName()) {
+      <div class="row typing-row">
+        <span class="slot"></span>
+        <div class="stack">
+          <div class="bub typing"><i></i><i></i><i></i></div>
+          <span class="who small">{{ typingName() }} {{ vi() ? 'đang nhập…' : 'is typing…' }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ======================================================= ô soạn ==== -->
+  <div class="composer">
+    @if (draft.image) {
+      <div class="pending">
+        <img [src]="draft.image" alt="" />
+        <button (click)="clearImage()" [attr.aria-label]="vi() ? 'Bỏ ảnh' : 'Remove'"><app-icon name="x" /></button>
+      </div>
+    }
+
+    <div class="emoji-row">
+      @for (e of quick; track e) {
+        <button class="emo" (click)="addEmoji(e)" [attr.aria-label]="e">{{ e }}</button>
+      }
+    </div>
+
+    <div class="input-row">
+      <label class="tool" [attr.title]="vi() ? 'Gửi ảnh' : 'Send a photo'">
+        <app-icon name="image" />
+        <input type="file" accept="image/*" (change)="onFile($event)" hidden />
+      </label>
+      <textarea
+        #box
+        rows="1"
+        (input)="onInput($event)"
+        (keydown)="onKey($event)"
+        (paste)="onPaste($event)"
+        [attr.placeholder]="vi() ? 'Nhắn gì đó… (Enter để gửi)' : 'Type a message… (Enter to send)'"
+      ></textarea>
+      <button class="send" (click)="send()" [attr.aria-label]="vi() ? 'Gửi' : 'Send'">
+        <app-icon name="send" />
+      </button>
+    </div>
+  </div>
+</div>

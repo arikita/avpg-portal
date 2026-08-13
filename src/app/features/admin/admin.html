@@ -1,0 +1,62 @@
+<section class="section">
+  <div class="container">
+    <span class="eyebrow"><app-icon name="lock" /> {{ lang() === 'vi' ? 'Quản trị nội dung' : 'Content admin' }}</span>
+    <h1 class="mt-2">{{ lang() === 'vi' ? 'Sửa nội dung portal' : 'Edit portal content' }}</h1>
+
+    @if (!ready()) {
+      <p class="lead mt-2">{{ lang() === 'vi' ? 'Đang kiểm tra quyền…' : 'Checking permissions…' }}</p>
+    } @else if (!canEdit()) {
+      <div class="field mt-3">
+        <span class="nm">{{ lang() === 'vi'
+          ? 'Bạn không có quyền sửa nội dung. Quyền này dành cho nhóm Information System.'
+          : 'You do not have permission to edit content (group: Information System).' }}</span>
+      </div>
+    } @else {
+      <p class="lead mt-2">{{ lang() === 'vi'
+        ? 'Sửa và lưu — không cần build lại. Bản cũ luôn được lưu để khôi phục.'
+        : 'Edit and save — no rebuild needed. Previous versions are kept.' }}</p>
+
+      <div class="grid mt-4" style="grid-template-columns:minmax(220px,300px) 1fr; gap:20px; align-items:start">
+        <div class="card" style="padding:12px; max-height:70vh; overflow:auto">
+          @for (m of modules(); track m) {
+            <div style="margin-bottom:10px">
+              <div class="muted-3" style="font-weight:700; font-size:.8rem; text-transform:uppercase">{{ m }}</div>
+              @for (e of entriesOf(m); track e.key) {
+                <a href="javascript:void(0)" (click)="select(e)"
+                   style="display:block; padding:5px 8px; border-radius:7px; font-size:.9rem"
+                   [style.background]="selected()?.module === e.module && selected()?.key === e.key ? 'var(--surface-2)' : 'transparent'"
+                   >{{ e.key }}</a>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="card" style="padding:16px">
+          @if (!selected()) {
+            <p class="muted-3">{{ lang() === 'vi' ? 'Chọn một mục bên trái để sửa.' : 'Pick an item on the left.' }}</p>
+          } @else {
+            <h3 style="font-size:1.05rem">{{ selected()!.module }} · {{ selected()!.key }}</h3>
+            @if (bilingual()) {
+              <label class="muted-3" style="display:block; margin-top:12px; font-size:.85rem">Tiếng Việt</label>
+              <textarea [(ngModel)]="draftVi" rows="5" style="width:100%; padding:10px"></textarea>
+              <label class="muted-3" style="display:block; margin-top:12px; font-size:.85rem">English</label>
+              <textarea [(ngModel)]="draftEn" rows="5" style="width:100%; padding:10px"></textarea>
+            } @else {
+              <label class="muted-3" style="display:block; margin-top:12px; font-size:.85rem">
+                JSON — {{ lang() === 'vi' ? 'giữ đúng cấu trúc, sai định dạng sẽ không lưu được' : 'keep the structure valid' }}
+              </label>
+              <textarea [(ngModel)]="draftJson" rows="20"
+                        style="width:100%; padding:10px; font-family:monospace; font-size:.85rem"></textarea>
+            }
+            <div style="margin-top:14px; display:flex; gap:12px; align-items:center">
+              <button class="btn btn-primary" (click)="save()" [disabled]="saving()">
+                <app-icon name="check" /> {{ lang() === 'vi' ? 'Lưu' : 'Save' }}
+              </button>
+              <span class="muted-3" style="font-size:.88rem">{{ status() }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</section>

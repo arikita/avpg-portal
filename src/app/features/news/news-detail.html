@@ -1,0 +1,251 @@
+@if (loading()) {
+  <div class="container detail-wrap"><div class="skeleton-lg"></div></div>
+} @else if (error() || !post()) {
+  <div class="container detail-wrap empty">
+    <app-icon name="alert-triangle" />
+    <p>{{ lang() === 'vi' ? 'Không tìm thấy bài viết.' : 'Post not found.' }}</p>
+    <a class="btn btn-ghost btn-sm" routerLink="/news">{{ lang() === 'vi' ? 'Về trang tin' : 'Back to news' }}</a>
+  </div>
+} @else if (post(); as p) {
+  <article class="container detail-wrap">
+    <a class="back" routerLink="/news"><app-icon name="arrow-right" /> {{ lang() === 'vi' ? 'Tất cả tin tức' : 'All news' }}</a>
+
+    <div class="detail-tags">
+      <span class="pill cat">{{ catLabel(p.category) | tr: lang() }}</span>
+      @if (p.pinned) { <span class="pill pin"><app-icon name="star" /> {{ lang() === 'vi' ? 'Đã ghim' : 'Pinned' }}</span> }
+      @if (p.status !== 'published') { <span class="pill draft">{{ p.status === 'draft' ? (lang() === 'vi' ? 'Bản nháp' : 'Draft') : (lang() === 'vi' ? 'Đang ẩn' : 'Hidden') }}</span> }
+    </div>
+
+    <h1 class="detail-title">{{ p.title | tr: lang() }}</h1>
+
+    <div class="detail-meta">
+      <app-avatar [name]="p.authorName" [username]="p.author" [size]="44" [link]="true" />
+      <div>
+        <a class="who" [routerLink]="['/profile', p.author]">{{ p.authorName }}</a>
+        <time class="when" [title]="fullDate(p.publishedAt || p.createdAt)">{{ rel(p.publishedAt || p.createdAt) }}</time>
+      </div>
+
+      @if (p.canEdit) {
+        <div class="admin-actions">
+          <a class="icon-btn" [routerLink]="['/news', p.id, 'edit']" [title]="lang() === 'vi' ? 'Sửa' : 'Edit'"><app-icon name="edit" /></a>
+          @if (p.canModerate) {
+            <button class="icon-btn" (click)="togglePin()" [title]="lang() === 'vi' ? 'Ghim/bỏ ghim' : 'Pin/unpin'"><app-icon name="star" /></button>
+          }
+          <button class="icon-btn danger" (click)="removePost()" [title]="lang() === 'vi' ? 'Xoá' : 'Delete'"><app-icon name="trash" /></button>
+        </div>
+      }
+    </div>
+
+    @if (p.cover) {
+      <div class="cover-frame" [style.--cover]="'url(' + p.cover + ')'">
+        <img class="detail-cover" [src]="p.cover" [alt]="(p.title | tr: lang())" />
+      </div>
+    }
+
+    @if ((p.summary | tr: lang())) { <p class="detail-lead">{{ p.summary | tr: lang() }}</p> }
+
+    <div class="detail-body">
+      <app-rich-body [text]="bodyText()" />
+    </div>
+
+    <!-- ===== Binh chon (mot bai co the co nhieu cau hoi) ===== -->
+    @for (pl of polls(); track pl.id; let qi = $index) {
+      <div class="poll">
+        <div class="poll-q">
+          <app-icon name="check-square" />
+          @if (polls().length > 1) { <span class="poll-no">{{ lang() === 'vi' ? 'Câu ' : 'Q' }}{{ qi + 1 }}.</span> }
+          {{ pl.question || (lang() === 'vi' ? 'Bình chọn' : 'Poll') }}
+          @if (pl.anonymous) { <span class="poll-badge">{{ lang() === 'vi' ? 'Ẩn danh' : 'Anonymous' }}</span> }
+          @if (pl.closed) {
+            <span class="poll-badge end">{{ lang() === 'vi' ? 'Đã kết thúc' : 'Closed' }}</span>
+          } @else if (pl.closesAt) {
+            <span class="poll-badge live">{{ lang() === 'vi' ? 'Hạn: ' : 'Until: ' }}{{ fullDate(pl.closesAt) }}</span>
+          }
+        </div>
+
+        @if (showResults(pl)) {
+          @for (o of pl.options; track o.id) {
+            <div class="poll-res" [class.mine]="o.mine">
+              <div class="poll-bar" [style.width.%]="pct(pl, o)"></div>
+              <span class="poll-lbl">
+                @if (o.mine) { <app-icon name="check" /> } {{ o.label }}
+                @if (o.addedBy) { <em class="poll-added">{{ lang() === 'vi' ? '(tự thêm)' : '(added)' }}</em> }
+                @if (o.voters?.length) {
+                  <span class="poll-who" [title]="(o.voters || []).join(', ')">
+                    @for (v of (o.voters || []).slice(0, 3); track $index) {
+                      <span class="pw" [style.--hue]="avatarHue(v)">{{ initials(v) }}</span>
+                    }
+                    @if ((o.voters || []).length > 3) { <span class="pw more">+{{ (o.voters || []).length - 3 }}</span> }
+                  </span>
+                }
+              </span>
+              <span class="poll-pct">{{ pct(pl, o) }}% · {{ o.votes }}</span>
+            </div>
+          }
+        } @else {
+          @for (o of pl.options; track o.id) {
+            <button class="poll-opt" [class.sel]="isSel(pl, o.id)" [disabled]="pollBusy() || pl.closed" (click)="togglePollOpt(pl, o)">
+              <span class="tick" [class.on]="isSel(pl, o.id)">@if (pl.multi) { <app-icon name="check" /> } @else { <span class="radio"></span> }</span>
+              {{ o.label }}
+            </button>
+          }
+          @if (pl.multi) {
+            <button class="btn btn-primary btn-sm poll-submit" [disabled]="!hasSel(pl) || pollBusy()" (click)="submitMulti(pl)">{{ lang() === 'vi' ? 'Bình chọn' : 'Vote' }}</button>
+          }
+        }
+
+        @if (pl.allowAdd && !pl.closed) {
+          <div class="poll-add">
+            <input [value]="newOptionOf(pl)" (input)="setNewOption(pl, $any($event.target).value)"
+              (keydown.enter)="addOption(pl)" maxlength="120"
+              [placeholder]="lang() === 'vi' ? 'Thêm phương án của bạn…' : 'Add your own option…'" />
+            <button class="btn btn-ghost btn-sm" [disabled]="!newOptionOf(pl).trim() || pollBusy()" (click)="addOption(pl)">
+              + {{ lang() === 'vi' ? 'Thêm' : 'Add' }}
+            </button>
+          </div>
+        }
+
+        <div class="poll-foot">
+          {{ pl.totalVoters }} {{ lang() === 'vi' ? 'lượt bình chọn' : 'votes' }}
+          @if (pl.multi) { · {{ lang() === 'vi' ? 'chọn nhiều' : 'multiple choice' }} }
+          @if (pl.anonymous) { · {{ lang() === 'vi' ? 'ẩn danh' : 'anonymous' }} }
+          @if (canPeek(pl)) {
+            · <button class="link" (click)="peek(pl)">{{ lang() === 'vi' ? 'Xem kết quả' : 'See results' }}</button>
+          }
+          @if (showResults(pl) && !pl.closed && pl.voted) {
+            · <button class="link" (click)="revote(pl)">{{ lang() === 'vi' ? 'Đổi lựa chọn' : 'Change vote' }}</button>
+          }
+          @if (p.author === me() && qi === 0) {
+            · <a class="link" [href]="'/api/news/' + p.id + '/poll/export.csv'" download>
+                <app-icon name="download" /> {{ lang() === 'vi' ? 'Tải kết quả (CSV)' : 'Download results (CSV)' }}
+              </a>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ===== Reactions ===== -->
+    <div class="react-bar">
+      @for (e of (p.emojis || []); track e) {
+        <button class="rx-btn" [class.mine]="p.reactions.mine === e" (click)="react(e)">
+          <span class="rx-emoji">{{ e }}</span>
+          @if (count(e)) { <span class="rx-num">{{ count(e) }}</span> }
+        </button>
+      }
+      @if (p.reactions.total) {
+        <button class="rx-total link" (click)="openReactors()">{{ p.reactions.total }} {{ lang() === 'vi' ? 'lượt cảm xúc' : 'reactions' }}</button>
+      }
+      <span class="views"><app-icon name="eye" /> {{ p.views || 0 }}</span>
+    </div>
+
+    @if (reactorsOpen()) {
+      <div class="rx-backdrop" (click)="reactorsOpen.set(false)"></div>
+      <div class="rx-modal" role="dialog">
+        <div class="rx-modal-head">
+          <strong>{{ lang() === 'vi' ? 'Đã bày tỏ cảm xúc' : 'Reactions' }}</strong>
+          <button class="icon-btn" (click)="reactorsOpen.set(false)"><app-icon name="x" /></button>
+        </div>
+        <div class="rx-list">
+          @for (r of (p.reactors || []); track r.username) {
+            <div class="rx-person">
+              <app-avatar [name]="r.name" [username]="r.username" [size]="34" [link]="true" />
+              <a class="rx-person-name" [routerLink]="['/profile', r.username]" (click)="reactorsOpen.set(false)">{{ r.name }}</a>
+              <span class="rx-person-emoji">{{ r.emoji }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ===== Comments ===== -->
+    <section class="comments">
+      <h2><app-icon name="message" /> {{ lang() === 'vi' ? 'Bình luận' : 'Comments' }}</h2>
+
+      @if (p.commentsEnabled === false) {
+        <div class="comments-off">
+          <app-icon name="lock" />
+          <span>{{ lang() === 'vi' ? 'Bài này đã tắt bình luận.' : 'Comments are turned off for this post.' }}</span>
+        </div>
+      } @else {
+        <div class="comment-box">
+          <textarea
+            rows="2"
+            [value]="newComment()"
+            (input)="newComment.set($any($event.target).value)"
+            [placeholder]="lang() === 'vi' ? 'Viết bình luận…' : 'Write a comment…'"
+          ></textarea>
+          <button class="btn btn-primary btn-sm" [disabled]="!newComment().trim() || busy()" (click)="submitComment()">
+            <app-icon name="send" /> {{ lang() === 'vi' ? 'Gửi' : 'Send' }}
+          </button>
+        </div>
+      }
+
+      @if (!comments().length && p.commentsEnabled !== false) {
+        <p class="no-comments">{{ lang() === 'vi' ? 'Hãy là người bình luận đầu tiên.' : 'Be the first to comment.' }}</p>
+      }
+
+      @for (c of comments(); track c.id) {
+        <ng-container *ngTemplateOutlet="node; context: { $implicit: c, depth: 0 }" />
+      }
+    </section>
+  </article>
+
+  <!-- ===== Recursive comment node ===== -->
+  <ng-template #node let-c let-depth="depth">
+    <div class="comment" [class.reply]="depth > 0">
+      <app-avatar [name]="c.authorName" [username]="c.author" [size]="34" [link]="true" />
+      <div class="c-main">
+        <div class="c-bubble" [class.gone]="c.deleted">
+          <div class="c-head">
+            <a class="c-who" [routerLink]="['/profile', c.author]">{{ c.authorName }}</a>
+            <time>{{ rel(c.createdAt) }}</time>
+            @if (c.editedAt && !c.deleted) { <span class="edited">({{ lang() === 'vi' ? 'đã sửa' : 'edited' }})</span> }
+          </div>
+
+          @if (editingId() === c.id) {
+            <div class="c-edit">
+              <textarea rows="2" [value]="editText()" (input)="editText.set($any($event.target).value)"></textarea>
+              <div class="c-edit-actions">
+                <button class="btn btn-primary btn-sm" [disabled]="!editText().trim() || busy()" (click)="submitEdit(c)">{{ lang() === 'vi' ? 'Lưu' : 'Save' }}</button>
+                <button class="btn btn-ghost btn-sm" (click)="editingId.set(null)">{{ lang() === 'vi' ? 'Huỷ' : 'Cancel' }}</button>
+              </div>
+            </div>
+          } @else if (c.deleted) {
+            <p class="c-text muted">{{ lang() === 'vi' ? '[Bình luận đã xoá]' : '[Comment deleted]' }}</p>
+          } @else {
+            <p class="c-text">{{ c.body }}</p>
+          }
+        </div>
+
+        @if (!c.deleted && editingId() !== c.id) {
+          <div class="c-actions">
+            @if (canComment()) { <button (click)="openReply(c)">{{ lang() === 'vi' ? 'Trả lời' : 'Reply' }}</button> }
+            @if (canEditComment(c)) { <button (click)="openEdit(c)">{{ lang() === 'vi' ? 'Sửa' : 'Edit' }}</button> }
+            @if (canManageComment(c)) { <button class="danger" (click)="removeComment(c)">{{ lang() === 'vi' ? 'Xoá' : 'Delete' }}</button> }
+          </div>
+        }
+
+        @if (replyTo() === c.id) {
+          <div class="c-reply-box">
+            <textarea
+              rows="2"
+              [value]="replyText()"
+              (input)="replyText.set($any($event.target).value)"
+              [placeholder]="(lang() === 'vi' ? 'Trả lời ' : 'Reply to ') + c.authorName + '…'"
+            ></textarea>
+            <div class="c-edit-actions">
+              <button class="btn btn-primary btn-sm" [disabled]="!replyText().trim() || busy()" (click)="submitReply(c)">
+                <app-icon name="send" /> {{ lang() === 'vi' ? 'Gửi' : 'Send' }}
+              </button>
+              <button class="btn btn-ghost btn-sm" (click)="replyTo.set(null)">{{ lang() === 'vi' ? 'Huỷ' : 'Cancel' }}</button>
+            </div>
+          </div>
+        }
+
+        @for (r of c.replies; track r.id) {
+          <ng-container *ngTemplateOutlet="node; context: { $implicit: r, depth: depth + 1 }" />
+        }
+      </div>
+    </div>
+  </ng-template>
+}

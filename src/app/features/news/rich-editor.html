@@ -1,0 +1,201 @@
+<div class="rte" [class.full]="full()">
+  <div class="rte-bar" role="toolbar" [attr.aria-label]="lang() === 'vi' ? 'Định dạng' : 'Formatting'">
+    <div class="grp">
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="undo()" [title]="lang() === 'vi' ? 'Hoàn tác (Ctrl+Z)' : 'Undo'"><app-icon name="undo" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="redo()" [title]="lang() === 'vi' ? 'Làm lại (Ctrl+Y)' : 'Redo'"><app-icon name="redo" /></button>
+    </div>
+
+    <div class="grp">
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="fmt('b')" [title]="lang() === 'vi' ? 'In đậm (Ctrl+B)' : 'Bold'"><app-icon name="bold" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="fmt('i')" [title]="lang() === 'vi' ? 'In nghiêng (Ctrl+I)' : 'Italic'"><app-icon name="italic" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="fmt('u')" [title]="lang() === 'vi' ? 'Gạch chân (Ctrl+U)' : 'Underline'"><app-icon name="underline" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="fmt('s')" [title]="lang() === 'vi' ? 'Gạch ngang' : 'Strikethrough'"><app-icon name="strikethrough" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="mark()" [title]="lang() === 'vi' ? 'Tô sáng' : 'Highlight'"><app-icon name="highlighter" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="codeSpan()" [title]="lang() === 'vi' ? 'Mã / lệnh' : 'Code'"><app-icon name="code" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="fmt('clear')" [title]="lang() === 'vi' ? 'Xoá định dạng' : 'Clear formatting'"><app-icon name="eraser" /></button>
+    </div>
+
+    <div class="grp">
+      <button type="button" class="pop-btn" (mousedown)="$event.preventDefault()" (click)="openPop('color')" [title]="lang() === 'vi' ? 'Màu chữ' : 'Text colour'"><app-icon name="palette" /></button>
+      <button type="button" class="pop-btn" (mousedown)="$event.preventDefault()" (click)="openPop('bg')" [title]="lang() === 'vi' ? 'Màu nền chữ' : 'Background colour'"><app-icon name="droplet" /></button>
+      <button type="button" class="pop-btn" (mousedown)="$event.preventDefault()" (click)="openPop('size')" [title]="lang() === 'vi' ? 'Cỡ chữ' : 'Font size'"><app-icon name="type" /></button>
+    </div>
+
+    <div class="grp">
+      <button type="button" class="txt" (mousedown)="$event.preventDefault()" (click)="block('H2')" [title]="lang() === 'vi' ? 'Tiêu đề lớn' : 'Heading 2'">H2</button>
+      <button type="button" class="txt" (mousedown)="$event.preventDefault()" (click)="block('H3')" [title]="lang() === 'vi' ? 'Tiêu đề vừa' : 'Heading 3'">H3</button>
+      <button type="button" class="txt" (mousedown)="$event.preventDefault()" (click)="block('H4')" [title]="lang() === 'vi' ? 'Tiêu đề nhỏ' : 'Heading 4'">H4</button>
+      <button type="button" class="txt" (mousedown)="$event.preventDefault()" (click)="block('P')" [title]="lang() === 'vi' ? 'Văn bản thường' : 'Normal text'">¶</button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="block('BLOCKQUOTE')" [title]="lang() === 'vi' ? 'Trích dẫn' : 'Quote'"><app-icon name="quote" /></button>
+    </div>
+
+    <div class="grp">
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="list(false)" [title]="lang() === 'vi' ? 'Gạch đầu dòng' : 'Bulleted list'"><app-icon name="list" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="list(true)" [title]="lang() === 'vi' ? 'Danh sách đánh số' : 'Numbered list'"><app-icon name="list-ordered" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="indent(true)" [title]="lang() === 'vi' ? 'Giảm thụt lề' : 'Outdent'"><app-icon name="outdent" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="indent()" [title]="lang() === 'vi' ? 'Tăng thụt lề' : 'Indent'"><app-icon name="indent" /></button>
+    </div>
+
+    <div class="grp">
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="align('Left')" [title]="lang() === 'vi' ? 'Căn trái' : 'Align left'"><app-icon name="align-left" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="align('Center')" [title]="lang() === 'vi' ? 'Căn giữa' : 'Align centre'"><app-icon name="align-center" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="align('Right')" [title]="lang() === 'vi' ? 'Căn phải' : 'Align right'"><app-icon name="align-right" /></button>
+      <select class="lh" (mousedown)="$event.stopPropagation()" (change)="setLineHeight($any($event.target).value)"
+        [title]="lang() === 'vi' ? 'Giãn dòng' : 'Line spacing'">
+        <option value="">↕</option>
+        <option value="1.2">1,0</option>
+        <option value="1.5">1,5</option>
+        <option value="1.8">1,8</option>
+        <option value="2.2">2,0</option>
+      </select>
+    </div>
+
+    <div class="grp">
+      <button type="button" class="pop-btn" (mousedown)="$event.preventDefault()" (click)="openPop('link')" [title]="lang() === 'vi' ? 'Liên kết (Ctrl+K)' : 'Link'"><app-icon name="link" /></button>
+      <label class="pick" [title]="lang() === 'vi' ? 'Chèn ảnh' : 'Insert image'">
+        <app-icon name="image" />
+        <input type="file" accept="image/*" multiple hidden (change)="pickImage($event)" />
+      </label>
+      <button type="button" class="pop-btn" (mousedown)="$event.preventDefault()" (click)="openPop('video')" [title]="lang() === 'vi' ? 'Nhúng video YouTube / Vimeo' : 'Embed video'"><app-icon name="video" /></button>
+      <label class="pick" [title]="lang() === 'vi' ? 'Đính kèm file (PDF, Word, Excel…)' : 'Attach file'">
+        <app-icon name="paperclip" />
+        <input type="file" multiple hidden (change)="pickFile($event)" />
+      </label>
+      <button type="button" class="pop-btn" (mousedown)="$event.preventDefault()" (click)="openPop('table')" [title]="lang() === 'vi' ? 'Chèn bảng' : 'Insert table'"><app-icon name="table" /></button>
+      <button type="button" class="pop-btn" (mousedown)="$event.preventDefault()" (click)="openPop('emoji')" [title]="lang() === 'vi' ? 'Biểu tượng cảm xúc' : 'Emoji'"><app-icon name="smile" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="hr()" [title]="lang() === 'vi' ? 'Đường kẻ ngang' : 'Divider'"><app-icon name="minus" /></button>
+    </div>
+
+    <div class="grp push">
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="toggleFull()"
+        [title]="full() ? (lang() === 'vi' ? 'Thu nhỏ' : 'Exit full screen') : (lang() === 'vi' ? 'Soạn toàn màn hình' : 'Full screen')">
+        <app-icon [name]="full() ? 'minimize' : 'maximize'" />
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== khay chon (màu / cỡ chữ / emoji / liên kết / video / bảng) ===== -->
+  @if (pop(); as p) {
+    <div class="rte-pop">
+      @switch (p) {
+        @case ('color') {
+          <div class="sw-wrap">
+            @for (c of colors; track c.v) {
+              <button type="button" class="sw" [style.background]="c.v" [title]="c.name" (click)="setColor(c.v)"></button>
+            }
+          </div>
+        }
+        @case ('bg') {
+          <div class="sw-wrap">
+            @for (c of colors; track c.v) {
+              <button type="button" class="sw" [style.background]="c.v" [title]="c.name" (click)="setColor(c.v, true)"></button>
+            }
+            <button type="button" class="sw none" [title]="lang() === 'vi' ? 'Bỏ nền' : 'No fill'" (click)="setColor('transparent', true)">⌀</button>
+          </div>
+        }
+        @case ('size') {
+          <div class="size-wrap">
+            @for (s of sizes; track s.px) {
+              <button type="button" [style.font-size.px]="s.px > 22 ? 22 : s.px" (click)="setSize(s.px)">{{ s.label }}</button>
+            }
+          </div>
+        }
+        @case ('emoji') {
+          <div class="emo-wrap">
+            @for (e of emojis; track $index) { <button type="button" (click)="emoji(e)">{{ e }}</button> }
+          </div>
+        }
+        @case ('link') {
+          <div class="row">
+            <input class="grow" [value]="linkUrl()" (input)="linkUrl.set($any($event.target).value)"
+              (keydown.enter)="applyLink()" placeholder="https://…" autofocus />
+            <button type="button" class="ok" (click)="applyLink()">{{ lang() === 'vi' ? 'Chèn' : 'Insert' }}</button>
+            <button type="button" class="no" (click)="pop.set(null)"><app-icon name="x" /></button>
+          </div>
+        }
+        @case ('video') {
+          <div class="row">
+            <input class="grow" [value]="videoUrl()" (input)="videoUrl.set($any($event.target).value); videoErr.set(false)"
+              (keydown.enter)="applyVideo()" placeholder="https://www.youtube.com/watch?v=… hoặc https://vimeo.com/…" autofocus />
+            <button type="button" class="ok" (click)="applyVideo()">{{ lang() === 'vi' ? 'Nhúng' : 'Embed' }}</button>
+            <button type="button" class="no" (click)="pop.set(null)"><app-icon name="x" /></button>
+          </div>
+          @if (videoErr()) {
+            <p class="pop-err">{{ lang() === 'vi' ? 'Chỉ nhận link YouTube hoặc Vimeo.' : 'Only YouTube or Vimeo links are accepted.' }}</p>
+          }
+        }
+        @case ('table') {
+          <div class="row">
+            <label>{{ lang() === 'vi' ? 'Dòng' : 'Rows' }}
+              <input type="number" min="1" max="20" [value]="tableRows()" (input)="tableRows.set(+$any($event.target).value)" />
+            </label>
+            <label>{{ lang() === 'vi' ? 'Cột' : 'Columns' }}
+              <input type="number" min="1" max="10" [value]="tableCols()" (input)="tableCols.set(+$any($event.target).value)" />
+            </label>
+            <button type="button" class="ok" (click)="insertTable()">{{ lang() === 'vi' ? 'Chèn bảng' : 'Insert' }}</button>
+            <button type="button" class="no" (click)="pop.set(null)"><app-icon name="x" /></button>
+          </div>
+        }
+      }
+    </div>
+  }
+
+  <!-- ===== thanh phụ khi con trỏ đang trong bảng ===== -->
+  @if (inTable()) {
+    <div class="rte-sub">
+      <span class="sub-tag">{{ lang() === 'vi' ? 'Bảng' : 'Table' }}</span>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="rowOp('above')">{{ lang() === 'vi' ? '+ Dòng trên' : '+ Row above' }}</button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="rowOp('below')">{{ lang() === 'vi' ? '+ Dòng dưới' : '+ Row below' }}</button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="rowOp('del')">{{ lang() === 'vi' ? 'Xoá dòng' : 'Delete row' }}</button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="colOp('left')">{{ lang() === 'vi' ? '+ Cột trái' : '+ Col left' }}</button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="colOp('right')">{{ lang() === 'vi' ? '+ Cột phải' : '+ Col right' }}</button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="colOp('del')">{{ lang() === 'vi' ? 'Xoá cột' : 'Delete col' }}</button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="merge('right')">{{ lang() === 'vi' ? 'Gộp phải' : 'Merge right' }}</button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="merge('down')">{{ lang() === 'vi' ? 'Gộp xuống' : 'Merge down' }}</button>
+      <button type="button" class="danger" (mousedown)="$event.preventDefault()" (click)="delTable()">{{ lang() === 'vi' ? 'Xoá bảng' : 'Delete table' }}</button>
+    </div>
+  }
+
+  <!-- ===== thanh phụ khi đang chọn một ảnh ===== -->
+  @if (picked()) {
+    <div class="rte-sub">
+      <span class="sub-tag">{{ lang() === 'vi' ? 'Ảnh' : 'Image' }}</span>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="imgWidth(25)">25%</button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="imgWidth(50)">50%</button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="imgWidth(75)">75%</button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="imgWidth(100)">100%</button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="imgAlign('left')"><app-icon name="align-left" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="imgAlign('center')"><app-icon name="align-center" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="imgAlign('right')"><app-icon name="align-right" /></button>
+      <button type="button" (mousedown)="$event.preventDefault()" (click)="imgCaption()">{{ lang() === 'vi' ? 'Chú thích' : 'Caption' }}</button>
+      <button type="button" class="danger" (mousedown)="$event.preventDefault()" (click)="imgDelete()"><app-icon name="trash" /></button>
+    </div>
+  }
+
+  <!-- Vùng soạn thảo: dùng chung class .rich-body với trang xem bài -->
+  <div
+    #doc
+    class="rte-doc rich-body"
+    [class.is-empty]="empty()"
+    contenteditable="true"
+    role="textbox"
+    aria-multiline="true"
+    [attr.data-ph]="placeholder()"
+    [style.min-height.px]="minHeight()"
+    (input)="onInput()"
+    (paste)="onPaste($event)"
+    (drop)="onDrop($event)"
+    (click)="onDocClick($event)"
+    (keyup)="onKeyup()"
+    (keydown)="onKeydown($event)"
+  ></div>
+
+  <p class="rte-hint">
+    @if (uploading()) {
+      <span class="up">{{ lang() === 'vi' ? 'Đang tải file lên…' : 'Uploading…' }}</span>
+    } @else {
+      <span>{{ lang() === 'vi' ? 'Dán ảnh chụp màn hình bằng Ctrl+V · kéo-thả ảnh vào đây · dán từ Word giữ được định dạng' : 'Paste screenshots, drag images in, paste from Word' }}</span>
+    }
+    <span class="count">{{ words() }} {{ lang() === 'vi' ? 'từ' : 'words' }}</span>
+  </p>
+</div>

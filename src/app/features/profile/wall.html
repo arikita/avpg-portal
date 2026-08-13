@@ -1,0 +1,202 @@
+@if (error()) {
+  <div class="callout danger mb-3"><app-icon name="alert-triangle" /> {{ error() }}</div>
+}
+
+<!-- ===================================================== ô soạn bài ===== -->
+@if (canPost()) {
+  <div class="card composer mb-3">
+    <div class="cmp-top">
+      <app-avatar [name]="composerName()" [username]="composerUser()" [size]="42" />
+      <textarea
+        rows="2"
+        [value]="draft()"
+        (input)="onDraft($event)"
+        [attr.maxlength]="maxBody"
+        [attr.placeholder]="vi() ? 'Bạn đang nghĩ gì? Chia sẻ với đồng nghiệp…' : 'What is on your mind?'"
+      ></textarea>
+    </div>
+
+    @if (draftImage()) {
+      <div class="cmp-img">
+        <img [src]="draftImage()" alt="" />
+        <button class="img-x" (click)="clearImage()" [attr.aria-label]="vi() ? 'Bỏ ảnh' : 'Remove image'">
+          <app-icon name="x" />
+        </button>
+      </div>
+    }
+
+    <div class="cmp-foot">
+      <label class="cmp-tool" [attr.title]="vi() ? 'Thêm ảnh' : 'Add a photo'">
+        <app-icon name="image" />
+        <span>{{ uploading() ? (vi() ? 'Đang tải…' : 'Uploading…') : (vi() ? 'Ảnh' : 'Photo') }}</span>
+        <input type="file" accept="image/*" (change)="onImage($event)" hidden />
+      </label>
+      <button class="btn sm" (click)="post()" [disabled]="posting() || (!draft().trim() && !draftImage())">
+        <app-icon name="send" /> {{ posting() ? (vi() ? 'Đang đăng…' : 'Posting…') : (vi() ? 'Đăng' : 'Post') }}
+      </button>
+    </div>
+  </div>
+}
+
+<!-- ================================================ lọc phạm vi (bảng tin) -->
+@if (mode() === 'feed') {
+  <div class="scope-row">
+    <button [class.on]="scope() === 'all'" (click)="setScope('all')">
+      <app-icon name="users" /> {{ vi() ? 'Toàn công ty' : 'Everyone' }}
+    </button>
+    <button [class.on]="scope() === 'dept'" (click)="setScope('dept')">
+      <app-icon name="grid" /> {{ vi() ? 'Phòng ban tôi' : 'My department' }}
+    </button>
+  </div>
+  @if (scope() === 'dept' && scopeUsed() === 'all') {
+    <div class="callout mb-3">
+      <app-icon name="info" />
+      {{ vi()
+        ? 'Chưa xác định được phòng ban của bạn trên AD nên đang hiện bài của toàn công ty.'
+        : 'Your department is not set in AD, so everyone is shown.' }}
+    </div>
+  }
+}
+
+<!-- ======================================================= danh sách ===== -->
+@if (loading()) {
+  <div class="card center"><p class="muted">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p></div>
+} @else if (!posts().length) {
+  <div class="card wall-empty">
+    <app-icon name="message" />
+    <p>
+      @if (mode() === 'feed') {
+        {{ vi()
+          ? 'Chưa có bài nào. Bạn viết bài đầu tiên đi — nó sẽ hiện trên bảng tin của cả công ty.'
+          : 'Nothing here yet. Write the first post — everyone will see it in the feed.' }}
+      } @else {
+        {{ canPost()
+          ? (vi() ? 'Tường của bạn còn trống. Viết vài dòng để đồng nghiệp biết bạn đang làm gì.' : 'Your wall is empty. Write something for your colleagues.')
+          : (vi() ? 'Người này chưa đăng gì lên tường.' : 'Nothing on this wall yet.') }}
+      }
+    </p>
+  </div>
+} @else {
+  @for (p of posts(); track p.id) {
+    <article class="card wp mb-3">
+      <header class="wp-head">
+        <app-avatar [name]="p.authorName" [username]="p.author" [size]="42" [link]="true" />
+        <div class="wp-who">
+          <a class="wp-name" [routerLink]="['/profile', p.author]">{{ p.authorName }}</a>
+          <time [attr.title]="p.createdAt">
+            {{ when(p.createdAt) }}@if (p.editedAt) { <span class="wp-edited"> · {{ vi() ? 'đã sửa' : 'edited' }}</span> }
+          </time>
+        </div>
+        @if (p.canEdit || p.canDelete) {
+          <div class="wp-act">
+            @if (p.canEdit && editingId() !== p.id) {
+              <button class="ib" (click)="startEdit(p)" [attr.title]="vi() ? 'Sửa' : 'Edit'"><app-icon name="edit" /></button>
+            }
+            @if (p.canDelete) {
+              <button class="ib danger" (click)="remove(p)" [attr.title]="vi() ? 'Xoá' : 'Delete'"><app-icon name="trash" /></button>
+            }
+          </div>
+        }
+      </header>
+
+      @if (editingId() === p.id) {
+        <div class="wp-edit">
+          <textarea rows="4" [value]="editDraft()" (input)="onEditDraft($event)" [attr.maxlength]="maxBody"></textarea>
+          @if (editImage()) {
+            <div class="cmp-img">
+              <img [src]="editImage()" alt="" />
+              <button class="img-x" (click)="clearImage(true)"><app-icon name="x" /></button>
+            </div>
+          }
+          <div class="row wrap" style="gap: 8px; margin-top: 10px">
+            <label class="cmp-tool">
+              <app-icon name="image" /><span>{{ vi() ? 'Đổi ảnh' : 'Change photo' }}</span>
+              <input type="file" accept="image/*" (change)="onImage($event, true)" hidden />
+            </label>
+            <button class="btn sm" (click)="saveEdit(p)"><app-icon name="check" /> {{ vi() ? 'Lưu' : 'Save' }}</button>
+            <button class="btn ghost sm" (click)="cancelEdit()">{{ vi() ? 'Huỷ' : 'Cancel' }}</button>
+          </div>
+        </div>
+      } @else {
+        @if (p.body) {
+          <p class="wp-body">@for (s of segs(p.body); track $index) {@if (s.href) {<a [href]="s.href" target="_blank" rel="noopener noreferrer">{{ s.text }}</a>} @else {{{ s.text }}}}</p>
+        }
+        @if (p.image) {
+          <a class="wp-img" [href]="p.image" target="_blank" rel="noopener noreferrer">
+            <img [src]="p.image" [alt]="vi() ? 'Ảnh trong bài' : 'Post image'" loading="lazy" />
+          </a>
+        }
+      }
+
+      <!-- đếm cảm xúc / bình luận -->
+      @if (p.reactions.total || commentsOf(p).length) {
+        <div class="wp-counts">
+          @if (p.reactions.total) {
+            <span class="rx-stack" [attr.title]="rxTitle(p)">
+              @for (e of topEmojis(p); track e) { <span class="rx-emo">{{ e }}</span> }
+              @for (f of p.reactions.faces; track f.username) {
+                <app-avatar class="rx-face" [name]="f.name" [username]="f.username" [size]="20" />
+              }
+              <span class="rx-sum">{{ p.reactions.total }}</span>
+            </span>
+          }
+          @if (commentsOf(p).length) {
+            <button class="cnt-btn" (click)="toggleComments(p)">
+              <app-icon name="message" /> {{ commentsOf(p).length }}
+            </button>
+          }
+        </div>
+      }
+
+      <!-- thanh cảm xúc -->
+      <div class="wp-bar">
+        @for (e of emojis(); track e) {
+          <button class="rx" [class.mine]="p.reactions.mine === e" (click)="react(p, e)" [attr.aria-label]="e">{{ e }}</button>
+        }
+      </div>
+
+      <!-- bình luận -->
+      @if (isOpen(p)) {
+        <div class="wp-comments">
+          @for (c of commentsOf(p); track c.id) {
+            <div class="wc">
+              <app-avatar [name]="c.authorName" [username]="c.author" [size]="30" [link]="true" />
+              <div class="wc-bubble">
+                <div class="wc-head">
+                  <a class="wc-who" [routerLink]="['/profile', c.author]">{{ c.authorName }}</a>
+                  <time>{{ when(c.createdAt) }}</time>
+                  @if (c.canDelete) {
+                    <button class="wc-del" (click)="removeComment(c)" [attr.title]="vi() ? 'Xoá' : 'Delete'"><app-icon name="trash" /></button>
+                  }
+                </div>
+                <p class="wc-text">@for (s of segs(c.body); track $index) {@if (s.href) {<a [href]="s.href" target="_blank" rel="noopener noreferrer">{{ s.text }}</a>} @else {{{ s.text }}}}</p>
+              </div>
+            </div>
+          }
+          <div class="wc-new">
+            <textarea
+              rows="1"
+              [value]="draftOf(p)"
+              (input)="onCommentDraft(p, $event)"
+              (keydown)="onCommentKey(p, $event)"
+              [attr.placeholder]="vi() ? 'Viết bình luận… (Enter để gửi)' : 'Write a comment… (Enter to send)'"
+            ></textarea>
+            <button class="ib send" (click)="sendComment(p)" [disabled]="!draftOf(p).trim()" [attr.aria-label]="vi() ? 'Gửi' : 'Send'">
+              <app-icon name="send" />
+            </button>
+          </div>
+        </div>
+      } @else {
+        <button class="wp-open-cm" (click)="toggleComments(p)">
+          <app-icon name="message" /> {{ vi() ? 'Bình luận' : 'Comment' }}
+        </button>
+      }
+    </article>
+  }
+
+  @if (more()) {
+    <button class="btn ghost more" (click)="loadMore()" [disabled]="loadingMore()">
+      {{ loadingMore() ? (vi() ? 'Đang tải…' : 'Loading…') : (vi() ? 'Xem thêm bài cũ' : 'Older posts') }}
+    </button>
+  }
+}

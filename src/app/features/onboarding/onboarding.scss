@@ -1,0 +1,17 @@
+:host {
+  display: block;
+}
+
+.section-block {
+  padding-block: 36px;
+  scroll-margin-top: calc(var(--nav-h) + 20px);
+}
+.section-block + .section-block {
+  border-top: 1px solid var(--border);
+}
+
+.lead-sm {
+  font-size: 1.05rem;
+  color: var(--text-2);
+  max-width: 720px;
+}

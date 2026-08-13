@@ -1,0 +1,34 @@
+<!-- Hero -->
+<section class="hero" style="padding-block: clamp(40px,6vw,60px)">
+  <div class="hero-blobs"><span class="blob b2"></span></div>
+  <div class="container">
+    <span class="eyebrow" appReveal><app-icon name="shield" /> {{ lang() === 'vi' ? 'Chính sách' : 'Policies' }}</span>
+    <h1 class="mt-3" appReveal>{{ lang() === 'vi' ? 'Chính sách & Quy định' : 'Policies & Guidelines' }}</h1>
+    <p class="lead mt-2" appReveal>{{ lang() === 'vi' ? 'Những điều cần biết để làm việc thuận lợi và đúng quy định.' : 'What you need to know to work smoothly and by the rules.' }}</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 20px">
+  <div class="container">
+    <div class="grid grid-2">
+      @for (p of policies(); track $index) {
+        <div class="card card-hover" appReveal>
+          <div class="row"><div class="icon-badge sm"><app-icon [name]="p.icon" /></div><h3>{{ p.title | tr: lang() }}</h3></div>
+          <p class="mt-2">{{ p.summary | tr: lang() }}</p>
+          @if (p.points) {
+            <ul class="cb-list mt-2">
+              @for (pt of p.points; track $index) { <li>{{ pt | tr: lang() }}</li> }
+            </ul>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="callout info mt-4" appReveal>
+      <span class="ic"><app-icon name="info" /></span>
+      <div>
+        <p>{{ lang() === 'vi' ? 'Đây là bản tóm tắt dành cho người mới. Vui lòng tham khảo văn bản chính thức từ phòng Nhân sự để biết chi tiết đầy đủ.' : 'This is a summary for newcomers. Please refer to official HR documents for full details.' }}</p>
+      </div>
+    </div>
+  </div>
+</section>

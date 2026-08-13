@@ -1,0 +1,196 @@
+.editor-wrap { max-width: 760px; padding: 28px 0 72px; }
+.editor-wrap h1 { font-size: clamp(1.6rem, 3vw, 2.1rem); margin-bottom: 20px; }
+
+.back {
+  display: inline-flex; align-items: center; gap: 6px; color: var(--text-2);
+  font-weight: 600; font-size: .9rem; text-decoration: none; margin-bottom: 16px;
+}
+.back app-icon { width: 16px; height: 16px; transform: rotate(180deg); }
+.back:hover { color: var(--brand); }
+
+.err {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  padding: 11px 14px; border-radius: var(--r-sm); font-weight: 600;
+  color: #b5361b; background: color-mix(in srgb, #e0563c 12%, transparent);
+  border: 1px solid color-mix(in srgb, #e0563c 30%, transparent);
+}
+.err app-icon { width: 18px; height: 18px; }
+
+.fld { display: block; margin-bottom: 16px; }
+.fld > span { display: block; font-weight: 700; font-size: .9rem; margin-bottom: 6px; color: var(--text); }
+.fld input, .fld select, .fld textarea, .body-ta {
+  width: 100%; padding: 11px 14px; border-radius: var(--r-sm); font: inherit;
+  border: 1px solid var(--border-2); background: var(--surface); color: var(--text);
+}
+.fld textarea, .body-ta { resize: vertical; line-height: 1.6; }
+.fld input:focus, .fld select:focus, .fld textarea:focus, .body-ta:focus {
+  outline: none; border-color: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.body-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.body-label > span { font-weight: 700; font-size: .9rem; color: var(--text); }
+.ins-btn, .cover-actions label {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  font-weight: 700; font-size: .82rem; color: var(--brand);
+}
+.ins-btn app-icon { width: 15px; height: 15px; }
+.hint { font-size: .82rem; color: var(--text-3); margin: 6px 2px 0; }
+
+.cover-pick { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.cover-prev { width: 220px; max-width: 100%; aspect-ratio: 16/9; object-fit: contain; background: var(--surface-3); border-radius: var(--r-sm); border: 1px solid var(--border); }
+.cover-actions { display: flex; gap: 8px; }
+.cover-actions .btn app-icon { width: 15px; height: 15px; }
+
+
+/* ===== Poll builder ===== */
+.poll-fld { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 14px 16px; background: var(--surface-2); }
+.poll-note { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: .9rem; }
+.poll-note app-icon { width: 17px; height: 17px; color: var(--brand); }
+.poll-toggle, .poll-multi { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: var(--text); }
+.poll-toggle input, .poll-multi input { width: 17px; height: 17px; accent-color: var(--brand); cursor: pointer; }
+.poll-multi { font-weight: 600; font-size: .88rem; color: var(--text-2); }
+.poll-build { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.poll-q-in { font-weight: 600; }
+.poll-opt-row { display: flex; gap: 8px; align-items: center; }
+.poll-opt-row input { flex: 1; padding: 10px 12px; border-radius: var(--r-sm); font: inherit; border: 1px solid var(--border-2); background: var(--surface); color: var(--text); }
+.poll-opt-row input:focus, .poll-q-in:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent); }
+.opt-del { width: 36px; height: 36px; flex-shrink: 0; border: 1px solid var(--border-2); background: var(--surface); border-radius: var(--r-sm); cursor: pointer; color: var(--text-3); display: grid; place-items: center; }
+.opt-del app-icon { width: 15px; height: 15px; }
+.opt-del:hover { color: #e0563c; border-color: #e0563c; }
+.poll-build-foot { display: flex; align-items: center; gap: 12px; margin-top: 2px; }
+.poll-build-foot .link { background: none; border: none; cursor: pointer; color: var(--brand); font-weight: 700; font-size: .88rem; }
+
+.editor-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 22px; }
+.editor-actions .btn app-icon { width: 16px; height: 16px; }
+.editor-actions .up { color: var(--text-3); font-size: .88rem; }
+
+.empty { text-align: center; padding: 70px 20px; color: var(--text-3); display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.empty app-icon { width: 40px; height: 40px; opacity: .6; }
+
+@media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; } }
+
+/* Thanh bao co ban nhap tu luu tren may */
+.draft-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--border));
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--text-2);
+  font-size: .9rem;
+
+  app-icon { color: var(--warning); }
+  span { flex: 1; }
+}
+
+/* Cai dat binh chon */
+.poll-set {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border-2);
+}
+.poll-chk {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  cursor: pointer;
+
+  /* PHAI ghi de: .fld input o tren dat width:100% + padding + vien, khong chan
+     lai thi o tick bi keo dai het dong trong nhu o nhap chu. */
+  input[type='checkbox'] {
+    width: 17px;
+    height: 17px;
+    flex: none;
+    margin-top: 3px;
+    padding: 0;
+    border-radius: 4px;
+    accent-color: var(--brand);
+    cursor: pointer;
+  }
+  span { display: flex; flex-direction: column; gap: 1px; }
+  b { font-size: .9rem; font-weight: 600; color: var(--text); }
+  em { font-style: normal; font-size: .82rem; color: var(--text-3); }
+}
+.poll-when {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  b { font-size: .9rem; font-weight: 600; color: var(--text); }
+  em { font-style: normal; font-size: .82rem; color: var(--text-3); }
+  input {
+    width: auto;                      /* khong de .fld input keo dai het dong */
+    min-width: 210px;
+    height: 34px; padding: 0 10px; border: 1px solid var(--border-2);
+    border-radius: var(--r-sm); background: var(--surface); color: var(--text); font: inherit;
+  }
+}
+
+/* Nhieu cau hoi trong mot binh chon */
+.poll-q-block {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.poll-q-head { display: flex; align-items: center; justify-content: space-between; }
+.poll-q-no {
+  font-size: .74rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--brand);
+}
+.poll-q-set { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 2px; }
+.poll-q-set .poll-chk b { font-weight: 600; font-size: .85rem; color: var(--text-2); }
+.add-q { margin-top: 10px; align-self: flex-start; }
+.poll-set-tag {
+  font-size: .74rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text-3); margin-bottom: 2px;
+}
+
+.poll-note.warn {
+  align-items: flex-start;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--border));
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+}
+.poll-note.warn app-icon { color: var(--warning); flex: none; margin-top: 2px; }
+.poll-toggle.hide { display: none; }
+
+/* Gop tuy chon bai viet (tat binh luan + them binh chon) thanh mot list. */
+.post-options .opts-label {
+  display: block; font-size: .78rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--text-3); margin-bottom: 4px;
+}
+.post-options .opt-row {
+  display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+  padding: 11px 0; border-top: 1px solid var(--border);
+}
+.post-options .opts-label + .opt-row { border-top: none; }
+.post-options .opt-row input[type="checkbox"] {
+  width: 17px; height: 17px; margin-top: 2px; accent-color: var(--brand); cursor: pointer; flex: none;
+}
+.post-options .opt-row > span { display: flex; flex-direction: column; gap: 2px; }
+.post-options .opt-row b { color: var(--text); font-weight: 700; }
+.post-options .opt-row em { font-style: normal; color: var(--text-3); font-size: .84rem; }
+.post-options .opt-row.hide { display: none; }
+.post-options .poll-q-block:first-of-type { margin-top: 12px; }
+.opt-votes {
+  flex: none; padding: 4px 9px; border-radius: var(--pill);
+  background: var(--surface-3); color: var(--text-3);
+  font-size: .76rem; font-weight: 700; white-space: nowrap;
+}

@@ -1,0 +1,264 @@
+.detail-wrap { max-width: 760px; padding: 28px 0 72px; }
+
+.back {
+  display: inline-flex; align-items: center; gap: 6px; color: var(--text-2);
+  font-weight: 600; font-size: .9rem; text-decoration: none; margin-bottom: 18px;
+}
+.back app-icon { width: 16px; height: 16px; transform: rotate(180deg); }
+.back:hover { color: var(--brand); }
+
+.detail-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 11px; border-radius: var(--pill); font-size: .76rem; font-weight: 700;
+  background: var(--surface-2); color: var(--text); border: 1px solid var(--border-2);
+}
+.pill app-icon { width: 12px; height: 12px; }
+.pill.cat { color: var(--brand); }
+.pill.pin { color: #c98a00; }
+.pill.draft { color: #fff; background: #e0703c; border-color: transparent; }
+
+.detail-title { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.15; margin: 0 0 16px; }
+
+.detail-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  display: grid; place-items: center; font-size: .82rem; font-weight: 800; color: #fff;
+  background: hsl(var(--hue, 240), 60%, 55%);
+}
+.avatar.lg { width: 44px; height: 44px; font-size: 1rem; }
+.detail-meta .who { font-weight: 700; color: var(--text); text-decoration: none; }
+.detail-meta a.who:hover { color: var(--brand); text-decoration: underline; }
+a.c-who, a.rx-person-name { text-decoration: none; color: inherit; }
+a.c-who:hover, a.rx-person-name:hover { color: var(--brand); text-decoration: underline; }
+.detail-meta .when { font-size: .85rem; color: var(--text-3); }
+.admin-actions { margin-left: auto; display: flex; gap: 6px; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border-2);
+  background: var(--surface); color: var(--text-2); display: grid; place-items: center;
+  cursor: pointer; transition: all .15s;
+}
+.icon-btn app-icon { width: 17px; height: 17px; }
+.icon-btn:hover { border-color: var(--brand); color: var(--brand); }
+.icon-btn.danger:hover { border-color: #e0563c; color: #e0563c; }
+
+/* Khung anh bia: ti le co dinh, anh tu nho lai vua khung (khong cat/khong tran),
+   vung du duoc lap day bang chinh anh do lam mo. */
+.cover-frame {
+  position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 460px;
+  overflow: hidden; border-radius: var(--r-lg); margin-bottom: 22px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface-3); box-shadow: var(--shadow-sm);
+}
+.cover-frame::before {
+  content: ''; position: absolute; inset: -8%;
+  background-image: var(--cover); background-size: cover; background-position: center;
+  filter: blur(24px) brightness(.88); transform: scale(1.06);
+}
+.detail-cover {
+  position: relative; z-index: 1; max-width: 100%; max-height: 100%;
+  width: auto; height: auto; object-fit: contain; border-radius: 6px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .45);
+}
+
+.detail-lead { font-size: 1.15rem; line-height: 1.6; color: var(--text); font-weight: 500; margin-bottom: 18px; }
+
+/* Cac kieu ben trong (tieu de, doan, danh sach, anh) nam o app-rich-body. */
+.detail-body { font-size: 1.05rem; line-height: 1.75; color: var(--text-2); }
+
+/* ===== reactions ===== */
+.react-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 28px 0; padding: 14px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+.rx-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 13px; border-radius: var(--pill); cursor: pointer;
+  border: 1px solid var(--border-2); background: var(--surface); transition: all .14s;
+}
+.rx-btn:hover { transform: translateY(-2px); border-color: var(--brand); box-shadow: var(--shadow-sm); }
+.rx-btn.mine { background: color-mix(in srgb, var(--brand) 16%, transparent); border-color: var(--brand); }
+.rx-emoji { font-size: 1.25rem; line-height: 1; }
+.rx-num { font-weight: 800; font-size: .9rem; color: var(--text-2); }
+.rx-btn.mine .rx-num { color: var(--brand); }
+.rx-total { margin-left: auto; color: var(--text-3); font-size: .88rem; font-weight: 600; }
+.rx-total.link { background: none; border: none; cursor: pointer; }
+.rx-total.link:hover { color: var(--brand); text-decoration: underline; }
+.views { display: inline-flex; align-items: center; gap: 5px; color: var(--text-3); font-size: .88rem; font-weight: 600; }
+.views app-icon { width: 16px; height: 16px; }
+
+/* ===== Poll / binh chon ===== */
+.poll {
+  margin: 26px 0; padding: 18px 20px; border: 1px solid var(--border);
+  border-radius: var(--r); background: var(--surface-2);
+}
+.poll-q { display: flex; align-items: center; gap: 8px; font-weight: 800; color: var(--text); margin-bottom: 14px; font-size: 1.05rem; }
+.poll-q app-icon { width: 18px; height: 18px; color: var(--brand); }
+.poll-opt {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 12px 14px; margin-bottom: 8px; border-radius: var(--r-sm); cursor: pointer;
+  border: 1.5px solid var(--border-2); background: var(--surface); color: var(--text);
+  font-weight: 600; font-size: .96rem; transition: all .14s;
+}
+.poll-opt:hover { border-color: var(--brand); }
+.poll-opt.sel { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, transparent); }
+.poll-opt .tick { width: 20px; height: 20px; flex-shrink: 0; display: grid; place-items: center; }
+.poll-opt .tick app-icon { width: 16px; height: 16px; color: var(--brand); opacity: 0; }
+.poll-opt.sel .tick app-icon { opacity: 1; }
+.poll-opt .radio { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border-2); }
+.poll-opt.sel .radio { border-color: var(--brand); box-shadow: inset 0 0 0 3px var(--brand); }
+.poll-submit { margin: 4px 0 6px; }
+
+.poll-res {
+  position: relative; overflow: hidden; padding: 11px 14px; margin-bottom: 8px;
+  border-radius: var(--r-sm); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.poll-res.mine { border-color: var(--brand); }
+.poll-bar { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--brand) 16%, transparent); z-index: 0; transition: width .5s ease; }
+.poll-res.mine .poll-bar { background: color-mix(in srgb, var(--brand) 26%, transparent); }
+.poll-lbl { position: relative; z-index: 1; font-weight: 600; color: var(--text); display: inline-flex; align-items: center; gap: 6px; }
+.poll-lbl app-icon { width: 15px; height: 15px; color: var(--brand); }
+.poll-pct { position: relative; z-index: 1; font-weight: 800; color: var(--text-2); font-size: .88rem; white-space: nowrap; }
+.poll-foot { margin-top: 10px; color: var(--text-3); font-size: .84rem; }
+.poll-foot .link { background: none; border: none; cursor: pointer; color: var(--brand); font-weight: 700; font-size: .84rem; }
+.poll-foot .link:hover { text-decoration: underline; }
+
+/* ===== Modal ai da react ===== */
+.rx-backdrop { position: fixed; inset: 0; z-index: 120; background: rgba(10, 14, 30, .45); }
+.rx-modal {
+  position: fixed; z-index: 130; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 380px; max-width: 92vw; max-height: 76vh; overflow-y: auto;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg); padding: 8px 8px 12px;
+}
+.rx-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; }
+.rx-modal-head .icon-btn { width: 32px; height: 32px; }
+.rx-list { display: flex; flex-direction: column; }
+.rx-person { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: var(--r-sm); }
+.rx-person:hover { background: var(--surface-2); }
+.rx-person-name { font-weight: 600; color: var(--text); flex: 1; }
+.rx-person-emoji { font-size: 1.2rem; }
+
+/* ===== comments ===== */
+.comments { margin-top: 8px; }
+.comments h2 { display: flex; align-items: center; gap: 8px; font-size: 1.3rem; margin-bottom: 16px; }
+.comments h2 app-icon { width: 20px; height: 20px; color: var(--brand); }
+
+.comment-box {
+  display: flex; gap: 10px; align-items: flex-end; margin-bottom: 22px;
+}
+.comment-box textarea, .c-reply-box textarea, .c-edit textarea {
+  flex: 1; width: 100%; resize: vertical; min-height: 42px;
+  padding: 11px 14px; border-radius: var(--r-sm); font: inherit;
+  border: 1px solid var(--border-2); background: var(--surface); color: var(--text);
+}
+.comment-box textarea:focus, .c-reply-box textarea:focus, .c-edit textarea:focus {
+  outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+.btn-sm { padding: 9px 15px; font-size: .88rem; }
+.btn-sm app-icon { width: 15px; height: 15px; }
+
+.no-comments { color: var(--text-3); font-style: italic; padding: 8px 0 16px; }
+
+.comments-off {
+  display: flex; align-items: center; gap: 9px; margin-bottom: 20px;
+  padding: 12px 16px; border-radius: var(--r-sm);
+  background: var(--surface-2, var(--surface)); border: 1px dashed var(--border-2);
+  color: var(--text-3); font-size: .92rem;
+}
+.comments-off app-icon { width: 17px; height: 17px; flex-shrink: 0; }
+
+.comment { display: flex; gap: 11px; margin-top: 16px; }
+.comment.reply { margin-left: 20px; padding-left: 14px; border-left: 2px solid var(--border); }
+.c-main { flex: 1; min-width: 0; }
+.c-bubble {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 4px 16px 16px 16px; padding: 10px 14px;
+}
+.c-bubble.gone { background: transparent; border-style: dashed; }
+.c-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; flex-wrap: wrap; }
+.c-who { font-weight: 700; color: var(--text); font-size: .92rem; }
+.c-head time { font-size: .78rem; color: var(--text-3); }
+.c-head .edited { font-size: .74rem; color: var(--text-3); font-style: italic; }
+.c-text { margin: 0; color: var(--text); line-height: 1.55; white-space: pre-line; word-break: break-word; }
+.c-text.muted { color: var(--text-3); font-style: italic; }
+
+.c-actions { display: flex; gap: 14px; margin: 6px 4px 0; }
+.c-actions button {
+  background: none; border: none; cursor: pointer; padding: 0;
+  font-weight: 700; font-size: .82rem; color: var(--text-3);
+}
+.c-actions button:hover { color: var(--brand); }
+.c-actions button.danger:hover { color: #e0563c; }
+
+.c-reply-box, .c-edit { margin-top: 10px; }
+.c-edit-actions { display: flex; gap: 8px; margin-top: 8px; }
+
+.skeleton-lg {
+  height: 60vh; border-radius: var(--r-lg); border: 1px solid var(--border);
+  background: linear-gradient(100deg, var(--surface-2) 30%, var(--surface-3) 50%, var(--surface-2) 70%);
+  background-size: 200% 100%; animation: sk 1.3s ease-in-out infinite;
+}
+@keyframes sk { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.empty { text-align: center; padding: 70px 20px; color: var(--text-3); display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.empty app-icon { width: 40px; height: 40px; opacity: .6; }
+
+/* --- binh chon: huy hieu, nguoi da chon, o them phuong an --- */
+.poll-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 9px;
+  border-radius: var(--pill);
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: .74rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+.poll-badge.live { background: color-mix(in srgb, var(--brand) 15%, transparent); color: var(--brand); }
+.poll-badge.end { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+
+.poll-added { font-style: normal; font-size: .78rem; color: var(--text-3); margin-left: 6px; }
+
+.poll-who { display: inline-flex; align-items: center; margin-left: 8px; vertical-align: middle; }
+.poll-who .pw {
+  width: 19px; height: 19px; border-radius: 50%; margin-right: -5px;
+  display: grid; place-items: center; font-size: .52rem; font-weight: 800; color: #fff;
+  background: hsl(var(--hue, 240), 60%, 55%); border: 2px solid var(--surface);
+}
+.poll-who .pw.more { background: var(--surface-3); color: var(--text-2); font-size: .58rem; }
+
+.poll-add {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+
+  input {
+    flex: 1;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px dashed var(--border-2);
+    border-radius: var(--r-sm);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: .92rem;
+  }
+}
+
+.poll-no { color: var(--brand); font-weight: 800; margin-right: 2px; }
+.poll + .poll { margin-top: -8px; }
+
+/* Nut <button> canh theo duong chan chu, link co icon lai la inline-flex ->
+   lech nhau. Cho ca hai cung mot kieu canh thi moi thang hang. */
+.poll-foot .link,
+.poll-foot a.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  vertical-align: middle;
+  line-height: 1.2;
+  text-decoration: none;
+}
+.poll-foot a.link app-icon { width: 14px; height: 14px; }

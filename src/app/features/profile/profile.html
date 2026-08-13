@@ -1,0 +1,300 @@
+@if (loading()) {
+  <section class="section"><div class="container center"><p class="muted">{{ vi() ? 'Đang tải hồ sơ…' : 'Loading profile…' }}</p></div></section>
+} @else if (notFound() || !data()) {
+  <section class="section">
+    <div class="container center">
+      <div class="card center" style="padding: 48px 24px">
+        <div class="icon-badge sm"><app-icon name="users" /></div>
+        <h3 class="mt-3">{{ vi() ? 'Không tìm thấy hồ sơ này' : 'Profile not found' }}</h3>
+        <p class="muted mt-2">{{ vi() ? 'Người dùng không tồn tại trên hệ thống, hoặc tài khoản đã bị khoá.' : 'This user does not exist, or the account is disabled.' }}</p>
+        <a class="btn ghost mt-3" routerLink="/directory"><app-icon name="users" /> {{ vi() ? 'Về danh bạ' : 'Back to directory' }}</a>
+      </div>
+    </div>
+  </section>
+} @else {
+  @let d = data()!;
+
+  <div class="profile" [class]="accentClass()">
+    <!-- ============================================================ bìa -- -->
+    <section class="cover" [class.has-img]="!!d.cover">
+      @if (d.cover) { <img class="cover-img" [src]="d.cover" alt="" /> }
+      <div class="cover-wash"></div>
+
+      @if (d.isMe) {
+        <div class="cover-tools">
+          <label class="ctool" [attr.title]="vi() ? 'Đổi ảnh bìa' : 'Change cover'">
+            <app-icon name="image" />
+            <span>{{ busyPhoto() === 'cover' ? (vi() ? 'Đang tải…' : 'Uploading…') : (vi() ? 'Ảnh bìa' : 'Cover') }}</span>
+            <input type="file" accept="image/*" (change)="onPhoto('cover', $event)" hidden />
+          </label>
+          @if (d.cover) {
+            <button class="ctool" (click)="removePhoto('cover')" [attr.title]="vi() ? 'Gỡ ảnh bìa' : 'Remove cover'">
+              <app-icon name="trash" />
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- ========================================================== đầu trang -- -->
+    <div class="container">
+      <header class="head">
+        <div class="ava-wrap">
+          <span class="ava" [style.--hue]="hueOf()">
+            @if (d.avatar) {
+              <img [src]="d.avatar" [alt]="d.fullName" />
+            } @else {
+              <span class="ava-txt">{{ initialsOf() }}</span>
+            }
+          </span>
+          @if (d.isMe) {
+            <label class="ava-btn" [attr.title]="vi() ? 'Đổi ảnh đại diện' : 'Change photo'">
+              <app-icon name="camera" />
+              <input type="file" accept="image/*" (change)="onPhoto('avatar', $event)" hidden />
+            </label>
+          }
+        </div>
+
+        <div class="head-main">
+          <h1 class="name">{{ d.fullName }}</h1>
+          @if (d.headline) { <p class="headline">{{ d.headline }}</p> }
+          <div class="row wrap head-meta">
+            @if (d.title) { <span class="chip"><app-icon name="briefcase" /> {{ d.title }}</span> }
+            @if (d.department) { <span class="chip"><app-icon name="grid" /> {{ d.department }}</span> }
+            @if (joined()) { <span class="chip"><app-icon name="clock" /> {{ joined() }}</span> }
+          </div>
+        </div>
+
+        <div class="head-act">
+          @if (d.isMe) {
+            @if (!editing()) {
+              <button class="btn" (click)="startEdit()"><app-icon name="edit" /> {{ vi() ? 'Sửa hồ sơ' : 'Edit profile' }}</button>
+            }
+          } @else {
+            <button class="btn" (click)="message(d.username)"><app-icon name="message" /> {{ vi() ? 'Nhắn tin' : 'Message' }}</button>
+            @if (d.mail) { <a class="btn ghost" [href]="'mailto:' + d.mail"><app-icon name="mail" /> {{ vi() ? 'Gửi email' : 'Email' }}</a> }
+            @if (d.ext) { <span class="btn ghost"><app-icon name="phone" /> {{ vi() ? 'Máy lẻ' : 'Ext' }} {{ d.ext }}</span> }
+          }
+        </div>
+      </header>
+
+      @if (error()) { <div class="callout danger mb-3"><app-icon name="alert-triangle" /> {{ error() }}</div> }
+
+      <!-- ====================================================== huy hiệu -- -->
+      @if (d.badges.length) {
+        <div class="badges" appReveal>
+          @for (b of d.badges; track b.id) {
+            <span class="badge" [class]="'t-' + b.tone"><app-icon [name]="b.icon" /> {{ b.label | tr: lang() }}</span>
+          }
+        </div>
+      }
+
+      <!-- ==================================================== thống kê -- -->
+      <div class="stats" appReveal>
+        <div class="stat"><b>{{ d.stats.posts }}</b><span>{{ vi() ? 'bài viết' : 'posts' }}</span></div>
+        <div class="stat"><b>{{ d.stats.viewsReceived }}</b><span>{{ vi() ? 'lượt xem' : 'views' }}</span></div>
+        <div class="stat"><b>{{ d.stats.reactionsReceived }}</b><span>{{ vi() ? 'cảm xúc nhận' : 'reactions' }}</span></div>
+        <div class="stat"><b>{{ d.stats.comments }}</b><span>{{ vi() ? 'bình luận' : 'comments' }}</span></div>
+      </div>
+
+      <!-- ======================================================= sửa hồ sơ -- -->
+      @if (editing()) {
+        <div class="card edit mb-3">
+          <h3 class="mb-3">{{ vi() ? 'Chỉnh sửa hồ sơ' : 'Edit profile' }}</h3>
+
+          <label class="fld">
+            <span class="fl">{{ vi() ? 'Một dòng giới thiệu' : 'Headline' }}</span>
+            <input
+              type="text"
+              [value]="headlineDraft()"
+              (input)="onHeadline($event)"
+              [attr.maxlength]="maxHeadline"
+              [attr.placeholder]="vi() ? 'VD: Quản trị hệ thống mạng — mê cà phê và bóng đá' : 'e.g. Network admin — coffee and football'"
+            />
+          </label>
+
+          <label class="fld">
+            <span class="fl">{{ vi() ? 'Giới thiệu bản thân' : 'About you' }}<em class="cnt">{{ bioLeft() }}</em></span>
+            <textarea
+              rows="5"
+              [value]="bioDraft()"
+              (input)="onBio($event)"
+              [attr.maxlength]="maxBio"
+              [attr.placeholder]="vi() ? 'Bạn làm gì ở AVP, đang phụ trách mảng nào, đồng nghiệp cần gì thì tìm bạn…' : 'What you do at AVP, what you are responsible for…'"
+            ></textarea>
+          </label>
+
+          <div class="fld">
+            <span class="fl">{{ vi() ? 'Sở thích / kỹ năng' : 'Interests / skills' }}<em class="cnt">{{ interestsDraft().length }}/{{ maxInterests }}</em></span>
+            <div class="tag-box">
+              @for (t of interestsDraft(); track t) {
+                <span class="tag-chip">{{ t }}<button (click)="removeInterest(t)" [attr.aria-label]="vi() ? 'Bỏ' : 'Remove'"><app-icon name="x" /></button></span>
+              }
+              @if (interestsDraft().length < maxInterests) {
+                <input
+                  class="tag-in"
+                  type="text"
+                  [value]="interestInput()"
+                  (input)="onInterestInput($event)"
+                  (keydown)="onInterestKey($event)"
+                  (blur)="addInterest()"
+                  [attr.placeholder]="vi() ? 'Gõ rồi Enter…' : 'Type then Enter…'"
+                />
+              }
+            </div>
+          </div>
+
+          <div class="fld">
+            <span class="fl">{{ vi() ? 'Tông màu trang cá nhân' : 'Profile colour' }}</span>
+            <div class="acc-row">
+              @for (a of accents; track a.id) {
+                <button
+                  class="acc-dot"
+                  [class]="'acc-' + a.id"
+                  [class.on]="accentDraft() === a.id"
+                  (click)="pickAccent(a.id)"
+                  [attr.title]="a.label | tr: lang()"
+                  [attr.aria-label]="a.label | tr: lang()"
+                ></button>
+              }
+            </div>
+          </div>
+
+          <div class="row wrap mt-3" style="gap: 10px">
+            <button class="btn" (click)="save()" [disabled]="saving()">
+              <app-icon name="check" /> {{ saving() ? (vi() ? 'Đang lưu…' : 'Saving…') : (vi() ? 'Lưu' : 'Save') }}
+            </button>
+            <button class="btn ghost" (click)="cancelEdit()" [disabled]="saving()">{{ vi() ? 'Huỷ' : 'Cancel' }}</button>
+            @if (d.avatar) {
+              <button class="btn ghost" (click)="removePhoto('avatar')" [disabled]="busyPhoto() === 'avatar'">
+                <app-icon name="trash" /> {{ vi() ? 'Gỡ ảnh đại diện' : 'Remove photo' }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ========================================================= 2 cột -- -->
+      <div class="cols">
+        <!-- ------------------------------------------------- cột trái -- -->
+        <aside class="side">
+          @if (d.bio || d.isMe) {
+            <div class="card mb-3" appReveal>
+              <h3 class="ch"><app-icon name="user" /> {{ vi() ? 'Giới thiệu' : 'About' }}</h3>
+              @if (d.bio) {
+                <p class="bio">{{ d.bio }}</p>
+              } @else {
+                <p class="muted-3 empty-hint">{{ vi() ? 'Bạn chưa viết gì về mình. Bấm “Sửa hồ sơ” để đồng nghiệp biết bạn làm gì nhé.' : 'Nothing here yet. Use “Edit profile” to introduce yourself.' }}</p>
+              }
+            </div>
+          }
+
+          @if (d.interests.length) {
+            <div class="card mb-3" appReveal>
+              <h3 class="ch"><app-icon name="sparkles" /> {{ vi() ? 'Sở thích & kỹ năng' : 'Interests & skills' }}</h3>
+              <div class="row wrap" style="gap: 8px">
+                @for (t of d.interests; track t) { <span class="chip">{{ t }}</span> }
+              </div>
+            </div>
+          }
+
+          <div class="card mb-3" appReveal>
+            <h3 class="ch"><app-icon name="at-sign" /> {{ vi() ? 'Liên hệ' : 'Contact' }}</h3>
+            <div class="kv">
+              @if (d.mail) { <div><span><app-icon name="mail" /> Email</span><a [href]="'mailto:' + d.mail">{{ d.mail }}</a></div> }
+              @if (d.ext) { <div><span><app-icon name="phone" /> {{ vi() ? 'Máy lẻ' : 'Extension' }}</span><b>{{ d.ext }}</b></div> }
+              @if (d.mobile) { <div><span><app-icon name="smartphone" /> {{ vi() ? 'Di động' : 'Mobile' }}</span><b>{{ d.mobile }}</b></div> }
+              @if (d.office) { <div><span><app-icon name="map-pin" /> {{ vi() ? 'Nơi làm việc' : 'Office' }}</span><b>{{ d.office }}</b></div> }
+              <div><span><app-icon name="key" /> {{ vi() ? 'Tài khoản' : 'Account' }}</span><b>{{ d.username }}</b></div>
+            </div>
+          </div>
+
+          <!-- Hồ sơ nhân sự từ Workit: chưa cấu hình thì null => ẩn hẳn khối. -->
+          @if (d.employment?.length) {
+            <div class="card mb-3" appReveal>
+              <h3 class="ch"><app-icon name="briefcase" /> {{ vi() ? 'Hồ sơ nhân sự' : 'HR record' }}</h3>
+              <div class="kv">
+                @for (f of d.employment ?? []; track f.label.vi) {
+                  <div><span>{{ f.label | tr: lang() }}</span><b>{{ f.value }}</b></div>
+                }
+              </div>
+              <p class="src">{{ vi() ? 'Nguồn: Workit (nhân sự)' : 'Source: Workit (HR)' }}</p>
+            </div>
+          }
+
+          @if (d.colleagues.length) {
+            <div class="card mb-3" appReveal>
+              <h3 class="ch"><app-icon name="users" /> {{ vi() ? 'Cùng phòng ban' : 'Same department' }}</h3>
+              <div class="mates">
+                @for (c of d.colleagues; track c.username) {
+                  <a class="mate" [routerLink]="['/profile', c.username]" [attr.title]="c.name + (c.title ? ' — ' + c.title : '')">
+                    <app-avatar [name]="c.name" [username]="c.username" [size]="42" />
+                    <span class="mate-n">{{ c.name }}</span>
+                  </a>
+                }
+              </div>
+              <p class="src">{{ vi() ? 'Lấy từ danh bạ AD (chỉ gồm người đã có số máy lẻ).' : 'From the AD directory (people with an extension only).' }}</p>
+            </div>
+          }
+        </aside>
+
+        <!-- ------------------------------- tường cá nhân / hoạt động -- -->
+        <main class="feed">
+          <!-- Hai nút chuyển: mặc định là TƯỜNG; hoạt động thu về một nút. -->
+          <div class="panel-tabs">
+            <button [class.on]="tab() === 'wall'" (click)="tab.set('wall')">
+              <app-icon name="message" /> {{ vi() ? 'Bài đăng' : 'Posts' }}
+              @if (wallTotal()) { <span class="n">{{ wallTotal() }}</span> }
+            </button>
+            <button [class.on]="tab() === 'activity'" (click)="tab.set('activity')">
+              <app-icon name="zap" /> {{ vi() ? 'Hoạt động' : 'Activity' }}
+            </button>
+          </div>
+
+          @if (tab() === 'wall') {
+            <app-wall [owner]="d.username" [ownerName]="d.fullName" (totalChange)="wallTotal.set($event)" />
+          } @else {
+            <div class="card" appReveal>
+              <h3 class="ch"><app-icon name="zap" /> {{ vi() ? 'Hoạt động gần đây' : 'Recent activity' }}</h3>
+
+            @if (!d.activity.length) {
+              <div class="tl-empty">
+                <app-icon name="coffee" />
+                <p>{{ d.isMe
+                    ? (vi() ? 'Bạn chưa có hoạt động nào trên trang tin. Thử đọc một bài và bày tỏ cảm xúc xem.' : 'No activity yet. Try reading a post and reacting to it.')
+                    : (vi() ? 'Người này chưa có hoạt động nào trên trang tin.' : 'No activity yet.') }}</p>
+                <a class="btn ghost" routerLink="/news"><app-icon name="newspaper" /> {{ vi() ? 'Tới trang Tin tức' : 'Go to News' }}</a>
+              </div>
+            } @else {
+              <ol class="tl">
+                @for (a of d.activity; track a.kind + a.postId + a.at) {
+                  <li class="tl-item">
+                    <span class="tl-dot" [class]="'k-' + a.kind">
+                      @if (a.kind === 'reaction' && a.emoji) { <em class="tl-emo">{{ a.emoji }}</em> } @else { <app-icon [name]="activityIcon(a)" /> }
+                    </span>
+                    <div class="tl-body">
+                      <p class="tl-line">
+                        <b>{{ d.isMe ? (vi() ? 'Bạn' : 'You') : d.fullName }}</b>
+                        {{ activityText(a) }}
+                        <a class="tl-link" [routerLink]="['/news', a.postId]">{{ a.title }}</a>
+                      </p>
+                      @if (a.snippet) { <p class="tl-quote">{{ a.snippet }}</p> }
+                      <span class="tl-when">{{ when(a.at) }}</span>
+                    </div>
+                  </li>
+                }
+              </ol>
+
+              @if (d.activityMore) {
+                <button class="btn ghost more" (click)="loadMore()" [disabled]="loadingMore()">
+                  {{ loadingMore() ? (vi() ? 'Đang tải…' : 'Loading…') : (vi() ? 'Xem thêm' : 'Show more') }}
+                </button>
+              }
+            }
+            </div>
+          }
+        </main>
+      </div>
+    </div>
+  </div>
+}
