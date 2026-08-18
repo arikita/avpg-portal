@@ -21,7 +21,7 @@ export const DEPT_LABELS: Record<string, L> = {
   'International Relations': { vi: 'Quan hệ quốc tế', en: 'International Relations' },
   'Legal':                   { vi: 'Pháp chế', en: 'Legal' },
   'Marketing':               { vi: 'Marketing', en: 'Marketing' },
-  'Material':                { vi: 'Vật tư', en: 'Material' },
+  'Material':                { vi: 'Nguyên liệu', en: 'Material' },
   'Paper':                   { vi: 'Giấy', en: 'Paper' },
   'Sustainability':          { vi: 'Phát triển bền vững', en: 'Sustainability' },
   'Technical':               { vi: 'Kỹ thuật', en: 'Technical' },
