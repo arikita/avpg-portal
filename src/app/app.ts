@@ -1,6 +1,6 @@
 import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { NAV, SITE } from './content/site.config';
+import { NAV, NAV_MORE, SITE } from './content/site.config';
 import { Lang } from './core/models/content.models';
 import { LanguageService } from './core/services/language.service';
 import { ThemeService } from './core/services/theme.service';
@@ -20,6 +20,11 @@ import { initials } from './shared/util/avatar.util';
 })
 export class App {
   readonly nav = NAV;
+  /** Chinh sach + FAQ: chi o chan trang va menu dien thoai, khong len navbar. */
+  readonly navMore = NAV_MORE;
+  /** Mang gop san (menu dien thoai + chan trang) — dung mang co dinh chu khong
+   *  ghep trong template, tranh tao mang moi moi vong change detection. */
+  readonly navAll = [...NAV, ...NAV_MORE];
   readonly site = SITE;
 
   private readonly langSvc = inject(LanguageService);

@@ -78,8 +78,10 @@
   </div>
 </header>
 
+<!-- Menu dien thoai giu DU ca muc phu (Chinh sach, FAQ): o day khong thieu cho
+     nhu navbar, bo di thi tren dien thoai chi con duong vao qua chan trang. -->
 <nav class="mobile-nav" [class.open]="menuOpen()" aria-label="Mobile">
-  @for (item of nav; track item.id) {
+  @for (item of navAll; track item.id) {
     <a
       [routerLink]="item.path"
       routerLinkActive="active"
@@ -104,7 +106,8 @@
     </div>
     <div>
       <div class="tag mb-2">{{ lang() === 'vi' ? 'Điều hướng' : 'Navigate' }}</div>
-      @for (item of nav; track item.id) {
+      <!-- navAll: gom ca Chinh sach + FAQ da rut khoi navbar 14/08 -->
+      @for (item of navAll; track item.id) {
         <a class="fl" [routerLink]="item.path">{{ item.label | tr: lang() }}</a>
       }
     </div>
