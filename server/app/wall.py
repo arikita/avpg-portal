@@ -39,6 +39,10 @@ EMOJIS = ["\U0001F44D", "❤️", "\U0001F604", "\U0001F389", "\U0001F44F"]
 MAX_BODY = 3000
 MAX_COMMENT = 1500
 PAGE = 10
+# Bai "nong" co the co hang tram binh luan; tra het kem theo moi bai trong
+# trang bang tin lam phinh ca payload lan so DOM node. Chi kem 3 cai MOI NHAT,
+# phan con lai lay rieng qua GET /{pid}/comments khi nguoi dung bam "Xem them".
+COMMENT_PREVIEW = 3
 
 _SAFE = re.compile(r"[A-Za-z0-9._-]{1,64}")
 _TAG = re.compile(r"<[^>]*>")
@@ -77,13 +81,16 @@ POST_COLS = ("id, owner, author, author_name, body, image, created_at, edited_at
 
 def _post(r, rx: dict, comments: dict, viewer: str, moderator: bool) -> dict:
     pid, owner, author, aname, body, image, created, edited = r
+    cm = comments.get(pid) or {"items": [], "total": 0}
     return {
         "id": pid, "owner": owner, "author": author, "authorName": aname or author,
         "body": body, "image": image,
         "createdAt": created.isoformat(),
         "editedAt": edited.isoformat() if edited else None,
         "reactions": rx.get(pid, {"counts": {}, "mine": None, "total": 0, "faces": []}),
-        "comments": comments.get(pid, []),
+        "comments": cm["items"],
+        # Tong so binh luan THAT — `comments` o tren co the moi la 3 cai dau.
+        "commentTotal": cm["total"],
         "canEdit": author == viewer,
         "canDelete": author == viewer or owner == viewer or moderator,
     }
@@ -114,15 +121,32 @@ def _reactions(conn, ids: list[int], viewer: str) -> dict:
     return out
 
 
-def _comments(conn, ids: list[int], viewer: str, owner: str, moderator: bool) -> dict:
-    out: dict[int, list] = {}
+def _comments(conn, ids: list[int], viewer: str, owner: str, moderator: bool,
+              limit: int | None = COMMENT_PREVIEW) -> dict:
+    """{post_id: {"items": [...], "total": n}} — `limit` cai MOI NHAT moi bai.
+
+    Lay N cai moi nhat nhung tra ve theo thu tu CU -> MOI, dung thu tu doc tren
+    giao dien. `limit=None` = lay het (dung cho endpoint "xem them").
+    `total` luon la tong so that, khong phu thuoc limit.
+    """
+    out: dict[int, dict] = {}
     if not ids:
         return out
-    for cid, pid, author, aname, body, created, edited in conn.execute(
-            "SELECT id, post_id, author, author_name, body, created_at, edited_at "
-            "FROM wall_comment WHERE post_id = ANY(%s) AND deleted = false "
-            "ORDER BY created_at ASC", (ids,)).fetchall():
-        out.setdefault(pid, []).append({
+    sql = ("SELECT id, post_id, author, author_name, body, created_at, edited_at, total "
+           "FROM (SELECT id, post_id, author, author_name, body, created_at, edited_at, "
+           "             row_number() OVER (PARTITION BY post_id "
+           "                                ORDER BY created_at DESC, id DESC) AS rn, "
+           "             count(*) OVER (PARTITION BY post_id) AS total "
+           "      FROM wall_comment WHERE post_id = ANY(%s) AND deleted = false) t ")
+    args: list[Any] = [ids]
+    if limit is not None:
+        sql += "WHERE rn <= %s "
+        args.append(limit)
+    sql += "ORDER BY post_id, created_at ASC, id ASC"
+    for cid, pid, author, aname, body, created, edited, total in conn.execute(
+            sql, tuple(args)).fetchall():
+        d = out.setdefault(pid, {"items": [], "total": total})
+        d["items"].append({
             "id": cid, "author": author, "authorName": aname or author, "body": body,
             "createdAt": created.isoformat(),
             "editedAt": edited.isoformat() if edited else None,
@@ -331,6 +355,22 @@ def react(pid: int, payload: dict = Body(...),
 
 
 # ------------------------------------------------------------- binh luan --
+@router.get("/{pid}/comments")
+def all_comments(pid: int, viewer: str = Depends(current_user)) -> dict:
+    """Toan bo binh luan cua mot bai — cho nut "Xem them N binh luan".
+
+    Trang bang tin/tuong chi kem COMMENT_PREVIEW cai moi nhat moi bai.
+    """
+    with _conn() as conn:
+        r = conn.execute("SELECT owner FROM wall_post WHERE id = %s AND deleted = false",
+                         (pid,)).fetchone()
+        if not r:
+            raise HTTPException(status_code=404, detail="khong co bai nay")
+        cm = _comments(conn, [pid], viewer, r[0], is_editor(viewer), limit=None)
+    d = cm.get(pid) or {"items": [], "total": 0}
+    return {"comments": d["items"], "total": d["total"]}
+
+
 @router.post("/{pid}/comment")
 def add_comment(pid: int, payload: dict = Body(...),
                 username: str = Depends(current_user)) -> dict:

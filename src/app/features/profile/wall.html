@@ -129,7 +129,7 @@
       }
 
       <!-- đếm cảm xúc / bình luận -->
-      @if (p.reactions.total || commentsOf(p).length) {
+      @if (p.reactions.total || p.commentTotal) {
         <div class="wp-counts">
           @if (p.reactions.total) {
             <span class="rx-stack" [attr.title]="rxTitle(p)">
@@ -140,9 +140,9 @@
               <span class="rx-sum">{{ p.reactions.total }}</span>
             </span>
           }
-          @if (commentsOf(p).length) {
+          @if (p.commentTotal) {
             <button class="cnt-btn" (click)="toggleComments(p)">
-              <app-icon name="message" /> {{ commentsOf(p).length }}
+              <app-icon name="message" /> {{ p.commentTotal }}
             </button>
           }
         </div>
@@ -158,6 +158,15 @@
       <!-- bình luận -->
       @if (isOpen(p)) {
         <div class="wp-comments">
+          @if (hiddenCount(p); as hidden) {
+            <button class="wc-more" (click)="loadAllComments(p)" [disabled]="loadingComments()[p.id]">
+              @if (loadingComments()[p.id]) {
+                {{ vi() ? 'Đang tải…' : 'Loading…' }}
+              } @else {
+                {{ vi() ? 'Xem thêm ' + hidden + ' bình luận' : 'View ' + hidden + ' more comments' }}
+              }
+            </button>
+          }
           @for (c of commentsOf(p); track c.id) {
             <div class="wc">
               <app-avatar [name]="c.authorName" [username]="c.author" [size]="30" [link]="true" />

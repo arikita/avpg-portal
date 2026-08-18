@@ -78,6 +78,10 @@ export class Wall {
 
   // --- binh luan ---
   readonly commentDraft = signal<Record<number, string>>({});
+  /** Binh luan DAY DU cua nhung bai da bam "Xem them" — server chi kem 3 cai
+      moi nhat, phan con lai tai rieng nen phai giu ngoai `posts`. */
+  readonly allComments = signal<Record<number, WallComment[]>>({});
+  readonly loadingComments = signal<Record<number, boolean>>({});
   readonly openComments = signal<Record<number, boolean>>({});
 
   readonly vi = computed(() => this.lang() === 'vi');
@@ -154,7 +158,24 @@ export class Wall {
   }
 
   commentsOf(p: WallPost): WallComment[] {
-    return p.comments ?? [];
+    return this.allComments()[p.id] ?? p.comments ?? [];
+  }
+
+  /** So binh luan cu con an sau nut "Xem them". 0 = da hien het. */
+  hiddenCount(p: WallPost): number {
+    return Math.max(0, (p.commentTotal ?? 0) - this.commentsOf(p).length);
+  }
+
+  async loadAllComments(p: WallPost): Promise<void> {
+    if (this.loadingComments()[p.id]) return;
+    this.loadingComments.update((m) => ({ ...m, [p.id]: true }));
+    const all = await this.api.comments(p.id);
+    this.loadingComments.update((m) => ({ ...m, [p.id]: false }));
+    if (!all) {
+      this.error.set(this.vi() ? 'Không tải được bình luận.' : 'Could not load comments.');
+      return;
+    }
+    this.allComments.update((m) => ({ ...m, [p.id]: all }));
   }
 
   isOpen(p: WallPost): boolean {
@@ -282,13 +303,23 @@ export class Wall {
     }
     this.replace(updated);
     this.commentDraft.update((m) => ({ ...m, [p.id]: '' }));
+    await this.refreshComments(updated.id);
   }
 
   async removeComment(c: WallComment): Promise<void> {
     const msg = this.vi() ? 'Xoá bình luận này?' : 'Delete this comment?';
     if (!confirm(msg)) return;
     const updated = await this.api.deleteComment(c.id);
-    if (updated) this.replace(updated);
+    if (!updated) return;
+    this.replace(updated);
+    await this.refreshComments(updated.id);
+  }
+
+  /** Bai dang bung het binh luan thi tai lai het; bai chua bung thi khong dong gi. */
+  private async refreshComments(pid: number): Promise<void> {
+    if (!(pid in this.allComments())) return;
+    const all = await this.api.comments(pid);
+    if (all) this.allComments.update((m) => ({ ...m, [pid]: all }));
   }
 
   private replace(p: WallPost): void {

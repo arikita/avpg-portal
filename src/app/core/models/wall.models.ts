@@ -34,7 +34,10 @@ export interface WallPost {
   createdAt: string;
   editedAt: string | null;
   reactions: WallReactions;
+  /** Chi 3 binh luan MOI NHAT — server khong tra het (xem wall.py COMMENT_PREVIEW). */
   comments: WallComment[];
+  /** Tong so binh luan that, de hien dem va tinh "Xem them N binh luan". */
+  commentTotal: number;
   canEdit: boolean;
   canDelete: boolean;
 }

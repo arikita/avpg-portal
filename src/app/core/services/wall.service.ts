@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { WallPage, WallPost } from '../models/wall.models';
+import { WallComment, WallPage, WallPost } from '../models/wall.models';
 
 /** Tuong ca nhan: doc/ghi qua /api/wall (cung goc, Kerberos lo o Apache). */
 @Injectable({ providedIn: 'root' })
@@ -27,6 +27,12 @@ export class WallService {
 
   react(id: number, emoji: string | null): Promise<WallPost | null> {
     return this.json<WallPost>(`/api/wall/${id}/react`, { method: 'POST', body: { emoji } });
+  }
+
+  /** Toan bo binh luan cua mot bai — trang chi kem 3 cai moi nhat. */
+  async comments(id: number): Promise<WallComment[] | null> {
+    const r = await this.json<{ comments: WallComment[] }>(`/api/wall/${id}/comments`);
+    return r?.comments ?? null;
   }
 
   comment(id: number, body: string): Promise<WallPost | null> {
