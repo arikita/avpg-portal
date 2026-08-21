@@ -41,8 +41,9 @@ import psycopg
 from fastapi import (APIRouter, Body, Depends, File, Header, HTTPException,
                      UploadFile, WebSocket, WebSocketDisconnect)
 
-from .ad import get_user, is_editor
+from .ad import get_user, is_editor, list_people
 from .images import MAX_IMAGE, read_upload, save_jpeg
+from .news import _queue_push          # dung lai duong Web Push da co
 
 log = logging.getLogger("avp.chat")
 
@@ -134,6 +135,15 @@ def _online(conn, usernames: list[str]) -> set[str]:
     return {r[0] for r in rows}
 
 
+def _online_all(conn) -> set[str]:
+    """Moi nguoi dang online, ten viet thuong — de so khop khong ke hoa/thuong
+    (AD tra `HaiVL`, phien dang nhap ghi `haivl`)."""
+    rows = conn.execute(
+        "SELECT username FROM chat_presence "
+        f"WHERE last_seen > now() - interval '{PRESENCE_TTL} seconds'").fetchall()
+    return {r[0].lower() for r in rows}
+
+
 def _conv_list(conn, username: str) -> list[dict]:
     rows = conn.execute(
         "SELECT c.id, c.kind, c.title, c.last_at, m.last_read_at "
@@ -192,6 +202,21 @@ def conversations(username: str = Depends(current_user)) -> dict:
     with _conn() as conn:
         items = _conv_list(conn, username)
     return {"conversations": items, "me": username}
+
+
+@router.get("/people")
+def people(username: str = Depends(current_user)) -> dict:
+    """Toan bo nhan vien + ai dang online.
+
+    Chatbox mo len la thay ngay het moi nguoi, khong phai bam "nhan tin moi".
+    Danh sach AD co cache 15 phut trong ad.py nen goi lai moi phut chi ton
+    dung mot cau SELECT bang presence.
+    """
+    me = (username or "").lower()
+    with _conn() as conn:
+        online = _online_all(conn)
+    return {"people": [{**p, "online": p["username"].lower() in online}
+                       for p in list_people() if p["username"].lower() != me]}
 
 
 # ===========================================================================
@@ -352,6 +377,32 @@ def messages(conv_id: int, before: int = 0,
     return {"messages": [_msg_row(r) for r in reversed(rows)], "more": more}
 
 
+def _push_new_message(conn, conv_id: int, sender: str, sender_name: str,
+                      body: str, image: str) -> None:
+    """Web Push cho thanh vien KHONG con mo portal (khong co WebSocket song).
+
+    Ai dang mo portal thi chinh trang bao bang Notification cua tab (xem
+    chat.service.ts) — day them push nua se hien hai lan cung mot tin. Ai dong
+    tab roi thi truoc day KHONG nhan duoc gi ca, day la cho vua bit."""
+    others = [u for (u,) in conn.execute(
+        "SELECT username FROM chat_member WHERE conv_id = %s AND username <> %s",
+        (conv_id, sender)).fetchall()]
+    if not others:
+        return
+    online = _online(conn, others)
+    offline = [u for u in others if u not in online]
+    if not offline:
+        return
+    row = conn.execute("SELECT kind, title FROM chat_conversation WHERE id = %s",
+                       (conv_id,)).fetchone()
+    title = sender_name or sender
+    if row and row[0] == "group" and row[1]:
+        title = f"{title} · {row[1]}"
+    preview = body[:120] if body else ("📷 Đã gửi một ảnh" if image else "")
+    for who in offline:
+        _queue_push(who, title, preview, "/chat", f"avp-chat-{conv_id}")
+
+
 @router.post("/{conv_id}/messages")
 def send(conv_id: int, payload: dict = Body(...),
          username: str = Depends(current_user)) -> dict:
@@ -372,6 +423,7 @@ def send(conv_id: int, payload: dict = Body(...),
         conn.execute("UPDATE chat_member SET last_read_at = now() "
                      "WHERE conv_id = %s AND username = %s", (conv_id, username))
         conn.commit()
+        _push_new_message(conn, conv_id, username, _name_of(username), body, image)
     msg = _msg_row(r)
     _publish({"t": "msg", "conv": conv_id, "msg": msg["id"]})
     return {"message": msg}

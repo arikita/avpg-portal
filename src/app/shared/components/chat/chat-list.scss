@@ -16,9 +16,23 @@
   padding: 12px var(--chat-head-pr, 14px) 12px 14px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
-  strong { font-size: 0.96rem; }
+  strong { font-size: 0.96rem; display: flex; align-items: baseline; gap: 8px; }
+}
+/* "12 dang online" — canh nho ben ten khung. */
+.oc {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--success);
 }
 .head-act { display: flex; gap: 4px; }
+
+/* O tim: luon co san o danh sach chinh — day la ca cong ty chu khong phai
+   vai cuoc tro chuyen, khong tim thi khong ra. */
+.srch {
+  padding: 10px 14px 4px;
+  flex-shrink: 0;
+}
 .mini {
   width: 32px;
   height: 32px;
@@ -166,7 +180,6 @@
   white-space: nowrap;
 }
 
-.hint { font-size: 0.72rem; color: var(--text-3); flex-shrink: 0; }
 .full { width: 100%; justify-content: center; flex-shrink: 0; }
 
 .none {

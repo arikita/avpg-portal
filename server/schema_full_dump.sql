@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict cAUdvD372XFAGYTamWePAspPoghk9XUWbDs8GgTR0keE0W9RnnzZwz5N0isPfkr
+\restrict OGpKRbgfcRqXzXfsWvC44bhTC0vDwW0aPPDUZPF5r8BLevtSSvnE94GMdCFdXKt
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -392,7 +392,8 @@ CREATE TABLE public.news_post (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     published_at timestamp with time zone,
-    comments_enabled boolean DEFAULT true NOT NULL
+    comments_enabled boolean DEFAULT true NOT NULL,
+    scheduled_at timestamp with time zone
 );
 
 
@@ -934,6 +935,13 @@ CREATE INDEX news_post_feed_idx ON public.news_post USING btree (status, pinned 
 
 
 --
+-- Name: news_post_scheduled_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX news_post_scheduled_idx ON public.news_post USING btree (scheduled_at) WHERE (status = 'scheduled'::text);
+
+
+--
 -- Name: push_sub_user_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1077,5 +1085,5 @@ ALTER TABLE ONLY public.wall_reaction
 -- PostgreSQL database dump complete
 --
 
-\unrestrict cAUdvD372XFAGYTamWePAspPoghk9XUWbDs8GgTR0keE0W9RnnzZwz5N0isPfkr
+\unrestrict OGpKRbgfcRqXzXfsWvC44bhTC0vDwW0aPPDUZPF5r8BLevtSSvnE94GMdCFdXKt
 

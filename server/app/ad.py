@@ -134,6 +134,76 @@ def list_directory() -> dict:
     return data
 
 
+# ------------------------------------------------------- toan bo nhan vien --
+# Danh sach nguoi de CHAT — khac danh ba o cho KHONG doi phai co so may le:
+# nhan tin thi ai cung nhan duoc, khong lien quan may ban. Van loc tai khoan
+# dung chung / dich vu bang `sn` (nguoi that thi AD luon tach ho + ten), giong
+# cach o "Chao thanh vien moi".
+PEOPLE_ATTRS = ["displayName", "sAMAccountName", "sn", "title", "department"]
+PEOPLE_FILTER = ("(&(objectCategory=person)(objectClass=user)"
+                 "(!(userAccountControl:1.2.840.113556.1.4.803:=2))"
+                 "(displayName=*)(sn=*))")
+_people_cache: tuple[float, list[dict]] | None = None
+
+
+def list_people() -> list[dict]:
+    """Moi nhan vien that dang bat trong AD, xep theo ten."""
+    global _people_cache
+    if _people_cache and time.time() - _people_cache[0] < DIR_TTL:
+        return _people_cache[1]
+
+    rows = [r for r in _search(PEOPLE_FILTER, PEOPLE_ATTRS) if _keep(r)]
+    out = [{"username": r.get("sAMAccountName") or r.get("samAccountName") or "",
+            "name": r.get("displayName", ""),
+            "title": (r.get("title") or "").strip(),
+            "dept": (r.get("department") or "").strip()}
+           for r in rows]
+    out = [p for p in out if p["username"]]
+    out.sort(key=lambda p: p["name"].lower())
+    _people_cache = (time.time(), out)
+    return out
+
+
+# --------------------------------------------------------- thanh vien moi --
+# O "Chao thanh vien moi" tren trang Doi song. Lay theo whenCreated cua tai
+# khoan AD — DUNG ngay vao lam, chi la "co tai khoan tu bao gio"; du de chao
+# nhau, khong dung de tinh tham nien chinh thuc.
+NEW_ATTRS = ["displayName", "sAMAccountName", "sn", "title", "department", "whenCreated"]
+_new_cache: tuple[float, list[dict]] | None = None
+NEW_TTL = int(os.environ.get("AD_NEW_TTL", "900"))
+
+
+def recent_accounts(days: int = 60, limit: int = 6) -> list[dict]:
+    """Tai khoan AD tao trong `days` ngay gan day, moi nhat truoc."""
+    global _new_cache
+    if _new_cache and time.time() - _new_cache[0] < NEW_TTL:
+        return _new_cache[1][:limit]
+
+    since = time.strftime("%Y%m%d%H%M%S", time.gmtime(time.time() - days * 86400))
+    flt = ("(&(objectCategory=person)(objectClass=user)"
+           "(!(userAccountControl:1.2.840.113556.1.4.803:=2))"
+           f"(displayName=*)(whenCreated>={since}.0Z))")
+    # Tai khoan dung chung (IT Dai Viet, IT Dai Duong...) chi co givenName ma
+    # KHONG co sn — nguoi that thi AD luon tach ho/ten. Dung do de loc.
+    rows = [r for r in _search(flt, NEW_ATTRS) if _keep(r) and r.get("sn")]
+    rows.sort(key=lambda r: r.get("whenCreated", ""), reverse=True)
+    out = [{"username": r.get("sAMAccountName") or r.get("samAccountName") or "",
+            "name": r.get("displayName", ""),
+            "title": r.get("title", ""),
+            "department": (r.get("department") or "").strip(),
+            "joinedAt": _iso_day(r.get("whenCreated", ""))}
+           for r in rows]
+    out = [p for p in out if p["username"]]
+    _new_cache = (time.time(), out)
+    return out[:limit]
+
+
+def _iso_day(raw: str) -> str:
+    """AD whenCreated 20230904071233.0Z -> 2023-09-04."""
+    m = re.match(r"(\d{4})(\d{2})(\d{2})", raw or "")
+    return f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else ""
+
+
 # ------------------------------------------------------------ quyen sua --
 EDITOR_GROUP_DN = os.environ.get(
     "EDITOR_GROUP_DN",

@@ -3,14 +3,16 @@
  * ========================================================================== */
 import { L, PortalLink, StatItem, ValueItem } from '../core/models/content.models';
 
+/** KHONG con hien thi tren trang chu (user yeu cau bo 19/08/2026) — giu lai
+ *  de doi xung voi ban ghi content.HOME_LEAD trong DB, du phong khi bat lai. */
 export const HOME_LEAD: L = {
-  vi: 'Chào mừng bạn gia nhập đại gia đình An Việt Phát! Trang này giúp bạn bắt nhịp thật nhanh — từ tài khoản, email, WiFi đến WorkIT và hỗ trợ IT.',
+  vi: 'Chào mừng bạn gia nhập đại gia đình An Việt Phát! Trang này giúp bạn bắt nhịp thật nhanh — từ tài khoản, email, Wi-Fi đến WorkIT và hỗ trợ IT.',
   en: 'Welcome to the An Viet Phat family! This hub gets you up to speed fast — from accounts, email and Wi-Fi to WorkIT and IT support.',
 };
 
 /** Số liệu nổi bật (placeholder — cập nhật số thật). */
 export const STATS: StatItem[] = [
-  { num: '2008', label: { vi: 'Năm thành lập', en: 'Founded' } },
+  { num: '2014', label: { vi: 'Năm thành lập', en: 'Founded' } },
   { num: '1.000+', label: { vi: 'Nhân sự', en: 'Team members' } },
   { num: '10+', label: { vi: 'Công ty thành viên', en: 'Member companies' } },
   { num: '30+', label: { vi: 'Quốc gia xuất khẩu', en: 'Export markets' } },
@@ -62,7 +64,7 @@ export const QUICK_LINKS: PortalLink[] = [
     tone: 'brand',
   },
   {
-    label: { vi: 'Kết nối WiFi', en: 'Connect Wi-Fi' },
+    label: { vi: 'Kết nối Wi-Fi', en: 'Connect Wi-Fi' },
     desc: { vi: 'SSID, mật khẩu & cách kết nối', en: 'SSID, password & how to connect' },
     url: '/onboarding#wifi',
     icon: 'wifi',
@@ -71,12 +73,13 @@ export const QUICK_LINKS: PortalLink[] = [
   {
     label: { vi: 'Gửi yêu cầu hỗ trợ', en: 'Request IT Support' },
     desc: { vi: 'Tạo ticket cho bộ phận IT', en: 'Open a ticket with IT' },
-    url: '/help',
+    // Bam la sang thang cong Spiceworks (mo tab moi) — user chot 19/08/2026.
+    url: 'https://avp.on.spiceworks.com/portal',
     icon: 'life-buoy',
     tone: 'coral',
   },
   {
-    label: { vi: 'Danh bạ nội bộ', en: 'Internal Directory' },
+    label: { vi: 'Liên hệ nội bộ', en: 'Internal Contacts' },
     desc: { vi: 'Số máy nhánh & đầu mối liên hệ', en: 'Extensions & key contacts' },
     url: '/directory',
     icon: 'users',

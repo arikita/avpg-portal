@@ -23,7 +23,7 @@ export const CHECKLIST: ChecklistItem[] = [
   },
   {
     id: 'wifi',
-    text: { vi: 'Kết nối WiFi nhân viên', en: 'Connect to the staff Wi-Fi' },
+    text: { vi: 'Kết nối Wi-Fi nhân viên', en: 'Connect to the staff Wi-Fi' },
   },
   {
     id: 'phone',
@@ -86,7 +86,7 @@ export const SECTIONS: GuideSection[] = [
     eyebrow: { vi: 'Danh tính số', en: 'Digital identity' },
     title: { vi: 'Tài khoản & Email', en: 'Account & Email' },
     intro: {
-      vi: 'Tài khoản công ty là chìa khoá cho email, máy tính, WiFi và các hệ thống nội bộ.',
+      vi: 'Tài khoản công ty là chìa khoá cho email, máy tính, Wi-Fi và các hệ thống nội bộ.',
       en: 'Your company account is the key to email, your computer, Wi-Fi and internal systems.',
     },
     readMin: 3,
@@ -220,7 +220,7 @@ export const SECTIONS: GuideSection[] = [
     id: 'wifi',
     icon: 'wifi',
     eyebrow: { vi: 'Kết nối', en: 'Connectivity' },
-    title: { vi: 'Kết nối WiFi', en: 'Connect to Wi-Fi' },
+    title: { vi: 'Kết nối Wi-Fi', en: 'Connect to Wi-Fi' },
     intro: {
       vi: 'Có mạng riêng cho nhân viên và mạng cho khách. Dùng đúng mạng để đảm bảo bảo mật.',
       en: 'There is a staff network and a guest network. Use the right one for security.',
@@ -229,11 +229,11 @@ export const SECTIONS: GuideSection[] = [
     blocks: [
       {
         kind: 'fields',
-        title: { vi: 'Thông tin WiFi', en: 'Wi-Fi details' },
+        title: { vi: 'Thông tin Wi-Fi', en: 'Wi-Fi details' },
         items: [
-          { label: { vi: 'WiFi nhân viên (SSID)', en: 'Staff Wi-Fi (SSID)' }, value: 'An Viet Phat', copy: true },
-          { label: { vi: 'WiFi khách (SSID)', en: 'Guest Wi-Fi (SSID)' }, value: 'An Viet Phat - Customer', copy: true },
-          { label: { vi: 'Mật khẩu WiFi khách', en: 'Guest Wi-Fi password' }, value: 'anvietphat', copy: true },
+          { label: { vi: 'Wi-Fi nhân viên (SSID)', en: 'Staff Wi-Fi (SSID)' }, value: 'An Viet Phat', copy: true },
+          { label: { vi: 'Wi-Fi khách (SSID)', en: 'Guest Wi-Fi (SSID)' }, value: 'An Viet Phat - Customer', copy: true },
+          { label: { vi: 'Mật khẩu Wi-Fi khách', en: 'Guest Wi-Fi password' }, value: 'anvietphat', copy: true },
         ],
       },
       {
@@ -248,7 +248,7 @@ export const SECTIONS: GuideSection[] = [
         kind: 'callout',
         tone: 'warning',
         text: {
-          vi: 'Không đưa tài khoản WiFi nhân viên cho khách. Hãy hướng khách dùng mạng “An Viet Phat - Customer”.',
+          vi: 'Không đưa tài khoản Wi-Fi nhân viên cho khách. Hãy hướng khách dùng mạng “An Viet Phat - Customer”.',
           en: 'Don’t give your staff Wi-Fi account to visitors. Point guests to “An Viet Phat - Customer”.',
         },
       },

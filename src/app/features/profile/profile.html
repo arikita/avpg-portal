@@ -7,7 +7,7 @@
         <div class="icon-badge sm"><app-icon name="users" /></div>
         <h3 class="mt-3">{{ vi() ? 'Không tìm thấy hồ sơ này' : 'Profile not found' }}</h3>
         <p class="muted mt-2">{{ vi() ? 'Người dùng không tồn tại trên hệ thống, hoặc tài khoản đã bị khoá.' : 'This user does not exist, or the account is disabled.' }}</p>
-        <a class="btn ghost mt-3" routerLink="/directory"><app-icon name="users" /> {{ vi() ? 'Về danh bạ' : 'Back to directory' }}</a>
+        <a class="btn ghost mt-3" routerLink="/directory"><app-icon name="users" /> {{ vi() ? 'Về trang liên hệ' : 'Back to contacts' }}</a>
       </div>
     </div>
   </section>
@@ -203,9 +203,8 @@
             <div class="kv">
               @if (d.mail) { <div><span><app-icon name="mail" /> Email</span><a [href]="'mailto:' + d.mail">{{ d.mail }}</a></div> }
               @if (d.ext) { <div><span><app-icon name="phone" /> {{ vi() ? 'Máy lẻ' : 'Extension' }}</span><b>{{ d.ext }}</b></div> }
-              @if (d.mobile) { <div><span><app-icon name="smartphone" /> {{ vi() ? 'Di động' : 'Mobile' }}</span><b>{{ d.mobile }}</b></div> }
+              @if (mobile()) { <div><span><app-icon name="smartphone" /> {{ vi() ? 'Di động' : 'Mobile' }}</span><b>{{ mobile() }}</b></div> }
               @if (d.office) { <div><span><app-icon name="map-pin" /> {{ vi() ? 'Nơi làm việc' : 'Office' }}</span><b>{{ d.office }}</b></div> }
-              <div><span><app-icon name="key" /> {{ vi() ? 'Tài khoản' : 'Account' }}</span><b>{{ d.username }}</b></div>
             </div>
           </div>
 

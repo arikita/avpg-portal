@@ -43,6 +43,10 @@ export class NewsEditor {
   readonly status = signal<NewsStatus>('published');
   readonly commentsOff = signal(false);   // tat binh luan cho bai nay
 
+  // Hen gio phat hanh: bat cong tac + chon gio (dang datetime-local cua may).
+  readonly schedOn = signal(false);
+  readonly schedAt = signal('');
+
   // Binh chon — chi tao khi soan bai moi (sua poll da co chua ho tro).
   // Mot bai co the co NHIEU cau hoi; moi cau hoi co lua chon rieng.
   readonly pollOn = signal(false);
@@ -172,6 +176,10 @@ export class NewsEditor {
       this.bodyEn.set(p.body?.en === p.body?.vi ? '' : (p.body?.en ?? ''));
       this.cover.set(p.cover);
       this.status.set(p.status);
+      if (p.status === 'scheduled' && p.scheduledAt) {
+        this.schedOn.set(true);
+        this.schedAt.set(this.toLocalInput(p.scheduledAt));
+      }
       this.commentsOff.set(p.commentsEnabled === false);
       const polls = p.polls?.length ? p.polls : p.poll ? [p.poll] : [];
       if (polls.length) {
@@ -218,6 +226,8 @@ export class NewsEditor {
       cover: this.cover(),
       category: this.category(),
       status,
+      // Gui ca khi khong hen gio (null) de bo gio hen cu luc dang ngay / luu nhap.
+      scheduledAt: status === 'scheduled' ? new Date(this.schedAt()).toISOString() : null,
       commentsEnabled: !this.commentsOff(),
     };
     if (this.pollOn() && !this.hasExistingPoll()) {
@@ -245,7 +255,24 @@ export class NewsEditor {
       .filter((q) => q.options.length >= 2);
   }
 
+  /** Gio hen da chon (rong / sai / da qua = khong hop le). */
+  readonly schedValid = computed(() => {
+    const t = new Date(this.schedAt()).getTime();
+    return !Number.isNaN(t) && t > Date.now();
+  });
+
+  /** Nut chinh: bat hen gio thi dat lich, khong thi dang ngay. */
+  publish(): void {
+    void this.save(this.schedOn() ? 'scheduled' : 'published');
+  }
+
   async save(status: NewsStatus): Promise<void> {
+    if (status === 'scheduled' && !this.schedValid()) {
+      this.error.set(this.lang() === 'vi'
+        ? 'Giờ hẹn đăng phải là một mốc trong tương lai.'
+        : 'The scheduled time must be in the future.');
+      return;
+    }
     if (!this.titleVi().trim()) {
       this.error.set(this.lang() === 'vi' ? 'Cần nhập tiêu đề (tiếng Việt).' : 'Vietnamese title is required.');
       return;

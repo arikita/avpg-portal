@@ -17,6 +17,7 @@
 .pill.cat { color: var(--brand); }
 .pill.pin { color: #c98a00; }
 .pill.draft { color: #fff; background: #e0703c; border-color: transparent; }
+.pill.draft.sched { background: #5b5bf5; }
 
 .detail-title { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.15; margin: 0 0 16px; }
 

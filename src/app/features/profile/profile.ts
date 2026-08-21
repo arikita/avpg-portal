@@ -11,6 +11,7 @@ import { RevealDirective } from '../../shared/directives/reveal.directive';
 import { Wall } from './wall';
 import { TrPipe } from '../../shared/pipes/tr.pipe';
 import { avatarHue, initials } from '../../shared/util/avatar.util';
+import { formatMobile } from '../../shared/util/phone.util';
 import { relTime } from '../news/news.util';
 
 const MAX_HEADLINE = 120;
@@ -40,6 +41,9 @@ export class Profile {
   readonly data = signal<ProfileData | null>(null);
   readonly loading = signal(true);
   readonly notFound = signal(false);
+
+  /** So di dong AD, da them so 0 dau + cat 'xxxx xxx xxx' (xem phone.util). */
+  readonly mobile = computed(() => formatMobile(this.data()?.mobile ?? ''));
 
   /** Trang dang xem la ho so cua ai (theo duong dan), 'me' = chinh minh. */
   private readonly who = signal('me');

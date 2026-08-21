@@ -27,7 +27,7 @@ export const PORTAL_GROUPS: PortalGroup[] = [
     links: [
       { label: { vi: 'Outlook Web', en: 'Outlook Web' }, desc: { vi: 'Email trên trình duyệt', en: 'Email in your browser' }, url: 'https://outlook.office.com', icon: 'mail', tone: 'brand', external: true },
       { label: { vi: 'WorkIT', en: 'WorkIT' }, desc: { vi: 'Đề nghị, phê duyệt, đặt phòng họp', en: 'Requests, approvals, room booking' }, url: 'https://anvietphatgroup.vn/', icon: 'briefcase', tone: 'teal', external: true },
-      { label: { vi: 'Helpdesk / Ticket', en: 'Helpdesk / Ticket' }, desc: { vi: 'Gửi yêu cầu hỗ trợ IT', en: 'Open an IT support ticket' }, url: '/help', icon: 'life-buoy', tone: 'coral' },
+      { label: { vi: 'Helpdesk / Ticket', en: 'Helpdesk / Ticket' }, desc: { vi: 'Gửi yêu cầu hỗ trợ IT', en: 'Open an IT support ticket' }, url: 'https://avp.on.spiceworks.com/portal', icon: 'life-buoy', tone: 'coral' },
       { label: { vi: 'SAP', en: 'SAP' }, desc: { vi: 'Hệ thống ERP', en: 'ERP system' }, url: 'https://sap.anvietphatgroup.com', icon: 'grid', tone: 'violet', external: true },
     ],
   },

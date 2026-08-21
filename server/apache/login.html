@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Đăng nhập · Cổng nội bộ An Việt Phát</title>
+<link rel="icon" href="/dang-nhap/icon-32.png">
+<style>
+:root{
+  --brand:#5b5bf5; --violet:#a855f7; --cyan:#22d3ee;
+  --bg:#f5f7fc; --surface:#fff; --border:#e6e9f3; --text:#141a2e;
+  --muted:#5b6480; --danger:#ff5470;
+  --shadow-lg:0 24px 60px -18px rgba(38,34,92,.35), 0 8px 24px -12px rgba(28,34,74,.18);
+  --r:16px; --r-lg:22px;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --brand:#7d7bff; --bg:#080b16; --surface:#111a30; --border:#23304f;
+         --text:#eef1fb; --muted:#9aa5c4;
+         --shadow-lg:0 30px 70px -20px rgba(0,0,0,.7), 0 10px 30px -12px rgba(0,0,0,.5); }
+}
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+  padding:24px; background:var(--bg); color:var(--text);
+  font-family:'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(60vw 50vh at 12% 0%,  rgba(106,91,255,.20), transparent 60%),
+    radial-gradient(55vw 45vh at 92% 12%, rgba(168,85,247,.16), transparent 62%),
+    radial-gradient(50vw 42vh at 50% 100%, rgba(34,211,238,.16), transparent 60%);
+}
+.card{
+  position:relative; z-index:1; width:100%; max-width:420px;
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg);
+  box-shadow:var(--shadow-lg); padding:34px 30px 28px;
+}
+.brand{display:flex; flex-direction:column; align-items:center; gap:14px; margin-bottom:22px}
+.brand img{height:52px; width:auto}
+h1{margin:0; font-size:19px; font-weight:700; letter-spacing:-.2px; text-align:center}
+.sub{margin:6px 0 0; font-size:13.5px; color:var(--muted); text-align:center; line-height:1.5}
+label{display:block; font-size:13px; font-weight:600; margin:0 0 6px}
+.field{margin-bottom:16px}
+input{
+  width:100%; padding:12px 14px; font-size:15px; font-family:inherit; color:var(--text);
+  background:transparent; border:1px solid var(--border); border-radius:var(--r); outline:none;
+  transition:border-color .15s, box-shadow .15s;
+}
+input:focus{border-color:var(--brand); box-shadow:0 0 0 4px rgba(91,91,245,.18)}
+button{
+  width:100%; margin-top:6px; padding:13px 16px; border:0; border-radius:var(--r);
+  font-size:15px; font-weight:600; font-family:inherit; color:#fff; cursor:pointer;
+  background:linear-gradient(135deg,#6a5bff 0%,#a855f7 48%,#22d3ee 100%);
+  box-shadow:0 10px 24px -12px rgba(106,91,255,.9);
+}
+button:hover{filter:brightness(1.05)}
+button:active{transform:translateY(1px)}
+.note{margin:18px 0 0; font-size:12.5px; color:var(--muted); text-align:center; line-height:1.6}
+/* Khau hieu tap doan — dong nhat voi hero trang chu va chan trang portal. */
+.slogan{margin:8px 0 0; font-size:12.5px; font-weight:600; font-style:italic; color:var(--brand); text-align:center; letter-spacing:.2px}
+.err{
+  display:none; align-items:center; gap:8px; margin:0 0 18px; padding:11px 13px;
+  font-size:13.5px; border-radius:var(--r);
+  color:var(--danger); background:rgba(255,84,112,.10); border:1px solid rgba(255,84,112,.32);
+}
+.err.on{display:flex}
+</style>
+</head>
+<body>
+  <form class="card" method="post" action="/dang-nhap/xac-thuc" autocomplete="on">
+    <div class="brand">
+      <img src="/dang-nhap/logo-full.png" alt="An Việt Phát">
+      <div>
+        <h1>Cổng nội bộ An Việt Phát</h1>
+        <p class="sub">Đăng nhập bằng email công ty để tiếp tục</p>
+        <p class="slogan">Together growing strong and success</p>
+      </div>
+    </div>
+
+    <p class="err" id="err">Email hoặc mật khẩu không đúng. Vui lòng thử lại.</p>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" name="httpd_username" type="text" inputmode="email"
+             autocomplete="username" autofocus required>
+    </div>
+
+    <div class="field">
+      <label for="pw">Mật khẩu</label>
+      <input id="pw" name="httpd_password" type="password"
+             autocomplete="current-password" required>
+    </div>
+
+    <input type="hidden" name="httpd_location" value="/">
+    <button type="submit">Đăng nhập</button>
+
+    <p class="note">
+      Quên mật khẩu? Liên hệ phòng CNTT: <strong>1789</strong>
+    </p>
+  </form>
+<script>
+  if (location.search.indexOf('loi=1') > -1) {
+    document.getElementById('err').classList.add('on');
+    document.getElementById('pw').focus();
+  }
+</script>
+</body>
+</html>

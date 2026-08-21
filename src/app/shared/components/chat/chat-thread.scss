@@ -107,6 +107,10 @@
 
 .txt {
   margin: 0;
+  /* Global `p { color: var(--text-2) }` o styles.scss ap THANG len the <p>,
+     thang mau .bub chi TRUYEN XUONG => chu xam den tren bong bong tim.
+     inherit keo lai mau cua bong bong (#fff o tin minh gui). */
+  color: inherit;
   white-space: pre-wrap;
   line-height: 1.5;
   font-size: 0.92rem;

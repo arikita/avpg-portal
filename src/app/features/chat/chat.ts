@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ChatService } from '../../core/services/chat.service';
-import { DirectoryService } from '../../core/services/directory.service';
 import { LanguageService } from '../../core/services/language.service';
 import { AvatarComponent } from '../../shared/components/avatar/avatar';
 import { ChatList } from '../../shared/components/chat/chat-list';
@@ -25,7 +24,6 @@ import { fold } from '../../shared/util/fold';
 })
 export class Chat {
   readonly chat = inject(ChatService);
-  private readonly dir = inject(DirectoryService);
   private readonly router = inject(Router);
   readonly lang = inject(LanguageService).lang;
 
@@ -67,22 +65,20 @@ export class Chat {
     this.addQuery.set((e.target as HTMLInputElement).value);
   }
 
-  /** Nguoi trong danh ba chua co trong phong — de moi them. */
+  /** Nhan vien chua co trong phong — de moi them. Cung nguon voi danh sach
+      chinh cua chatbox (`/api/chat/people`), khong phai danh ba may le. */
   readonly addable = computed(() => {
     const c = this.active();
-    const data = this.dir.data();
-    if (!c || c.kind !== 'group' || !data) return [];
+    if (!c || c.kind !== 'group') return [];
     const inRoom = new Set(c.members.map((m) => m.username.toLowerCase()));
     const q = fold(this.addQuery().trim());
-    const out: { username: string; name: string; title: string }[] = [];
-    for (const d of data.departments) {
-      for (const p of d.contacts) {
-        if (!p.username || inRoom.has(p.username.toLowerCase())) continue;
-        if (q && !fold(p.name + ' ' + p.username + ' ' + p.title + ' ' + d.name).includes(q)) continue;
-        out.push({ username: p.username, name: p.name, title: p.title });
-      }
-    }
-    return out.sort((a, b) => a.name.localeCompare(b.name)).slice(0, 30);
+    return this.chat
+      .people()
+      .filter((p) => {
+        if (!p.username || inRoom.has(p.username.toLowerCase())) return false;
+        return !q || fold(p.name + ' ' + p.username + ' ' + p.title + ' ' + p.dept).includes(q);
+      })
+      .slice(0, 30);
   });
 
   async add(username: string): Promise<void> {

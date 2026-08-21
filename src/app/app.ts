@@ -1,12 +1,14 @@
 import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NAV, NAV_MORE, SITE } from './content/site.config';
+import { HELPDESK_PORTAL_URL } from './content/help.content';
 import { Lang } from './core/models/content.models';
 import { LanguageService } from './core/services/language.service';
 import { ThemeService } from './core/services/theme.service';
 import { UserService } from './core/services/user.service';
 import { TrPipe } from './shared/pipes/tr.pipe';
 import { IconComponent } from './shared/components/icon/icon';
+import { ContentService } from './core/services/content.service';
 import { NotificationService } from './core/services/notification.service';
 import { NotificationsBell } from './shared/components/notifications/notifications';
 import { ChatDock } from './shared/components/chat-dock/chat-dock';
@@ -26,6 +28,13 @@ export class App {
    *  ghep trong template, tranh tao mang moi moi vong change detection. */
   readonly navAll = [...NAV, ...NAV_MORE];
   readonly site = SITE;
+
+  /** Link "Gui yeu cau ho tro" o chan trang tro THANG toi cong Spiceworks.
+   *  Lay qua ContentService de con sua duoc tu DB nhu trang /help. */
+  private readonly content = inject(ContentService);
+  readonly helpdeskUrl = computed(() =>
+    this.content.pick('help', 'HELPDESK_PORTAL_URL', HELPDESK_PORTAL_URL),
+  );
 
   private readonly langSvc = inject(LanguageService);
   private readonly themeSvc = inject(ThemeService);

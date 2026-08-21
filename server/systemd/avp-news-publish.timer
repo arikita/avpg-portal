@@ -1,0 +1,10 @@
+[Unit]
+Description=Kiem tra bai tin hen gio moi phut
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+AccuracySec=5s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

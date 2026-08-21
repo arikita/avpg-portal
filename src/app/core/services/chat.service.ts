@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { ChatEvent, ChatMessage, Conversation } from '../models/chat.models';
+import { ChatEvent, ChatMessage, ChatPerson, Conversation } from '../models/chat.models';
 import { UserService } from './user.service';
 
 const PING_MS = 30_000;      // giu ket noi song + cap nhat trang thai online
@@ -28,6 +28,9 @@ export class ChatService {
   private started = false;
 
   readonly conversations = signal<Conversation[]>([]);
+  /** Toan bo nhan vien (kem trang thai online) — danh sach chinh cua chatbox. */
+  readonly people = signal<ChatPerson[]>([]);
+  readonly peopleLoaded = signal(false);
   readonly activeId = signal<number | null>(null);
   readonly messages = signal<Record<number, ChatMessage[]>>({});
   readonly hasOlder = signal<Record<number, boolean>>({});
@@ -88,6 +91,7 @@ export class ChatService {
       this.pingTimer = setInterval(() => this.sendRaw({ t: 'ping' }), PING_MS);
       // Noi lai sau khi mat song: tai lai cho khoi thieu tin.
       void this.loadConversations();
+      if (this.peopleLoaded()) void this.loadPeople();
       const id = this.activeId();
       if (id != null) void this.openConversation(id, true);
     };
@@ -121,8 +125,12 @@ export class ChatService {
         break;
       case 'presence':
         if (ev.user) {
+          const who = ev.user.toLowerCase();
           this.conversations.update((cs) =>
             cs.map((c) => (c.peer === ev.user ? { ...c, online: !!ev.online } : c)),
+          );
+          this.people.update((ps) =>
+            ps.map((p) => (p.username.toLowerCase() === who ? { ...p, online: !!ev.online } : p)),
           );
         }
         break;
@@ -218,6 +226,19 @@ export class ChatService {
   async loadConversations(): Promise<void> {
     const data = await this.json<{ conversations: Conversation[] }>('/api/chat/conversations');
     if (data) this.conversations.set(data.conversations);
+  }
+
+  /**
+   * Danh sach nhan vien + ai dang online.
+   *
+   * Su kien `presence` cua WebSocket chi den nguoi CO CHUNG cuoc tro chuyen,
+   * nen cham xanh cua nhung nguoi con lai phai hoi lai theo chu ky — khung
+   * chat goi lai moi phut trong luc dang mo (xem chat-list.ts).
+   */
+  async loadPeople(): Promise<void> {
+    const data = await this.json<{ people: ChatPerson[] }>('/api/chat/people');
+    if (data) this.people.set(data.people);
+    this.peopleLoaded.set(true);
   }
 
   async openConversation(id: number, silent = false): Promise<void> {

@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SITE } from '../../content/site.config';
-import { HOME_LEAD, QUICK_LINKS, STATS, VALUES } from '../../content/home.content';
+import { QUICK_LINKS, STATS, VALUES } from '../../content/home.content';
+import { HELPDESK_PORTAL_URL } from '../../content/help.content';
 import { SECTIONS } from '../../content/onboarding.content';
 import { ContentService } from '../../core/services/content.service';
 import { LanguageService } from '../../core/services/language.service';
@@ -24,7 +25,9 @@ export class Home {
 
   readonly site = SITE;
   readonly sections = SECTIONS;
-  readonly lead = computed(() => this.content.pick('home', 'HOME_LEAD', HOME_LEAD));
+  readonly helpdeskUrl = computed(() =>
+    this.content.pick('help', 'HELPDESK_PORTAL_URL', HELPDESK_PORTAL_URL),
+  );
   readonly stats = computed(() => this.content.pick('home', 'STATS', STATS));
   readonly values = computed(() => this.content.pick('home', 'VALUES', VALUES));
   readonly quickLinks = computed(() => this.content.pick('home', 'QUICK_LINKS', QUICK_LINKS));
@@ -80,6 +83,11 @@ export class Home {
     if (!name) return vi ? 'Chào mừng người mới' : 'Welcome aboard';
     return vi ? `Chào mừng ${name}` : `Welcome ${name}`;
   });
+
+  /** Link ra ngoai (Spiceworks…) phai dung <a href> + tab moi, routerLink chi cho duong noi bo. */
+  isInternal(url: string): boolean {
+    return url.startsWith('/');
+  }
 
   path(url: string): string {
     return url.split('#')[0];

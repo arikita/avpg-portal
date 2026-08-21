@@ -79,7 +79,7 @@
         <div class="hero-info">
           <div class="hero-tags">
             @if (h.pinned) { <span class="pill pin"><app-icon name="star" /> {{ lang() === 'vi' ? 'Nổi bật' : 'Featured' }}</span> }
-            @if (h.status !== 'published') { <span class="pill draft">{{ h.status === 'draft' ? (lang() === 'vi' ? 'Nháp' : 'Draft') : (lang() === 'vi' ? 'Ẩn' : 'Hidden') }}</span> }
+            @if (h.status !== 'published') { <span class="pill draft" [class.sched]="h.status === 'scheduled'">{{ statusPill(h, true) }}</span> }
             <span class="pill cat">{{ catLabel(h.category) | tr: lang() }}</span>
             @if (h.hasPoll) { <span class="pill poll"><app-icon name="check-square" /> {{ lang() === 'vi' ? 'Bình chọn' : 'Poll' }}</span> }
           </div>
@@ -151,7 +151,7 @@
               <a class="pc-accent" [routerLink]="['/news', p.id]">
                 <div class="pc-tags flow">
                   @if (p.pinned) { <span class="pill on-accent"><app-icon name="star" /></span> }
-                  @if (p.status !== 'published') { <span class="pill draft">{{ p.status === 'draft' ? (lang() === 'vi' ? 'Nháp' : 'Draft') : (lang() === 'vi' ? 'Ẩn' : 'Hidden') }}</span> }
+                  @if (p.status !== 'published') { <span class="pill draft" [class.sched]="p.status === 'scheduled'">{{ statusPill(p, true) }}</span> }
                   <span class="pill on-accent">{{ catLabel(p.category) | tr: lang() }}</span>
                   @if (p.hasPoll) { <span class="pill on-accent"><app-icon name="check-square" /></span> }
                 </div>
@@ -188,7 +188,7 @@
                 @if (p.cover) { <img [src]="p.cover" [alt]="(p.title | tr: lang())" loading="lazy" /> } @else { <app-icon name="sparkles" /> }
                 <div class="pc-tags">
                   @if (p.pinned) { <span class="pill pin"><app-icon name="star" /></span> }
-                  @if (p.status !== 'published') { <span class="pill draft">{{ p.status === 'draft' ? (lang() === 'vi' ? 'Nháp' : 'Draft') : (lang() === 'vi' ? 'Ẩn' : 'Hidden') }}</span> }
+                  @if (p.status !== 'published') { <span class="pill draft" [class.sched]="p.status === 'scheduled'">{{ statusPill(p, true) }}</span> }
                   <span class="pill cat">{{ catLabel(p.category) | tr: lang() }}</span>
                   @if (p.hasPoll) { <span class="pill poll"><app-icon name="check-square" /></span> }
                 </div>

@@ -157,9 +157,32 @@
         }
       </div>
 
+      <div class="sched-box">
+        <label class="poll-chk">
+          <input type="checkbox" [checked]="schedOn()" (change)="schedOn.set($any($event.target).checked)" />
+          <span>
+            <b>{{ lang() === 'vi' ? 'Hẹn giờ phát hành' : 'Schedule publishing' }}</b>
+            <em>{{ lang() === 'vi' ? 'Bài nằm chờ, đến giờ hệ thống tự đăng và báo cho bạn.' : 'The post waits and goes live automatically at that time.' }}</em>
+          </span>
+        </label>
+        @if (schedOn()) {
+          <div class="poll-when">
+            <input type="datetime-local" [value]="schedAt()" (input)="schedAt.set($any($event.target).value)" />
+            @if (schedAt() && !schedValid()) {
+              <span class="sched-warn">{{ lang() === 'vi' ? 'Giờ hẹn phải ở tương lai.' : 'Pick a time in the future.' }}</span>
+            }
+          </div>
+        }
+      </div>
+
       <div class="editor-actions">
-        <button class="btn btn-primary" [disabled]="saving() || uploading()" (click)="save('published')">
-          <app-icon name="send" /> {{ isEdit() ? (lang() === 'vi' ? 'Cập nhật & đăng' : 'Update & publish') : (lang() === 'vi' ? 'Đăng ngay' : 'Publish') }}
+        <button class="btn btn-primary" [disabled]="saving() || uploading() || (schedOn() && !schedValid())" (click)="publish()">
+          <app-icon [name]="schedOn() ? 'calendar' : 'send'" />
+          @if (schedOn()) {
+            {{ lang() === 'vi' ? 'Hẹn đăng' : 'Schedule' }}
+          } @else {
+            {{ isEdit() ? (lang() === 'vi' ? 'Cập nhật & đăng' : 'Update & publish') : (lang() === 'vi' ? 'Đăng ngay' : 'Publish') }}
+          }
         </button>
         <button class="btn btn-ghost" [disabled]="saving() || uploading()" (click)="save('draft')">
           {{ lang() === 'vi' ? 'Lưu nháp' : 'Save draft' }}

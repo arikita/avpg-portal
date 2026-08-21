@@ -142,6 +142,9 @@ export class NotificationService {
       const pre = extra > 0 ? (vi ? `và ${extra} người khác ` : `and ${extra} others `) : '';
       return vi ? `${pre}đã bày tỏ cảm xúc bài của bạn` : `${pre}reacted to your post`;
     }
+    if (n.type === 'post_published') {
+      return vi ? 'đã đăng bài hẹn giờ của bạn' : 'published your scheduled post';
+    }
     if (n.type === 'reply') {
       return vi ? 'đã trả lời bình luận của bạn' : 'replied to your comment';
     }

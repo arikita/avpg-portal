@@ -63,7 +63,10 @@ FACEPILE = 5  # so nguoi react hien tren the
 
 POST_COLS = ("id, title_vi, title_en, summary_vi, summary_en, body_vi, body_en, "
              "cover, category, status, pinned, author, author_name, "
-             "created_at, updated_at, published_at, comments_enabled")
+             "created_at, updated_at, published_at, comments_enabled, scheduled_at")
+
+# Ten dung o cho "nguoi gui" cua thong bao he thong (bai hen gio da len song).
+SYSTEM_NAME = "Cổng thông tin"
 
 
 def current_user(x_remote_user: str | None = Header(default=None)) -> str:
@@ -96,7 +99,7 @@ def _name_of(username: str) -> str:
 
 def _post_row(r) -> dict:
     (pid, tvi, ten, svi, sen, bvi, ben, cover, cat, status, pinned,
-     author, aname, created, updated, published, comments_on) = r
+     author, aname, created, updated, published, comments_on, sched) = r
     return {
         "id": pid,
         "title": {"vi": tvi, "en": ten or tvi},
@@ -106,6 +109,7 @@ def _post_row(r) -> dict:
         "author": author, "authorName": aname or author,
         "createdAt": created.isoformat(), "updatedAt": updated.isoformat(),
         "publishedAt": published.isoformat() if published else None,
+        "scheduledAt": sched.isoformat() if sched else None,
         "commentsEnabled": comments_on,
     }
 
@@ -328,6 +332,43 @@ def _notify_reaction(conn, recipient: str, actor: str, actor_name: str, post_id:
                 f"/news/{post_id}", f"avp-reaction-{post_id}")
 
 
+# --------------------------------------------------- hen gio phat hanh --
+def publish_due(conn) -> list[int]:
+    """Dua cac bai da toi gio hen len song, bao cho tac gia.
+
+    UPDATE ... RETURNING la NGUYEN KHOI: hai worker uvicorn (hoac timer chay
+    trung luc) co goi cung luc thi chi mot ben nhan duoc hang -> khong dang
+    hai lan, khong bao hai lan."""
+    rows = conn.execute(
+        "UPDATE news_post SET status = 'published', "
+        "published_at = COALESCE(published_at, now()), updated_at = now() "
+        "WHERE status = 'scheduled' AND scheduled_at IS NOT NULL "
+        "AND scheduled_at <= now() RETURNING id, author, title_vi").fetchall()
+    for pid, author, title in rows:
+        conn.execute(
+            "INSERT INTO news_notification (recipient, type, actor, actor_name, "
+            "post_id, snippet) VALUES (%s,'post_published','system',%s,%s,%s)",
+            (author, SYSTEM_NAME, pid, (title or "")[:200]))
+    conn.commit()
+    for pid, author, _t in rows:
+        _queue_push(author, "AVP Portal", f"{SYSTEM_NAME} đã đăng bài hẹn giờ của bạn",
+                    f"/news/{pid}", f"avp-scheduled-{pid}")
+    return [r[0] for r in rows]
+
+
+def _wanted_status(req: str | None, sched, current: str) -> tuple[str, "datetime | None"]:
+    """Trang thai + gio hen sau khi doc payload. Hen gio ma gio da qua thi dang
+    luon (nguoi dung bam cham vai giay khong bi ket lai o 'scheduled')."""
+    if req == "scheduled":
+        if sched and sched > datetime.now(timezone.utc):
+            return "scheduled", sched
+        return "published", None
+    if req in ("draft", "published", "hidden"):
+        return req, None
+    # Khong noi gi ve trang thai: giu nguyen, ke ca gio hen dang cho.
+    return (current, sched) if current == "scheduled" else (current, None)
+
+
 # --------------------------------------------------------------- detail --
 def _detail(pid: int, username: str, record_view: bool = False) -> dict:
     with _conn() as conn:
@@ -365,7 +406,7 @@ def feed(username: str = Depends(current_user), category: str | None = None,
     sql = f"SELECT {POST_COLS} FROM news_post WHERE (status = 'published'"
     args: list[Any] = []
     if author:
-        sql += " OR (status IN ('draft', 'hidden') AND author = %s)"
+        sql += " OR (status IN ('draft', 'hidden', 'scheduled') AND author = %s)"
         args.append(username)
     sql += ")"
     if category:
@@ -379,8 +420,9 @@ def feed(username: str = Depends(current_user), category: str | None = None,
                 "||regexp_replace(coalesce(body_vi,'')||' '||coalesce(body_en,''),"
                 "'<[^>]+>',' ','g')) ILIKE unaccent(%s)")
         args.append(f"%{term}%")
-    sql += " ORDER BY pinned DESC, COALESCE(published_at, created_at) DESC"
+    sql += " ORDER BY pinned DESC, COALESCE(published_at, scheduled_at, created_at) DESC"
     with _conn() as conn:
+        publish_due(conn)          # bai den gio thi len song ngay khi co nguoi vao trang
         rows = conn.execute(sql, tuple(args)).fetchall()
         posts = [_post_row(r) for r in rows]
         ids = [p["id"] for p in posts]
@@ -405,6 +447,8 @@ def feed(username: str = Depends(current_user), category: str | None = None,
 
 @router.get("/{pid}")
 def get_post(pid: int, username: str = Depends(current_user)) -> dict:
+    with _conn() as conn:
+        publish_due(conn)
     return _detail(pid, username, record_view=True)
 
 
@@ -414,7 +458,8 @@ def create_post(payload: dict = Body(...), username: str = Depends(require_autho
     title_vi = _bi(payload, "title", "vi")
     if not title_vi:
         raise HTTPException(status_code=400, detail="thieu tieu de")
-    status = "draft" if payload.get("status") == "draft" else "published"
+    status, sched = _wanted_status(payload.get("status"),
+                                   _deadline(payload.get("scheduledAt")), "published")
     comments_on = payload.get("commentsEnabled")
     comments_on = True if comments_on is None else bool(comments_on)
     aname = _name_of(username)
@@ -422,13 +467,13 @@ def create_post(payload: dict = Body(...), username: str = Depends(require_autho
         row = conn.execute(
             "INSERT INTO news_post (title_vi, title_en, summary_vi, summary_en, body_vi, "
             "body_en, cover, category, status, comments_enabled, author, author_name, "
-            "published_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, "
+            "scheduled_at, published_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, "
             "CASE WHEN %s = 'published' THEN now() ELSE NULL END) RETURNING id",
             (title_vi, _bi(payload, "title", "en"), _bi(payload, "summary", "vi"),
              _bi(payload, "summary", "en"), _bi(payload, "body", "vi"),
              _bi(payload, "body", "en"), (payload.get("cover") or "").strip(),
              (payload.get("category") or "announcement").strip(), status,
-             comments_on, username, aname, status)).fetchone()
+             comments_on, username, aname, sched, status)).fetchone()
         _create_polls(conn, row[0], payload)
         conn.commit()
     return _detail(row[0], username)
@@ -447,19 +492,23 @@ def update_post(pid: int, payload: dict = Body(...),
                      "VALUES (%s,%s,%s)",
                      (pid, json.dumps(_post_row(r), ensure_ascii=False), username))
         req_status = payload.get("status")
-        status = req_status if req_status in ("draft", "published", "hidden") else r[9]
+        # Khong gui scheduledAt = giu gio hen cu (vd chi sua noi dung).
+        raw_sched = _deadline(payload.get("scheduledAt")) if "scheduledAt" in payload else r[17]
+        status, sched = _wanted_status(req_status, raw_sched, r[9])
         comments_on = payload.get("commentsEnabled")
         comments_on = r[16] if comments_on is None else bool(comments_on)
         conn.execute(
             "UPDATE news_post SET title_vi=%s, title_en=%s, summary_vi=%s, summary_en=%s, "
             "body_vi=%s, body_en=%s, cover=%s, category=%s, status=%s, comments_enabled=%s, "
-            "updated_at=now(), published_at = CASE WHEN %s='published' AND published_at IS NULL "
+            "scheduled_at=%s, updated_at=now(), "
+            "published_at = CASE WHEN %s='published' AND published_at IS NULL "
             "THEN now() ELSE published_at END WHERE id=%s",
             (_bi(payload, "title", "vi") or r[1], _bi(payload, "title", "en"),
              _bi(payload, "summary", "vi"), _bi(payload, "summary", "en"),
              _bi(payload, "body", "vi"), _bi(payload, "body", "en"),
              (payload.get("cover") if payload.get("cover") is not None else r[7]) or "",
-             (payload.get("category") or r[8]).strip(), status, comments_on, status, pid))
+             (payload.get("category") or r[8]).strip(), status, comments_on, sched,
+             status, pid))
         # Chi tao poll neu bai chua co (sua poll da co thi de sau).
         if not conn.execute("SELECT 1 FROM news_poll WHERE post_id = %s", (pid,)).fetchone():
             _create_polls(conn, pid, payload)

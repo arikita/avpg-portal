@@ -132,6 +132,8 @@
 .pill.cat { color: var(--brand); }
 .pill.pin { color: #c98a00; }
 .pill.draft { color: #fff; background: color-mix(in srgb, #e0703c 88%, transparent); border-color: transparent; }
+/* Hen gio: xanh tim cho khac han bai nhap/an. */
+.pill.draft.sched { background: color-mix(in srgb, #5b5bf5 88%, transparent); }
 
 .card-body { padding: 16px 18px 8px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .card-title {

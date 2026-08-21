@@ -28,6 +28,15 @@ export interface Conversation {
   unread: number;
 }
 
+/** Mot dong nguoi trong danh sach chatbox — toan bo nhan vien AD. */
+export interface ChatPerson {
+  username: string;
+  name: string;
+  title: string;
+  dept: string;
+  online: boolean;
+}
+
 export interface ChatMessage {
   id: number;
   sender: string;

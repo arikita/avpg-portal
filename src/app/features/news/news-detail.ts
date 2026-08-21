@@ -10,7 +10,7 @@ import { IconComponent } from '../../shared/components/icon/icon';
 import { AvatarComponent } from '../../shared/components/avatar/avatar';
 import { RichBody } from '../../shared/components/rich-body/rich-body';
 import { TrPipe } from '../../shared/pipes/tr.pipe';
-import { avatarHue, initials, relTime } from './news.util';
+import { avatarHue, initials, relTime, statusLabel } from './news.util';
 
 /** Trang chi tiet mot bai: noi dung, react nhieu emoji, binh luan long nhau. */
 @Component({
@@ -66,6 +66,11 @@ export class NewsDetail {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** Nhan "Bản nháp" / "Đang ẩn" / "Hẹn đăng <giờ>". */
+  statusPill(p: NewsPost, withTime = false): string {
+    return statusLabel(p, this.lang(), withTime);
   }
 
   catLabel(id: string) {

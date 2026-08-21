@@ -13,7 +13,7 @@
     <div class="detail-tags">
       <span class="pill cat">{{ catLabel(p.category) | tr: lang() }}</span>
       @if (p.pinned) { <span class="pill pin"><app-icon name="star" /> {{ lang() === 'vi' ? 'Đã ghim' : 'Pinned' }}</span> }
-      @if (p.status !== 'published') { <span class="pill draft">{{ p.status === 'draft' ? (lang() === 'vi' ? 'Bản nháp' : 'Draft') : (lang() === 'vi' ? 'Đang ẩn' : 'Hidden') }}</span> }
+      @if (p.status !== 'published') { <span class="pill draft" [class.sched]="p.status === 'scheduled'">{{ statusPill(p, true) }}</span> }
     </div>
 
     <h1 class="detail-title">{{ p.title | tr: lang() }}</h1>

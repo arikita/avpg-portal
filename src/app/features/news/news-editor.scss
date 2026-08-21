@@ -63,6 +63,13 @@
 .poll-build-foot { display: flex; align-items: center; gap: 12px; margin-top: 2px; }
 .poll-build-foot .link { background: none; border: none; cursor: pointer; color: var(--brand); font-weight: 700; font-size: .88rem; }
 
+/* Hen gio phat hanh — dung lai .poll-chk / .poll-when cho dong bo giao dien. */
+.sched-box {
+  margin-top: 20px; padding: 12px 14px; display: grid; gap: 10px;
+  border: 1px dashed var(--border-2); border-radius: var(--r-sm); background: var(--surface-2);
+}
+.sched-warn { color: #c0392b; font-size: .82rem; font-weight: 600; }
+
 .editor-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 22px; }
 .editor-actions .btn app-icon { width: 16px; height: 16px; }
 .editor-actions .up { color: var(--text-3); font-size: .88rem; }

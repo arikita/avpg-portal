@@ -8,7 +8,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { IconComponent } from '../../shared/components/icon/icon';
 import { AvatarComponent } from '../../shared/components/avatar/avatar';
 import { TrPipe } from '../../shared/pipes/tr.pipe';
-import { avatarHue, initials, relTime } from './news.util';
+import { avatarHue, initials, relTime, statusLabel } from './news.util';
 
 /** Feed tin tuc noi bo — the bai, react nhanh, dem binh luan. */
 @Component({
@@ -106,6 +106,11 @@ export class News {
     if (!this.query()) return;
     this.query.set('');
     void this.load();
+  }
+
+  /** Nhan "Nháp" / "Ẩn" / "Hẹn đăng <giờ>" tren the va bai noi bat. */
+  statusPill(p: NewsPost, withTime = false): string {
+    return statusLabel(p, this.lang(), withTime);
   }
 
   catLabel(id: string) {

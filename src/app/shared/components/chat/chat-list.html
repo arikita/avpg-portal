@@ -1,72 +1,82 @@
 @if (mode() === 'list') {
   <div class="head">
-    <strong>{{ vi() ? 'Trò chuyện' : 'Chats' }}</strong>
+    <strong>
+      {{ vi() ? 'Trò chuyện' : 'Chat' }}
+      @if (onlineCount()) { <em class="oc">{{ onlineCount() }} {{ vi() ? 'đang online' : 'online' }}</em> }
+    </strong>
     <div class="head-act">
-      <button class="mini" (click)="mode.set('new')" [attr.title]="vi() ? 'Nhắn tin mới' : 'New message'">
-        <app-icon name="edit" />
-      </button>
       <button class="mini" (click)="mode.set('group')" [attr.title]="vi() ? 'Tạo phòng nhóm' : 'New group'">
         <app-icon name="users" />
       </button>
     </div>
   </div>
 
+  <div class="srch">
+    <input
+      class="fld"
+      type="search"
+      [value]="query()"
+      (input)="onQuery($event)"
+      [attr.placeholder]="vi() ? 'Tìm tên, phòng ban…' : 'Search name, department…'"
+    />
+  </div>
+
   <div class="rows">
-    @if (!conversations().length) {
-      <div class="none">
-        <app-icon name="message" />
-        <p>{{ vi() ? 'Chưa có cuộc trò chuyện nào.' : 'No conversations yet.' }}</p>
-        <button class="btn ghost sm" (click)="mode.set('new')">
-          <app-icon name="edit" /> {{ vi() ? 'Nhắn cho đồng nghiệp' : 'Message a colleague' }}
-        </button>
-      </div>
-    }
-    @for (c of conversations(); track c.id) {
-      <button class="conv" [class.on]="chat.activeId() === c.id" (click)="open(c)">
+    @for (r of found(); track r.key) {
+      <button class="conv" [class.on]="isActive(r)" (click)="open(r)">
         <span class="av">
-          @if (c.kind === 'group') {
+          @if (r.kind === 'group') {
             <span class="grp"><app-icon name="users" /></span>
           } @else {
-            <app-avatar [name]="c.name" [username]="c.peer" [size]="42" />
+            <app-avatar [name]="r.name" [username]="r.username" [size]="42" />
           }
-          @if (c.online) { <i class="dot" [attr.title]="vi() ? 'Đang trực tuyến' : 'Online'"></i> }
+          @if (r.online) { <i class="dot" [attr.title]="vi() ? 'Đang trực tuyến' : 'Online'"></i> }
         </span>
         <span class="mid">
-          <span class="line1">
-            <span class="nm">{{ c.name }}</span>
-            <time>{{ c.last ? when(c.last.at) : '' }}</time>
-          </span>
+          <span class="line1"><span class="nm">{{ r.name }}</span></span>
           <span class="line2">
-            <span class="pv" [class.bold]="c.unread > 0">{{ preview(c) }}</span>
-            @if (c.unread) { <span class="badge">{{ c.unread > 99 ? '99+' : c.unread }}</span> }
+            <span class="pv">{{ r.sub }}</span>
+            @if (r.unread) { <span class="badge">{{ r.unread > 99 ? '99+' : r.unread }}</span> }
           </span>
         </span>
       </button>
     }
+    @if (!found().length) {
+      <div class="none">
+        <app-icon name="message" />
+        <p>
+          @if (query()) {
+            {{ vi() ? 'Không tìm thấy ai phù hợp.' : 'Nobody found.' }}
+          } @else if (chat.peopleLoaded()) {
+            {{ vi() ? 'Chưa lấy được danh sách nhân viên.' : 'Could not load the staff list.' }}
+          } @else {
+            {{ vi() ? 'Đang tải danh sách…' : 'Loading…' }}
+          }
+        </p>
+      </div>
+    }
   </div>
 } @else {
-  <!-- =========================================== chọn người / tạo nhóm ==== -->
+  <!-- ========================================================= tạo nhóm ==== -->
   <div class="head">
     <button class="mini" (click)="back()" [attr.aria-label]="vi() ? 'Quay lại' : 'Back'">
       <app-icon name="chevron-left" />
     </button>
-    <strong>{{ mode() === 'group' ? (vi() ? 'Tạo phòng nhóm' : 'New group') : (vi() ? 'Nhắn tin mới' : 'New message') }}</strong>
+    <strong>{{ vi() ? 'Tạo phòng nhóm' : 'New group' }}</strong>
     <span></span>
   </div>
 
   <div class="pick">
-    @if (mode() === 'group') {
-      <input
-        class="fld"
-        type="text"
-        [value]="groupTitle()"
-        (input)="onGroupTitle($event)"
-        [attr.placeholder]="vi() ? 'Tên phòng (VD: Dự án ERP)' : 'Group name'"
-        maxlength="80"
-      />
-      @if (groupPicks().length) {
-        <div class="picked">{{ groupPicks().length }} {{ vi() ? 'người đã chọn' : 'selected' }}</div>
-      }
+    <input
+      class="fld"
+      type="text"
+      [value]="groupTitle()"
+      (input)="onGroupTitle($event)"
+      [attr.placeholder]="vi() ? 'Tên phòng (VD: Dự án ERP)' : 'Group name'"
+      maxlength="80"
+    />
+    @if (groupPicks().length) {
+      <div class="picked">{{ groupPicks().length }} {{ vi() ? 'người đã chọn' : 'selected' }}</div>
     }
 
     <input
@@ -78,35 +88,23 @@
     />
 
     <div class="rows">
-      @for (p of found(); track p.username) {
-        <button
-          class="person"
-          [class.on]="mode() === 'group' && isPicked(p)"
-          (click)="mode() === 'group' ? togglePick(p) : startDm(p)"
-        >
+      @for (p of foundPeople(); track p.username) {
+        <button class="person" [class.on]="isPicked(p)" (click)="togglePick(p)">
           <app-avatar [name]="p.name" [username]="p.username" [size]="36" />
           <span class="pmid">
             <span class="nm">{{ p.name }}</span>
             <span class="sub">{{ p.title || p.dept }}</span>
           </span>
-          @if (mode() === 'group' && isPicked(p)) { <app-icon name="check" /> }
+          @if (isPicked(p)) { <app-icon name="check" /> }
         </button>
       }
-      @if (!found().length) {
+      @if (!foundPeople().length) {
         <p class="none-sm">{{ vi() ? 'Không tìm thấy ai phù hợp.' : 'Nobody found.' }}</p>
       }
     </div>
 
-    <p class="hint">
-      {{ vi()
-        ? 'Danh sách lấy từ danh bạ AD — chỉ gồm người đã có số máy lẻ.'
-        : 'List comes from the AD directory — people with an extension only.' }}
-    </p>
-
-    @if (mode() === 'group') {
-      <button class="btn sm full" (click)="createGroup()" [disabled]="!canCreateGroup() || busy()">
-        <app-icon name="check" /> {{ vi() ? 'Tạo phòng' : 'Create group' }}
-      </button>
-    }
+    <button class="btn sm full" (click)="createGroup()" [disabled]="!canCreateGroup() || busy()">
+      <app-icon name="check" /> {{ vi() ? 'Tạo phòng' : 'Create group' }}
+    </button>
   </div>
 }

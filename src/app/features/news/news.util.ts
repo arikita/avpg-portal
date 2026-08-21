@@ -21,6 +21,30 @@ export function relTime(iso: string, lang: Lang): string {
     { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+/** Ngay + gio ngan gon: "18/08 14:30". */
+export function shortDateTime(iso: string, lang: Lang): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-GB',
+    { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+/** Nhan trang thai cho the/bai (rong khi bai da dang binh thuong). */
+export function statusLabel(
+  post: { status: string; scheduledAt?: string | null },
+  lang: Lang,
+  withTime = false,
+): string {
+  const vi = lang === 'vi';
+  if (post.status === 'draft') return vi ? 'Nháp' : 'Draft';
+  if (post.status === 'hidden') return vi ? 'Ẩn' : 'Hidden';
+  if (post.status === 'scheduled') {
+    const when = withTime && post.scheduledAt ? ' ' + shortDateTime(post.scheduledAt, lang) : '';
+    return (vi ? 'Hẹn đăng' : 'Scheduled') + when;
+  }
+  return '';
+}
+
 /* ===========================================================================
  *  NOI DUNG BAI VIET
  *  Tac gia go van ban thuan + danh dau don gian (thanh cong cu trong trinh

@@ -1,0 +1,9 @@
+[Unit]
+Description=Dang cac bai tin da toi gio hen
+After=network-online.target postgresql.service
+
+[Service]
+Type=oneshot
+User=www-data
+EnvironmentFile=/etc/avp-portal-api.env
+ExecStart=/opt/avp-portal-api/venv/bin/python /opt/avp-portal-api/publish_scheduled.py

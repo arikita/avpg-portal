@@ -1,7 +1,8 @@
 /** Tin tuc noi bo — kieu du lieu dung chung giua service, feed, detail, editor. */
 import { L } from './content.models';
 
-export type NewsStatus = 'draft' | 'published' | 'hidden';
+/** 'scheduled' = da hen gio, den gio server tu chuyen sang 'published'. */
+export type NewsStatus = 'draft' | 'published' | 'hidden' | 'scheduled';
 
 export interface ReactionFace {
   name: string;
@@ -80,7 +81,8 @@ export interface PollDraft {
   closesAt?: string | null;
 }
 
-export type NotifType = 'comment' | 'reply' | 'reaction' | 'wall_comment' | 'wall_reaction';
+export type NotifType = 'comment' | 'reply' | 'reaction' | 'wall_comment' | 'wall_reaction'
+  | 'post_published';
 
 export interface Notification {
   /** Duong dan rieng (bai tuong ca nhan); rong = dan toi /news/<postId>. */
@@ -131,6 +133,8 @@ export interface NewsPost {
   createdAt: string;
   updatedAt: string;
   publishedAt: string | null;
+  /** Gio hen dang (chi khac null khi status = 'scheduled'). */
+  scheduledAt?: string | null;
   reactions: NewsReactions;
   commentCount?: number;
   views?: number;
@@ -161,6 +165,8 @@ export interface NewsDraft {
   cover: string;
   category: string;
   status: NewsStatus;
+  /** Gio hen dang (ISO) — bat buoc khi status = 'scheduled'. */
+  scheduledAt?: string | null;
   /** false = tat binh luan cho bai nay. */
   commentsEnabled?: boolean;
   /** Kem poll khi tao bai (chi tao moi, chua ho tro sua poll da co). */

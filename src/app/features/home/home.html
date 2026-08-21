@@ -16,10 +16,11 @@
       {{ lang() === 'vi' ? 'Chào mừng đến với' : 'Welcome to' }}<br />
       <span class="gradient-text">{{ site.company }}</span>
     </h1>
-    <p class="lead mt-2" appReveal>{{ lead() | tr: lang() }}</p>
+    <p class="lead" appReveal>{{ site.slogan }}</p>
     <div class="hero-cta" appReveal>
       <a class="btn btn-primary" routerLink="/onboarding"><app-icon name="rocket" /> {{ lang() === 'vi' ? 'Bắt đầu hành trình' : 'Start the journey' }}</a>
-      <a class="btn btn-ghost" routerLink="/portal"><app-icon name="grid" /> {{ lang() === 'vi' ? 'Cổng công cụ' : 'Open the portal' }}</a>
+      <!-- Tạm ẩn 20/08/2026 cùng mục "Công cụ" trên menu (site.config.ts) -->
+      <!-- <a class="btn btn-ghost" routerLink="/portal"><app-icon name="grid" /> {{ lang() === 'vi' ? 'Cổng công cụ' : 'Open the portal' }}</a> -->
     </div>
     <div class="grid grid-4 mt-4">
       @for (s of stats(); track $index) {
@@ -34,14 +35,25 @@
   <div class="container">
     <div class="grid grid-4">
       @for (l of quickLinks(); track $index) {
-        <a class="card card-hover tile" [routerLink]="path(l.url)" [fragment]="frag(l.url)" appReveal>
-          <div class="icon-badge {{ l.tone }}"><app-icon [name]="l.icon" /></div>
-          <div>
-            <h3>{{ l.label | tr: lang() }}</h3>
-            <p>{{ l.desc | tr: lang() }}</p>
-          </div>
-          <span class="arrow"><app-icon name="arrow-up-right" /></span>
-        </a>
+        @if (isInternal(l.url)) {
+          <a class="card card-hover tile" [routerLink]="path(l.url)" [fragment]="frag(l.url)" appReveal>
+            <div class="icon-badge {{ l.tone }}"><app-icon [name]="l.icon" /></div>
+            <div>
+              <h3>{{ l.label | tr: lang() }}</h3>
+              <p>{{ l.desc | tr: lang() }}</p>
+            </div>
+            <span class="arrow"><app-icon name="arrow-up-right" /></span>
+          </a>
+        } @else {
+          <a class="card card-hover tile" [href]="l.url" target="_blank" rel="noopener noreferrer" appReveal>
+            <div class="icon-badge {{ l.tone }}"><app-icon [name]="l.icon" /></div>
+            <div>
+              <h3>{{ l.label | tr: lang() }}</h3>
+              <p>{{ l.desc | tr: lang() }}</p>
+            </div>
+            <span class="arrow"><app-icon name="external-link" /></span>
+          </a>
+        }
       }
     </div>
   </div>
@@ -124,7 +136,7 @@
           <h2 style="color:#fff">{{ lang() === 'vi' ? 'Cần trợ giúp ngay?' : 'Need help right now?' }}</h2>
           <p style="color:rgba(255,255,255,.9)">{{ lang() === 'vi' ? 'Bộ phận IT luôn sẵn sàng hỗ trợ bạn.' : 'The IT team is always here to help.' }}</p>
         </div>
-        <a class="btn" routerLink="/help" style="background:#fff;color:var(--brand-700)"><app-icon name="life-buoy" /> {{ lang() === 'vi' ? 'Gửi yêu cầu hỗ trợ' : 'Open a ticket' }}</a>
+        <a class="btn" [href]="helpdeskUrl()" target="_blank" rel="noopener noreferrer" style="background:#fff;color:var(--brand-700)"><app-icon name="life-buoy" /> {{ lang() === 'vi' ? 'Gửi yêu cầu hỗ trợ' : 'Open a ticket' }}</a>
       </div>
     </div>
   </div>

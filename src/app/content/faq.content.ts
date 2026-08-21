@@ -10,8 +10,8 @@ export const FAQS: FaqItem[] = [
     a: { vi: 'Gửi yêu cầu hỗ trợ IT hoặc gọi Helpdesk (số máy nhánh ở trang Danh bạ). IT sẽ đặt lại mật khẩu và hướng dẫn bạn đổi mật khẩu mới.', en: 'Open an IT support ticket or call the Helpdesk (extension on the Directory page). IT will reset it and guide you to set a new one.' },
   },
   {
-    tag: { vi: 'WiFi', en: 'Wi-Fi' },
-    q: { vi: 'Điện thoại của tôi không kết nối được WiFi nhân viên?', en: 'My phone won’t connect to the staff Wi-Fi?' },
+    tag: { vi: 'Wi-Fi', en: 'Wi-Fi' },
+    q: { vi: 'Điện thoại của tôi không kết nối được Wi-Fi nhân viên?', en: 'My phone won’t connect to the staff Wi-Fi?' },
     a: { vi: 'Kiểm tra bạn chọn đúng SSID “AVP-Staff” và nhập đúng mật khẩu. Nếu vẫn lỗi, gửi yêu cầu hỗ trợ IT kèm tên thiết bị.', en: 'Make sure you selected “AVP-Staff” and entered the correct password. If it still fails, open a ticket and include your device name.' },
   },
   {

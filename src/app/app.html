@@ -102,10 +102,11 @@
   <div class="container inner">
     <div style="max-width: 320px">
       <div class="brand"><img class="logo" src="img/brand/logo-mark.png" alt="AVP Group" width="38" height="38" /><span>{{ site.company }}</span></div>
+      <p class="slogan">{{ site.slogan }}</p>
       <p class="muted mt-2">{{ site.tagline | tr: lang() }}</p>
     </div>
     <div>
-      <div class="tag mb-2">{{ lang() === 'vi' ? 'Điều hướng' : 'Navigate' }}</div>
+      <div class="tag mb-2">{{ lang() === 'vi' ? 'Tài nguyên' : 'Resources' }}</div>
       <!-- navAll: gom ca Chinh sach + FAQ da rut khoi navbar 14/08 -->
       @for (item of navAll; track item.id) {
         <a class="fl" [routerLink]="item.path">{{ item.label | tr: lang() }}</a>
@@ -114,8 +115,9 @@
     <div>
       <div class="tag mb-2">{{ lang() === 'vi' ? 'Hỗ trợ' : 'Support' }}</div>
       <a class="fl" [href]="'mailto:' + site.itEmail">{{ site.itEmail }}</a>
-      <a class="fl" routerLink="/help">{{ lang() === 'vi' ? 'Gửi yêu cầu hỗ trợ' : 'Open a ticket' }}</a>
-      <a class="fl" routerLink="/directory">{{ lang() === 'vi' ? 'Danh bạ nội bộ' : 'Directory' }}</a>
+      <!-- Di THANG toi cong Spiceworks (tab moi), khong vong qua trang /help nua. -->
+      <a class="fl" [href]="helpdeskUrl()" target="_blank" rel="noopener noreferrer">{{ lang() === 'vi' ? 'Gửi yêu cầu hỗ trợ' : 'Open a ticket' }}</a>
+      <a class="fl" routerLink="/directory">{{ lang() === 'vi' ? 'Liên hệ nội bộ' : 'Internal contacts' }}</a>
     </div>
   </div>
   <div class="container" style="padding-bottom: 26px">
