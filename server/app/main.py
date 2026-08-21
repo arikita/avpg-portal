@@ -7,6 +7,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import json
+import logging
 import os
 import re
 import time
@@ -17,9 +18,16 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 import psycopg
 
+# Nuot loi de trang khong sap la CO CHU DICH, nhung nuot IM LANG thi
+# share NAS chet ma portal van xanh - khong ai biet. Ghi mot dong canh bao
+# truoc khi nuot, hanh vi lui-ve giu NGUYEN. (Quy uoc ten: xem chat.py)
+log = logging.getLogger("avp.main")
+
 from .ad import can_admin_content, get_user, is_editor, is_news_author, list_directory
 from .news import router as news_router, notif_router, push_router
 from .profile import avatar_router, router as profile_router
+from .rail import router as rail_router
+from .telemetry import install as telemetry_install, router as telemetry_router
 from .wall import feed_router, router as wall_router
 from . import chat as chat_mod
 from .chat import router as chat_router, ws_router
@@ -46,9 +54,14 @@ app.include_router(push_router)
 app.include_router(profile_router)
 app.include_router(avatar_router)
 app.include_router(wall_router)
+app.include_router(rail_router)
 app.include_router(feed_router)
 app.include_router(chat_router)
 app.include_router(ws_router)
+app.include_router(telemetry_router)
+# Gan middleware do thoi gian + bat exception toan cuc. Dat SAU cung de
+# no boc het cac router o tren. Tat bang env TELEMETRY_ENABLED=0.
+telemetry_install(app)
 
 
 def current_user(x_remote_user: str | None = Header(default=None)) -> str:
@@ -70,8 +83,23 @@ def health() -> JSONResponse:
         checks["ad"] = "ok" if get_user("krbtgt") is not None else "khong tra duoc"
     except Exception as exc:
         checks["ad"] = f"loi: {type(exc).__name__}"
+    # Kho anh: hong thi anh bien mat ma trang van xanh — dung loai loi im lang
+    # ma ca he thong telemetry sinh ra de bat.
+    try:
+        checks["media"] = "ok" if os.path.isdir(GALLERY_DIR) else "khong doc duoc"
+    except Exception as exc:
+        checks["media"] = f"loi: {type(exc).__name__}"
     healthy = all(v == "ok" for v in checks.values())
-    return JSONResponse(checks, status_code=200 if healthy else 503)
+    # `build` KHONG nam trong `checks`: no la thong tin, khong phai phep thu.
+    # Nhet vao checks thi gia tri khac "ok" se lam /api/health tra 503 va bat
+    # canh bao Zabbix gia. JSONPath $.api / $.db / $.ad van khong doi.
+    body = dict(checks)
+    try:
+        from .telemetry import _build_id
+        body["build"] = _build_id()
+    except Exception:
+        body["build"] = ""
+    return JSONResponse(body, status_code=200 if healthy else 503)
 
 
 @app.get("/api/me")
@@ -91,7 +119,9 @@ def me(username: str = Depends(current_user)) -> dict:
             row = conn.execute("SELECT avatar FROM user_profile WHERE username = %s",
                                (base["username"],)).fetchone()
         base["avatar"] = row[0] if row else ""
-    except Exception:
+    except Exception as exc:
+        log.warning("me: khong doc duoc avatar cua %s (%s: %s)",
+                    base["username"], type(exc).__name__, exc)
         base["avatar"] = ""
     return base
 
@@ -145,7 +175,9 @@ def _album_meta(slug: str) -> dict | None:
     try:
         with open(os.path.join(GALLERY_DIR, slug, "album.json"), encoding="utf-8") as f:
             return json.load(f)
-    except (OSError, ValueError):
+    except (OSError, ValueError) as exc:
+        log.warning("gallery: khong doc duoc album.json cua %s (%s: %s)",
+                    slug, type(exc).__name__, exc)
         return None
 
 
@@ -158,7 +190,9 @@ def _thumbs(slug: str) -> set[str]:
     try:
         return {f[:-4] for f in os.listdir(os.path.join(GALLERY_DIR, slug, "thumb"))
                 if f.endswith(".jpg")}
-    except OSError:
+    except OSError as exc:
+        log.warning("gallery: khong liet ke duoc thumb cua %s (%s: %s)",
+                    slug, type(exc).__name__, exc)
         return set()
 
 
@@ -180,7 +214,9 @@ def _index(slug: str, meta: dict) -> list[tuple[str, str]]:
             rows = sorted((_stem_of(n), n) for n in os.listdir(d)
                           if n.lower().endswith(_IMG_EXT)
                           and os.path.isfile(os.path.join(d, n)))
-        except OSError:
+        except OSError as exc:
+            log.warning("gallery: khong doc duoc share nguon %s (%s: %s) - lui ve thumb co san",
+                        d, type(exc).__name__, exc)
             rows = []
     if not rows:
         rows = sorted((t, "") for t in _thumbs(slug))
