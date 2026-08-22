@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, Injector } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { safePath } from '../../shared/util/safe-path';
 
@@ -51,7 +51,19 @@ export interface TelemetryEvent {
 
 @Injectable({ providedIn: 'root' })
 export class TelemetryService {
-  private readonly router = inject(Router);
+  /**
+   * CHU Y — KHONG duoc `inject(Router)` o day.
+   *
+   * PortalErrorHandler duoc dang ky lam `ErrorHandler` va no inject service
+   * nay. Angular tao `ErrorHandler` RAT SOM, truoc ca Router. Neu service nay
+   * doi Router ngay luc khoi tao thi thanh vong:
+   *     ErrorHandler -> TelemetryService -> Router -> ErrorHandler
+   * => `NG0200: Circular dependency in DI` va app KHONG bootstrap duoc,
+   * nguoi dung thay TRANG TRANG. Da vap that ngay 22/08/2026.
+   *
+   * Giu Injector roi lay Router MUON trong init() — luc do Router da co.
+   */
+  private readonly injector = inject(Injector);
 
   /** Tat tu server qua /api/me. Mac dinh BAT — thieu co thi van thu thap. */
   private enabled = true;
@@ -81,7 +93,7 @@ export class TelemetryService {
     if (this.started) return;
     this.started = true;
     try {
-      this.router.events.subscribe((e) => {
+      this.injector.get(Router).events.subscribe((e) => {
         if (e instanceof NavigationEnd) {
           this.lastNavAt = Date.now();
           const path = safePath(e.urlAfterRedirects);

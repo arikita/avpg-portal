@@ -54,3 +54,20 @@ function queueSize(svc: TelemetryService): number {
 function countSent(svc: TelemetryService): number {
   return (svc as unknown as { sentCount: number }).sentCount;
 }
+
+/**
+ * Chan tai dien su co 22/08/2026 (trang trang, NG0200).
+ *
+ * PortalErrorHandler duoc dang ky lam ErrorHandler va inject TelemetryService.
+ * Angular tao ErrorHandler rat som, truoc Router. Neu TelemetryService doi
+ * Router ngay luc khoi tao thi thanh vong ErrorHandler -> Telemetry -> Router
+ * -> ErrorHandler, va app KHONG bootstrap duoc.
+ */
+describe('TelemetryService — khong duoc keo Router vao luc khoi tao', () => {
+  it('tao duoc khi KHONG co Router trong injector', () => {
+    TestBed.resetTestingModule();
+    // Co y KHONG provideRouter(): giong het hoan canh ErrorHandler duoc tao som.
+    TestBed.configureTestingModule({ providers: [] });
+    expect(() => TestBed.inject(TelemetryService)).not.toThrow();
+  });
+});

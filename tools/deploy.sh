@@ -41,6 +41,22 @@ run_as_owner rm -rf dist
 run_as_owner npx ng build --configuration production
 [ -f "$DIST/index.html" ] || die "build xong ma khong co index.html"
 
+say "1b/8  app co bootstrap duoc khong (chan TRUOC khi cham /var/www)"
+# Su co 22/08/2026: vong lap DI (NG0200) => trang trang. Build thanh cong,
+# test xanh, smoke test xanh — chi mot lan nap that trong trinh duyet moi thay.
+# Bo qua duoc bang SKIP_BOOT_CHECK=1 khi may khong co Chrome, NHUNG khi do
+# phai tu kiem bang tay: deploy mu la dung cach da gay su co.
+if [ "${SKIP_BOOT_CHECK:-0}" = "1" ]; then
+  echo "  BO QUA theo yeu cau — nho tu kiem bang tay"
+elif [ -z "${CHROME_BIN:-}" ] && ! command -v chromium >/dev/null 2>&1 \
+     && ! command -v google-chrome >/dev/null 2>&1; then
+  die "khong tim thay Chrome de kiem bootstrap. Dat CHROME_BIN, hoac chay lai
+     voi SKIP_BOOT_CHECK=1 neu chap nhan deploy ma khong kiem"
+else
+  run_as_owner node "$SRC/tools/boot_check.mjs" "$DIST" \
+    || die "app KHONG bootstrap duoc — /var/www chua bi dung toi"
+fi
+
 say "2/8  sinh build.json — NGUON DUY NHAT cua build_id"
 # build_id dung o 4 cho (bang app_error, /api/health, thu muc sourcemap, nut Bao
 # loi). Moi cho tu sinh mot kieu la khong doi chieu duoc — nen chi mot nguon.
