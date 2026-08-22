@@ -110,6 +110,11 @@ def me(username: str = Depends(current_user)) -> dict:
     # canEdit = vao duoc trang /admin (allowlist CONTENT_ADMIN_USERS), KHAC voi
     # canModerateNews (kiem duyet tin tuc, van theo group IS).
     base["canEdit"] = can_admin_content(username)
+    # Cong tac tat nhanh (TELEMETRY_ENABLED=0): client doc co nay de tu im.
+    # Khong co no thi tat phia server xong trinh duyet van ban POST /client
+    # deu deu, server tra 204 rong — ton bang thong va che mat viec da tat.
+    from .telemetry import ENABLED as _telemetry_on
+    base["telemetry"] = bool(_telemetry_on)
     base["canPostNews"] = is_news_author(username)
     base["canModerateNews"] = is_editor(username)
     # Anh dai dien: de navbar ve duoc nut ho so ngay, khong phai doi ban do

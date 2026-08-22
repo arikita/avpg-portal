@@ -1,6 +1,7 @@
 import { effect, inject, Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
+import { safePath } from '../../shared/util/safe-path';
 import { Me, UserService } from './user.service';
 
 /**
@@ -112,12 +113,6 @@ export class AnalyticsTitleStrategy extends TitleStrategy {
     if (t !== undefined) this.title.setTitle(t);
     this.analytics.pageView(snapshot.url);
   }
-}
-
-/** Bo phan dinh danh khoi duong dan truoc khi gui ra Google. */
-function safePath(url: string): string {
-  const path = url.split(/[?#]/)[0];
-  return path.replace(/^\/profile\/[^/]+/, '/profile/*');
 }
 
 /** Bam ten dang nhap; tra null neu trinh duyet khong co WebCrypto (http, ban cu). */

@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { ApiService } from './api';
 import { L } from '../models/content.models';
 
 /** Mot album anh su kien. */
@@ -25,8 +26,11 @@ export interface AlbumDetail extends Album {
 /** Goi API thu vien anh (/api/gallery). Xac thuc do Apache+Kerberos lo. */
 @Injectable({ providedIn: 'root' })
 export class GalleryService {
+  /** Moi loi goi API di qua day de duoc do thoi gian va ghi nhan khi hong.
+   *  Hanh vi lui ve giu NGUYEN nhu truoc — chi them viec bao cao. */
+  private readonly api = inject(ApiService);
   private async req<T>(url: string): Promise<T> {
-    const res = await fetch(url, { credentials: 'same-origin' });
+    const res = await this.api.fetch(url, { credentials: 'same-origin' });
     if (!res.ok) {
       let detail = `HTTP ${res.status}`;
       try {

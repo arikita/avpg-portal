@@ -23,6 +23,7 @@ from fastapi import APIRouter, Body, Depends, File, Header, HTTPException, Uploa
 from .ad import get_user, is_editor, list_directory
 from .images import MAX_IMAGE, drop, read_upload, save_jpeg
 from .news import _queue_push          # dung lai duong Web Push da co
+from .telemetry import bump_metric
 
 router = APIRouter(prefix="/api/wall", tags=["wall"])
 # Bang tin chung: KHONG dat duoi /api/wall vi se dam vao /api/wall/{owner}
@@ -39,6 +40,15 @@ EMOJIS = ["\U0001F44D", "❤️", "\U0001F604", "\U0001F389", "\U0001F44F"]
 MAX_BODY = 3000
 MAX_COMMENT = 1500
 PAGE = 10
+
+# Tai khoan chay kiem thu tu dong (Playwright / smoke test). Bai cua ho KHONG
+# duoc len bang tin chung: /feed gop bai tuong cua MOI NGUOI, nen kich ban
+# "dang bai roi xoa" chay 30 phut/lan se rai bai test cho ca cong ty nhin thay
+# trong khoang giua hai buoc. Da co tien le phai don 8 bai claude-demo-* +
+# 7 bai tin TEST ngay 20/08/2026.
+# De TRONG = khong loc ai (mac dinh hien nay).
+TEST_ACCOUNTS = [u.strip().lower() for u in
+                 os.environ.get("TEST_ACCOUNTS", "").split(",") if u.strip()]
 # Bai "nong" co the co hang tram binh luan; tra het kem theo moi bai trong
 # trang bang tin lam phinh ca payload lan so DOM node. Chi kem 3 cai MOI NHAT,
 # phan con lai lay rieng qua GET /{pid}/comments khi nguoi dung bam "Xem them".
@@ -225,6 +235,11 @@ def feed(offset: int = 0, scope: str = "all",
 
     sql = f"SELECT {POST_COLS} FROM wall_post WHERE deleted = false"
     args: list[Any] = []
+    # Chinh chu tai khoan test van thay bai cua minh (de kich ban e2e kiem
+    # duoc "dang xong co hien khong"), chi NGUOI KHAC la khong thay.
+    if TEST_ACCOUNTS and viewer.lower() not in TEST_ACCOUNTS:
+        sql += " AND lower(author) <> ALL(%s)"
+        args.append(TEST_ACCOUNTS)
     if scope_used == "dept":
         sql += " AND owner = ANY(%s)"
         args.append(mates)
@@ -286,6 +301,9 @@ def create(payload: dict = Body(...), username: str = Depends(current_user)) -> 
             "VALUES (%s,%s,%s,%s,%s) RETURNING id",
             (owner, username, _name_of(username), body, image)).fetchone()[0]
         conn.commit()
+        # Dem su kien nghiep vu: bai dang/gio tut bat thuong = co gi do hong
+        # ma KHONG nem exception nao. Xem app_metric + _check_anomaly().
+        bump_metric("wall_post")
         return _one(conn, pid, username)
 
 
@@ -386,6 +404,7 @@ def add_comment(pid: int, payload: dict = Body(...),
                      "VALUES (%s,%s,%s,%s)", (pid, username, _name_of(username), body))
         _notify(conn, r[1], username, pid, r[0], "comment", body)
         conn.commit()
+        bump_metric("wall_comment")
         return _one(conn, pid, username)
 
 

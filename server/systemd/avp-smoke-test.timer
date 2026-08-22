@@ -1,0 +1,10 @@
+[Unit]
+Description=Chay smoke test portal moi 10 phut
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=10min
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

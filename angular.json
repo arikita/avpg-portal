@@ -52,7 +52,13 @@
                   "maximumError": "16kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "sourceMap": {
+                "scripts": true,
+                "styles": false,
+                "hidden": true,
+                "vendor": false
+              }
             },
             "development": {
               "optimization": false,
@@ -99,7 +105,8 @@
               "node_modules/@fontsource/inter/700.css",
               "node_modules/@fontsource/inter/800.css",
               "src/styles.scss"
-            ]
+            ],
+            "karmaConfig": "karma.conf.js"
           }
         }
       }

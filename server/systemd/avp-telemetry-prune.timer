@@ -1,0 +1,9 @@
+[Unit]
+Description=Don du lieu telemetry cu hang ngay
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

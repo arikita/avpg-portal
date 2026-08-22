@@ -1,0 +1,155 @@
+<!-- BAO MAT: message / stack / breadcrumb la chuoi do TRINH DUYET NGUOI DUNG
+     gui len. Toan bo file nay chi duoc dung interpolation {{ }}; CAM TUYET DOI
+     [innerHTML] o bat ky truong nao cua bang loi. -->
+<section class="section">
+  <div class="container">
+    <span class="eyebrow"><app-icon name="lock" /> {{ lang() === 'vi' ? 'Quản trị' : 'Admin' }}</span>
+
+    <div class="mt-2" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+      <a class="btn ghost" routerLink="/admin">{{ lang() === 'vi' ? 'Nội dung' : 'Content' }}</a>
+      <a class="btn" routerLink="/admin/errors">{{ lang() === 'vi' ? 'Lỗi' : 'Errors' }}@if (newTotal()) { <span class="nav-badge">{{ newTotal() }}</span> }</a>
+    </div>
+
+    @if (!ready()) {
+      <p class="lead mt-3">{{ lang() === 'vi' ? 'Đang kiểm tra quyền…' : 'Checking permissions…' }}</p>
+    } @else if (!canEdit()) {
+      <div class="field mt-3">
+        <span class="nm">{{ lang() === 'vi'
+          ? 'Bạn không có quyền xem lỗi. Quyền này dành cho nhóm Information System.'
+          : 'You do not have permission to view errors (group: Information System).' }}</span>
+      </div>
+    } @else {
+      <h1 class="mt-3">{{ lang() === 'vi' ? 'Lỗi ứng dụng' : 'Application errors' }}</h1>
+      <p class="lead mt-2">{{ lang() === 'vi'
+        ? 'Gộp theo loại lỗi, không phải theo từng lần xảy ra. Giờ hiển thị theo +07.'
+        : 'Grouped by error type, not per occurrence. Times shown in +07.' }}</p>
+
+      <!-- BAI HOC: bang nay TRONG cung co the nghia la duong ong telemetry da chet,
+           chu khong phai khong co loi. Chi tin khi Zabbix van nhan duoc heartbeat. -->
+      <div class="field mt-3">
+        <span class="nm">{{ lang() === 'vi'
+          ? 'Im lặng ≠ khoẻ. Bảng trống có thể là do đường ống telemetry đã chết — kiểm Zabbix trước khi kết luận.'
+          : 'Silence is not health. An empty table may mean the telemetry pipeline died — check Zabbix first.' }}</span>
+      </div>
+
+      <div class="mt-3" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end">
+        <label>
+          <div class="muted-3" style="font-size:.8rem">{{ lang() === 'vi' ? 'Mức độ' : 'Severity' }}</div>
+          <select [ngModel]="fSeverity()" (ngModelChange)="fSeverity.set($event); load()">
+            <option value="">{{ lang() === 'vi' ? 'Tất cả' : 'All' }}</option>
+            <option value="critical">critical</option>
+            <option value="error">error</option>
+            <option value="warning">warning</option>
+            <option value="info">info</option>
+          </select>
+        </label>
+        <label>
+          <div class="muted-3" style="font-size:.8rem">{{ lang() === 'vi' ? 'Trạng thái' : 'Status' }}</div>
+          <select [ngModel]="fStatus()" (ngModelChange)="fStatus.set($event); load()">
+            <option value="">{{ lang() === 'vi' ? 'Tất cả' : 'All' }}</option>
+            <option value="new">new</option>
+            <option value="ack">ack</option>
+            <option value="resolved">resolved</option>
+          </select>
+        </label>
+        <label>
+          <div class="muted-3" style="font-size:.8rem">{{ lang() === 'vi' ? 'Khoảng thời gian' : 'Time range' }}</div>
+          <select [ngModel]="fHours()" (ngModelChange)="fHours.set(+$event); load()">
+            <option [value]="1">{{ lang() === 'vi' ? '1 giờ' : '1 hour' }}</option>
+            <option [value]="24">{{ lang() === 'vi' ? '24 giờ' : '24 hours' }}</option>
+            <option [value]="168">{{ lang() === 'vi' ? '7 ngày' : '7 days' }}</option>
+            <option [value]="720">{{ lang() === 'vi' ? '30 ngày' : '30 days' }}</option>
+          </select>
+        </label>
+        <button class="btn ghost" (click)="load()">{{ lang() === 'vi' ? 'Tải lại' : 'Reload' }}</button>
+      </div>
+
+      @if (status()) { <div class="field mt-3"><span class="nm">{{ status() }}</span></div> }
+
+      @if (loading()) {
+        <p class="muted mt-3">{{ lang() === 'vi' ? 'Đang tải…' : 'Loading…' }}</p>
+      } @else if (!rows().length) {
+        <p class="muted mt-3">{{ lang() === 'vi' ? 'Không có lỗi nào trong khoảng đã chọn.' : 'No errors in the selected range.' }}</p>
+      } @else {
+        <div class="card mt-3" style="padding:0; overflow:auto">
+          <table style="width:100%; border-collapse:collapse; font-size:.9rem">
+            <thead>
+              <tr style="text-align:left">
+                <th style="padding:10px">{{ lang() === 'vi' ? 'Mức' : 'Sev' }}</th>
+                <th style="padding:10px">{{ lang() === 'vi' ? 'Loại' : 'Kind' }}</th>
+                <th style="padding:10px">{{ lang() === 'vi' ? 'Thông điệp' : 'Message' }}</th>
+                <th style="padding:10px; text-align:right">{{ lang() === 'vi' ? 'Số lần' : 'Count' }}</th>
+                <th style="padding:10px; text-align:right">{{ lang() === 'vi' ? 'Người dính' : 'Users' }}</th>
+                <th style="padding:10px">{{ lang() === 'vi' ? 'Lần cuối' : 'Last seen' }}</th>
+                <th style="padding:10px">{{ lang() === 'vi' ? 'Đường dẫn' : 'Route' }}</th>
+                <th style="padding:10px">{{ lang() === 'vi' ? 'Trạng thái' : 'Status' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of rows(); track r.id) {
+                <tr (click)="open(r)" style="cursor:pointer; border-top:1px solid var(--border)">
+                  <td style="padding:10px; white-space:nowrap">
+                    <span [style.color]="r.severity === 'critical' ? 'crimson' : r.severity === 'error' ? 'darkorange' : r.severity === 'warning' ? 'goldenrod' : 'var(--muted)'">●</span>
+                    {{ r.severity }}
+                  </td>
+                  <td style="padding:10px; white-space:nowrap">{{ r.kind }}</td>
+                  <td style="padding:10px; max-width:420px; overflow:hidden; text-overflow:ellipsis">{{ r.message }}</td>
+                  <td style="padding:10px; text-align:right">{{ r.count }}</td>
+                  <td style="padding:10px; text-align:right">{{ r.usersHit }}</td>
+                  <td style="padding:10px; white-space:nowrap">{{ when(r.lastSeen) }}</td>
+                  <td style="padding:10px">{{ r.route }}</td>
+                  <td style="padding:10px">{{ r.status }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (selected(); as s) {
+        <div class="card mt-4" style="padding:16px">
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:start; flex-wrap:wrap">
+            <div>
+              <div class="tag">{{ s.severity }} · {{ s.source }} · {{ s.kind }}</div>
+              <h2 class="mt-2" style="font-size:1.1rem">{{ s.message }}</h2>
+              <p class="muted-3 mt-1" style="font-size:.85rem">
+                {{ lang() === 'vi' ? 'Lần đầu' : 'First' }} {{ when(s.firstSeen) }} ·
+                {{ lang() === 'vi' ? 'lần cuối' : 'last' }} {{ when(s.lastSeen) }} ·
+                {{ s.count }} {{ lang() === 'vi' ? 'lần' : 'times' }} ·
+                {{ s.usersHit }} {{ lang() === 'vi' ? 'người' : 'users' }}
+                @if (s.buildId) { · build {{ s.buildId }} }
+                @if (s.httpStatus) { · HTTP {{ s.httpStatus }} }
+              </p>
+              <p class="muted-3" style="font-size:.8rem">fingerprint {{ s.fingerprint }}</p>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap">
+              <button class="btn ghost" (click)="mark('ack')">{{ lang() === 'vi' ? 'Đã xem' : 'Ack' }}</button>
+              <button class="btn" (click)="mark('resolved')">{{ lang() === 'vi' ? 'Đã xử lý' : 'Resolve' }}</button>
+              <button class="btn ghost" (click)="close()">{{ lang() === 'vi' ? 'Đóng' : 'Close' }}</button>
+            </div>
+          </div>
+
+          @for (sm of samples(); track $index) {
+            <div class="mt-3" style="border-top:1px solid var(--border); padding-top:12px">
+              <div class="muted-3" style="font-size:.85rem">
+                {{ when(sm.createdAt) }} · {{ sm.username || '—' }} · {{ sm.url }}
+                @if (sm.requestId) { · requestId {{ sm.requestId }} }
+              </div>
+              @if (sm.stack) {
+                <pre style="white-space:pre-wrap; font-size:.78rem; overflow:auto; max-height:240px">{{ sm.stack }}</pre>
+              }
+              @if (crumbsOf(sm).length) {
+                <div class="muted-3" style="font-size:.78rem; margin-top:6px">
+                  @for (c of crumbsOf(sm); track $index) {
+                    <div>[{{ c.type }}] {{ c.text }}</div>
+                  }
+                </div>
+              }
+              <div class="muted-3" style="font-size:.72rem; margin-top:4px">{{ sm.userAgent }}</div>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+</section>

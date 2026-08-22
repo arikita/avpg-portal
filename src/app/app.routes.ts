@@ -26,5 +26,6 @@ export const routes: Routes = [
   { path: 'profile', loadComponent: () => import('./features/profile/profile').then((m) => m.Profile), title: title('Hồ sơ của tôi') },
   { path: 'profile/:username', loadComponent: () => import('./features/profile/profile').then((m) => m.Profile), title: title('Hồ sơ nhân viên') },
   { path: 'admin', loadComponent: () => import('./features/admin/admin').then((m) => m.Admin), title: title('Quản trị') },
+  { path: 'admin/errors', loadComponent: () => import('./features/admin/errors/errors').then((m) => m.AdminErrors), title: title('Lỗi ứng dụng') },
   { path: '**', redirectTo: '' },
 ];

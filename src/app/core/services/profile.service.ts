@@ -1,10 +1,14 @@
 import { Injectable, inject } from '@angular/core';
+import { ApiService } from './api';
 import { Activity, Profile } from '../models/profile.models';
 import { AvatarService } from './avatar.service';
 
 /** Ho so ca nhan: doc /api/profile, ghi chi duoc ho so cua chinh minh. */
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
+  /** Moi loi goi API di qua day de duoc do thoi gian va ghi nhan khi hong.
+   *  Hanh vi lui ve giu NGUYEN nhu truoc — chi them viec bao cao. */
+  private readonly api = inject(ApiService);
   private readonly avatars = inject(AvatarService);
 
   /** 'me' = chinh minh. */
@@ -30,7 +34,7 @@ export class ProfileService {
     const form = new FormData();
     form.append('file', file);
     try {
-      const res = await fetch(`/api/profile/photo/${kind}`, {
+      const res = await this.api.fetch(`/api/profile/photo/${kind}`, {
         method: 'POST',
         credentials: 'same-origin',
         body: form,
@@ -52,7 +56,7 @@ export class ProfileService {
 
   private async json<T>(url: string, init: RequestInit = {}): Promise<T | null> {
     try {
-      const res = await fetch(url, { credentials: 'same-origin', ...init });
+      const res = await this.api.fetch(url, { credentials: 'same-origin', ...init });
       if (!res.ok) return null;
       return (await res.json()) as T;
     } catch {

@@ -12,11 +12,12 @@ import { ContentService } from './core/services/content.service';
 import { NotificationService } from './core/services/notification.service';
 import { NotificationsBell } from './shared/components/notifications/notifications';
 import { ChatDock } from './shared/components/chat-dock/chat-dock';
+import { BugReport } from './shared/components/bug-report/bug-report';
 import { initials } from './shared/util/avatar.util';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TrPipe, IconComponent, NotificationsBell, ChatDock],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TrPipe, IconComponent, NotificationsBell, ChatDock, BugReport],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

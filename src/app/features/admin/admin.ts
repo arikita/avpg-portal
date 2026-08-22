@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ApiService } from '../../core/services/api';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { LanguageService } from '../../core/services/language.service';
 import { UserService } from '../../core/services/user.service';
 import { IconComponent } from '../../shared/components/icon/icon';
@@ -19,11 +21,14 @@ function isBilingual(v: unknown): v is { vi: string; en: string } {
 
 @Component({
   selector: 'app-admin',
-  imports: [FormsModule, IconComponent],
+  imports: [FormsModule, IconComponent, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './admin.html',
 })
 export class Admin {
+  /** Moi loi goi API di qua day de duoc do thoi gian va ghi nhan khi hong.
+   *  Hanh vi lui ve giu NGUYEN nhu truoc — chi them viec bao cao. */
+  private readonly api = inject(ApiService);
   private readonly user = inject(UserService);
   readonly lang = inject(LanguageService).lang;
 
@@ -47,7 +52,7 @@ export class Admin {
 
   private async load(): Promise<void> {
     try {
-      const res = await fetch('/api/content', { credentials: 'same-origin' });
+      const res = await this.api.fetch('/api/content', { credentials: 'same-origin' });
       if (!res.ok) return;
       const data = (await res.json()) as Record<string, Record<string, unknown>>;
       const list: Entry[] = [];
@@ -92,7 +97,7 @@ export class Admin {
     this.saving.set(true);
     this.status.set('Đang lưu…');
     try {
-      const res = await fetch(`/api/content/${e.module}/${e.key}`, {
+      const res = await this.api.fetch(`/api/content/${e.module}/${e.key}`, {
         method: 'PUT',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },

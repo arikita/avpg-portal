@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# Deploy frontend AVP Portal — co kiem tra va TU KHOI PHUC khi hong.
+#
+# Vi sao co file nay: ngay 13/08/2026 quy trinh copy tay da lam TRANG SITE THAT.
+# Hai nguyen nhan, ca hai deu duoc chan o day:
+#   1. `ng build | tail` nuot mat ma thoat => build hong van tuong thanh cong.
+#      O day KHONG pipe, va `set -o pipefail`.
+#   2. Copy de len ma khong don => chunk cu con nam lai, trinh duyet giu
+#      index.html cu se tai chunk cu va CHAY CODE CU MA KHONG BAO LOI.
+#      O day chay clean_deploy.py --apply.
+#
+# Chay tren .136:  bash tools/deploy.sh
+set -Eeuo pipefail
+
+SRC=${SRC:-/home/internalsvr/avp-portal}
+DIST="$SRC/dist/avp-portal/browser"
+LIVE=${LIVE:-/var/www/avp-portal}
+BACKUPS=${BACKUPS:-/var/backups/avp-portal}
+MAPS=${MAPS:-/opt/avp-portal-maps}
+KEEP_BUILDS=${KEEP_BUILDS:-5}
+STAMP=$(date +%Y%m%d-%H%M%S)
+
+say() { printf '\n=== %s\n' "$*"; }
+die() { printf '\nDUNG LAI: %s\n' "$*" >&2; exit 1; }
+
+say "1/8  build (khong pipe — phai giu duoc ma thoat)"
+cd "$SRC"
+rm -rf dist
+npx ng build --configuration production
+[ -f "$DIST/index.html" ] || die "build xong ma khong co index.html"
+
+say "2/8  sinh build.json — NGUON DUY NHAT cua build_id"
+# build_id dung o 4 cho (bang app_error, /api/health, thu muc sourcemap, nut Bao
+# loi). Moi cho tu sinh mot kieu la khong doi chieu duoc — nen chi mot nguon.
+BUILD_ID=$(git -C "$SRC" rev-parse --short HEAD 2>/dev/null || echo nogit)-$STAMP
+printf '{"build":"%s","at":"%s"}\n' "$BUILD_ID" "$(date -Is)" > "$DIST/build.json"
+echo "  build_id = $BUILD_ID"
+
+say "3/8  tach sourcemap ra khoi thu muc web"
+# `hidden: true` khien bundle khong tro toi .map, nhung file .map van khong duoc
+# nam trong /var/www — de o do la bat ky ai cung tai ve doc duoc ma nguon.
+mkdir -p "$MAPS/$BUILD_ID"
+if compgen -G "$DIST/*.map" > /dev/null; then
+  mv "$DIST"/*.map "$MAPS/$BUILD_ID/"
+  echo "  chuyen $(ls -1 "$MAPS/$BUILD_ID" | wc -l) file .map -> $MAPS/$BUILD_ID"
+fi
+# Giu KEEP_BUILDS ban gan nhat — dia .136 chi con ~7.8 GB.
+ls -1dt "$MAPS"/*/ 2>/dev/null | tail -n +$((KEEP_BUILDS + 1)) | while read -r d; do
+  rm -rf "$d"; echo "  don sourcemap cu: $d"
+done
+
+say "4/8  sao luu ban dang chay"
+mkdir -p "$BACKUPS"
+BK="$BACKUPS/$STAMP"
+cp -a "$LIVE" "$BK"
+echo "  $BK"
+ls -1dt "$BACKUPS"/*/ 2>/dev/null | tail -n +$((KEEP_BUILDS + 1)) | while read -r d; do
+  rm -rf "$d"; echo "  don ban luu cu: $d"
+done
+
+rollback() {
+  printf '\n!!! HONG — khoi phuc ban truoc do\n' >&2
+  rm -rf "${LIVE:?}"/*
+  cp -a "$BK"/. "$LIVE"/
+  printf '    da khoi phuc tu %s\n' "$BK" >&2
+}
+
+say "5/8  chep ban moi"
+cp -a "$DIST"/. "$LIVE"/
+
+say "6/8  don chunk rac (bat buoc — xem dau file)"
+python3 "$SRC/tools/clean_deploy.py" --apply || { rollback; die "clean_deploy that bai"; }
+
+say "7/8  smoke test"
+if ! python3 "$SRC/tools/smoke_test.py"; then
+  rollback
+  die "smoke test that bai — da khoi phuc, site van song"
+fi
+
+say "8/8  XONG"
+echo "  build_id : $BUILD_ID"
+echo "  sao luu  : $BK"
+echo "  sourcemap: $MAPS/$BUILD_ID"
+echo
+echo "LUU Y: doi ma API thi dung 'systemctl reload avp-portal-api' (KHONG restart)."

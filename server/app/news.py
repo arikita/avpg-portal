@@ -449,6 +449,10 @@ def feed(username: str = Depends(current_user), category: str | None = None,
 def get_post(pid: int, username: str = Depends(current_user)) -> dict:
     with _conn() as conn:
         publish_due(conn)
+    # Import MUON: telemetry.py import nguoc _queue_push tu file nay, de o dau
+    # file se thanh vong import luc khoi dong.
+    from .telemetry import bump_metric
+    bump_metric("news_view")
     return _detail(pid, username, record_view=True)
 
 
@@ -476,6 +480,8 @@ def create_post(payload: dict = Body(...), username: str = Depends(require_autho
              comments_on, username, aname, sched, status)).fetchone()
         _create_polls(conn, row[0], payload)
         conn.commit()
+    from .telemetry import bump_metric
+    bump_metric("news_post")
     return _detail(row[0], username)
 
 

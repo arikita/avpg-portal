@@ -1,0 +1,40 @@
+/* Goc duoi-phai da co nut chat (right 22px) va nut len dau trang (right 88px),
+   nen nut nay dung o 154px de khong de len nhau. */
+.bug-btn {
+  position: fixed; right: 154px; bottom: 22px; z-index: 60;
+  width: 46px; height: 46px; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--border-2); background: var(--surface); color: var(--brand);
+  box-shadow: var(--shadow);
+  transition: opacity .22s, transform .22s, background .18s, border-color .18s, color .18s;
+}
+.bug-btn:hover { background: var(--brand); color: #fff; border-color: var(--brand); transform: translateY(-2px); }
+.bug-btn.hide { opacity: 0; pointer-events: none; transform: translateY(12px); }
+.bug-btn app-icon { width: 20px; height: 20px; }
+
+.bug-panel {
+  position: fixed; right: 22px; bottom: 90px; z-index: 71;
+  width: 360px; max-width: calc(100vw - 28px);
+  padding: 16px; border-radius: 14px;
+  border: 1px solid var(--border-2); background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.bug-panel h3 { font-size: 1.02rem; }
+.bug-panel textarea {
+  width: 100%; margin-top: 10px; padding: 9px 11px; border-radius: 10px;
+  border: 1px solid var(--border-2); background: var(--surface-2); color: inherit;
+  font: inherit; resize: vertical;
+}
+.bug-panel .chk { display: flex; gap: 8px; align-items: start; margin-top: 10px; font-size: .85rem; }
+.bug-panel .chk input { margin-top: 3px; }
+.bug-panel .note { font-size: .78rem; margin-top: 6px; }
+.bug-panel .err { color: #e0563c; font-size: .85rem; margin-top: 8px; }
+.bug-panel .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+.bug-panel .code-out {
+  font-size: 1.4rem; font-weight: 800; letter-spacing: .08em;
+  margin: 10px 0 14px; color: var(--brand);
+}
+
+@media (max-width: 560px) {
+  .bug-btn { right: 130px; bottom: 14px; }
+}

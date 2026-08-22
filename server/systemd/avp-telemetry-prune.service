@@ -1,0 +1,9 @@
+[Unit]
+Description=AVP Portal — don du lieu telemetry cu (bay so 6 trong plan)
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+EnvironmentFile=/etc/avp-portal-api.env
+ExecStart=/opt/avp-portal-api/venv/bin/python /home/internalsvr/avp-portal/tools/prune_telemetry.py

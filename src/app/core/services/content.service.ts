@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, signal, Injectable } from '@angular/core';
+import { ApiService } from './api';
 
 type Modules = Record<string, Record<string, unknown>>;
 
@@ -10,6 +11,9 @@ type Modules = Record<string, Record<string, unknown>>;
  */
 @Injectable({ providedIn: 'root' })
 export class ContentService {
+  /** Moi loi goi API di qua day de duoc do thoi gian va ghi nhan khi hong.
+   *  Hanh vi lui ve giu NGUYEN nhu truoc — chi them viec bao cao. */
+  private readonly api = inject(ApiService);
   private readonly _data = signal<Modules | null>(null);
   readonly loaded = signal(false);
 
@@ -19,7 +23,7 @@ export class ContentService {
 
   private async load(): Promise<void> {
     try {
-      const res = await fetch('/api/content', { credentials: 'same-origin' });
+      const res = await this.api.fetch('/api/content', { credentials: 'same-origin' });
       if (res.ok) this._data.set((await res.json()) as Modules);
     } catch {
       // Giu nguyen ban du phong trong bundle.

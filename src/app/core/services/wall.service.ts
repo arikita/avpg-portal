@@ -1,9 +1,13 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { ApiService } from './api';
 import { WallComment, WallPage, WallPost } from '../models/wall.models';
 
 /** Tuong ca nhan: doc/ghi qua /api/wall (cung goc, Kerberos lo o Apache). */
 @Injectable({ providedIn: 'root' })
 export class WallService {
+  /** Moi loi goi API di qua day de duoc do thoi gian va ghi nhan khi hong.
+   *  Hanh vi lui ve giu NGUYEN nhu truoc — chi them viec bao cao. */
+  private readonly api = inject(ApiService);
   page(owner: string, offset = 0): Promise<WallPage | null> {
     return this.json<WallPage>(`/api/wall/${encodeURIComponent(owner)}?offset=${offset}`);
   }
@@ -48,7 +52,7 @@ export class WallService {
     const form = new FormData();
     form.append('file', file);
     try {
-      const res = await fetch('/api/wall/image', {
+      const res = await this.api.fetch('/api/wall/image', {
         method: 'POST',
         credentials: 'same-origin',
         body: form,
@@ -63,7 +67,7 @@ export class WallService {
 
   private async json<T>(url: string, init: { method?: string; body?: unknown } = {}): Promise<T | null> {
     try {
-      const res = await fetch(url, {
+      const res = await this.api.fetch(url, {
         credentials: 'same-origin',
         method: init.method ?? 'GET',
         headers: init.body === undefined ? undefined : { 'Content-Type': 'application/json' },

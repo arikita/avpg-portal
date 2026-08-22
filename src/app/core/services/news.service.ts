@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { ApiService } from './api';
 import { NewsComment, NewsDraft, NewsFeed, NewsPost, NewsReactions, NotifFeed, Poll } from '../models/news.models';
 
 /**
@@ -7,8 +8,11 @@ import { NewsComment, NewsDraft, NewsFeed, NewsPost, NewsReactions, NotifFeed, P
  */
 @Injectable({ providedIn: 'root' })
 export class NewsService {
+  /** Moi loi goi API di qua day de duoc do thoi gian va ghi nhan khi hong.
+   *  Hanh vi lui ve giu NGUYEN nhu truoc — chi them viec bao cao. */
+  private readonly api = inject(ApiService);
   private async req<T>(url: string, init?: RequestInit): Promise<T> {
-    const res = await fetch(url, { credentials: 'same-origin', ...init });
+    const res = await this.api.fetch(url, { credentials: 'same-origin', ...init });
     if (!res.ok) {
       let detail = `HTTP ${res.status}`;
       try {

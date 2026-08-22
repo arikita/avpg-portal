@@ -1,0 +1,56 @@
+<button
+  class="bug-btn"
+  [class.hide]="typing()"
+  (click)="toggle()"
+  [attr.aria-label]="lang() === 'vi' ? 'Báo lỗi' : 'Report a problem'"
+  [attr.title]="lang() === 'vi' ? 'Báo lỗi' : 'Report a problem'"
+  [attr.aria-expanded]="open()"
+>
+  <app-icon [name]="open() ? 'x' : 'alert-triangle'" />
+</button>
+
+@if (open()) {
+  <div class="bug-panel" role="dialog" [attr.aria-label]="lang() === 'vi' ? 'Báo lỗi' : 'Report a problem'">
+    @if (code()) {
+      <h3>{{ lang() === 'vi' ? 'Đã gửi, cảm ơn bạn' : 'Sent — thank you' }}</h3>
+      <p class="muted mt-2">{{ lang() === 'vi'
+        ? 'Mã tra cứu của bạn. Nhắn mã này cho IT để tra nhanh:'
+        : 'Your reference code. Send it to IT for a quick lookup:' }}</p>
+      <p class="code-out">#{{ code() }}</p>
+      <button class="btn" (click)="toggle()">{{ lang() === 'vi' ? 'Đóng' : 'Close' }}</button>
+    } @else {
+      <h3>{{ lang() === 'vi' ? 'Báo lỗi' : 'Report a problem' }}</h3>
+      <p class="muted mt-1">{{ lang() === 'vi'
+        ? 'Bạn thấy gì không đúng? Mô tả ngắn gọn cũng được.'
+        : 'What looks wrong? A short description is fine.' }}</p>
+
+      <textarea
+        rows="4"
+        [ngModel]="desc()"
+        (ngModelChange)="desc.set($event)"
+        [attr.placeholder]="lang() === 'vi' ? 'Ví dụ: bấm Gửi mà bài không hiện lên…' : 'e.g. I pressed Post but nothing appeared…'"
+      ></textarea>
+
+      <label class="chk">
+        <input type="checkbox" [ngModel]="attach()" (ngModelChange)="attach.set($event)" />
+        <span>{{ lang() === 'vi'
+          ? 'Đính kèm thông tin kỹ thuật (trang đang xem, thao tác gần đây, cỡ màn hình)'
+          : 'Attach technical details (current page, recent actions, screen size)' }}</span>
+      </label>
+
+      <!-- Minh bach voi nguoi dung: ho phai biet minh dang gui gi di. -->
+      <p class="muted-3 note">{{ lang() === 'vi'
+        ? 'Không đính kèm nội dung tin nhắn hay chữ bạn đang gõ.'
+        : 'Message content and text you are typing are never attached.' }}</p>
+
+      @if (error()) { <p class="err">{{ error() }}</p> }
+
+      <div class="row">
+        <button class="btn ghost" (click)="toggle()">{{ lang() === 'vi' ? 'Huỷ' : 'Cancel' }}</button>
+        <button class="btn" [disabled]="!desc().trim() || sending()" (click)="send()">
+          {{ sending() ? (lang() === 'vi' ? 'Đang gửi…' : 'Sending…') : (lang() === 'vi' ? 'Gửi' : 'Send') }}
+        </button>
+      </div>
+    }
+  </div>
+}

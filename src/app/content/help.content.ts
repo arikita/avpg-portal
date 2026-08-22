@@ -140,3 +140,23 @@ export const IT_CONTACTS: Contact[] = [
   { name: 'Đường dây IT', role: { vi: 'Hỗ trợ trực tiếp', en: 'Direct support' }, ext: '1718' },
   { name: 'Đường dây IT', role: { vi: 'Hỗ trợ trực tiếp', en: 'Direct support' }, ext: '1789' },
 ];
+
+/**
+ * Minh bach voi nhan vien ve viec ghi log (quyet dinh D16, 22/08/2026).
+ *
+ * Portal co ghi lai loi ky thuat kem TEN DANG NHAP va 20 thao tac gan nhat de
+ * IT tra nguoc duoc su co. Nguoi dung phai duoc biet dieu do — day la lua chon
+ * co y thuc, khong phai mac dinh ky thuat.
+ */
+export const LOG_NOTICE: L = {
+  vi:
+    'Khi có lỗi kỹ thuật, portal tự ghi lại tên đăng nhập của bạn, trang bạn đang xem và ' +
+    '20 thao tác gần nhất (bấm nút, chuyển trang, gọi dữ liệu) để bộ phận IT tra được nguyên nhân. ' +
+    'Nội dung tin nhắn và chữ bạn đang gõ KHÔNG bao giờ được ghi lại. ' +
+    'Chỉ nhóm Information System xem được, và dữ liệu này ở lại máy chủ nội bộ của công ty.',
+  en:
+    'When a technical error occurs, the portal records your username, the page you were on and ' +
+    'your last 20 actions (clicks, navigation, data calls) so IT can trace the cause. ' +
+    'Message content and text you are typing are NEVER recorded. ' +
+    'Only the Information System team can view this, and the data stays on company servers.',
+};

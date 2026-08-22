@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, signal, Injectable } from '@angular/core';
+import { ApiService } from './api';
 
 /**
  * Ban do {username -> duong dan anh dai dien} cho NHUNG AI DA TAI ANH LEN.
@@ -10,6 +11,9 @@ import { Injectable, signal } from '@angular/core';
  */
 @Injectable({ providedIn: 'root' })
 export class AvatarService {
+  /** Moi loi goi API di qua day de duoc do thoi gian va ghi nhan khi hong.
+   *  Hanh vi lui ve giu NGUYEN nhu truoc — chi them viec bao cao. */
+  private readonly api = inject(ApiService);
   private readonly _map = signal<Record<string, string>>({});
   private loaded = false;
 
@@ -34,7 +38,7 @@ export class AvatarService {
     if (this.loaded) return;
     this.loaded = true;
     try {
-      const res = await fetch('/api/avatars', { credentials: 'same-origin' });
+      const res = await this.api.fetch('/api/avatars', { credentials: 'same-origin' });
       if (!res.ok) return;
       const data = (await res.json()) as { avatars?: Record<string, string> };
       this._map.set(data.avatars ?? {});

@@ -1,10 +1,14 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { ApiService } from './api';
+import { TelemetryService } from './telemetry.service';
 import { ChatEvent, ChatMessage, ChatPerson, Conversation } from '../models/chat.models';
 import { UserService } from './user.service';
 
 const PING_MS = 30_000;      // giu ket noi song + cap nhat trang thai online
 const TYPING_MS = 4_000;     // bao "dang go" tu tat sau ngan nay
 const MAX_BACKOFF = 20_000;
+/** Rot ket noi tu ngan nay lan tro len trong mot phien thi bao mot su kien. */
+const WS_DROP_ALERT = 3;
 /** Toi da may bong bong thu nho — nhieu hon nua thi che mat man hinh. */
 const MAX_MINIMISED = 4;
 
@@ -18,6 +22,14 @@ const MAX_MINIMISED = 4;
  */
 @Injectable({ providedIn: 'root' })
 export class ChatService {
+  /** Moi loi goi API di qua day de duoc do thoi gian va ghi nhan khi hong.
+   *  Hanh vi lui ve giu NGUYEN nhu truoc — chi them viec bao cao. */
+  private readonly api = inject(ApiService);
+  private readonly telemetry = inject(TelemetryService);
+  /** Dem so lan rot ket noi trong mot phien. Chat la thu nguoi dung tin la
+   *  "da gui" — rot song ma khong ai biet la tin nhan im lang khong toi noi. */
+  private drops = 0;
+  private dropReported = false;
   private readonly userSvc = inject(UserService);
 
   private ws: WebSocket | null = null;
@@ -74,7 +86,7 @@ export class ChatService {
     if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) return;
     let ticket = '';
     try {
-      const res = await fetch('/api/chat/ws-ticket', { credentials: 'same-origin' });
+      const res = await this.api.fetch('/api/chat/ws-ticket', { credentials: 'same-origin' });
       if (!res.ok) throw new Error('ticket');
       ticket = (await res.json()).ticket;
     } catch {
@@ -101,6 +113,16 @@ export class ChatService {
       if (this.pingTimer) clearInterval(this.pingTimer);
       this.pingTimer = null;
       this.ws = null;
+      // Rot mot hai lan la chuyen binh thuong (doi Wi-Fi, may ngu). Rot lien
+      // tuc moi la dau hieu hong that — bao MOT lan moi phien, khong bao moi lan.
+      this.drops++;
+      if (this.drops >= WS_DROP_ALERT && !this.dropReported) {
+        this.dropReported = true;
+        this.telemetry.report({
+          kind: 'WebSocketDrop',
+          message: `chat rot ket noi ${this.drops} lan trong mot phien`,
+        });
+      }
       this.retry();
     };
     ws.onerror = () => ws.close();
@@ -346,7 +368,7 @@ export class ChatService {
     const form = new FormData();
     form.append('file', file);
     try {
-      const res = await fetch('/api/chat/image', {
+      const res = await this.api.fetch('/api/chat/image', {
         method: 'POST',
         credentials: 'same-origin',
         body: form,
@@ -361,7 +383,7 @@ export class ChatService {
 
   private async json<T>(url: string, method = 'GET', body?: unknown): Promise<T | null> {
     try {
-      const res = await fetch(url, {
+      const res = await this.api.fetch(url, {
         credentials: 'same-origin',
         method,
         headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },

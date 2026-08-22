@@ -1,7 +1,13 @@
 <section class="section">
   <div class="container">
-    <span class="eyebrow"><app-icon name="lock" /> {{ lang() === 'vi' ? 'Quản trị nội dung' : 'Content admin' }}</span>
-    <h1 class="mt-2">{{ lang() === 'vi' ? 'Sửa nội dung portal' : 'Edit portal content' }}</h1>
+    <span class="eyebrow"><app-icon name="lock" /> {{ lang() === 'vi' ? 'Quản trị' : 'Admin' }}</span>
+
+    <div class="mt-2" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+      <a class="btn" routerLink="/admin">{{ lang() === 'vi' ? 'Nội dung' : 'Content' }}</a>
+      <a class="btn ghost" routerLink="/admin/errors">{{ lang() === 'vi' ? 'Lỗi' : 'Errors' }}</a>
+    </div>
+
+    <h1 class="mt-3">{{ lang() === 'vi' ? 'Sửa nội dung portal' : 'Edit portal content' }}</h1>
 
     @if (!ready()) {
       <p class="lead mt-2">{{ lang() === 'vi' ? 'Đang kiểm tra quyền…' : 'Checking permissions…' }}</p>

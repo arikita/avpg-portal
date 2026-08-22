@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AD_NOTE, HELPDESK_PORTAL_URL, HELP_LEAD, HELP_SECTIONS, IT_CONTACTS } from '../../content/help.content';
+import { AD_NOTE, HELPDESK_PORTAL_URL, HELP_LEAD, HELP_SECTIONS, IT_CONTACTS, LOG_NOTICE } from '../../content/help.content';
 import { SITE } from '../../content/site.config';
 import { ContentService } from '../../core/services/content.service';
 import { LanguageService } from '../../core/services/language.service';
@@ -23,6 +23,7 @@ export class Help {
   readonly sections = computed(() => this.content.pick('help', 'HELP_SECTIONS', HELP_SECTIONS));
   readonly contacts = computed(() => this.content.pick('help', 'IT_CONTACTS', IT_CONTACTS));
   readonly adNote = computed(() => this.content.pick('help', 'AD_NOTE', AD_NOTE));
+  readonly logNotice = computed(() => this.content.pick('help', 'LOG_NOTICE', LOG_NOTICE));
   readonly portalUrlRaw = computed(() => this.content.pick('help', 'HELPDESK_PORTAL_URL', HELPDESK_PORTAL_URL));
   readonly lang = inject(LanguageService).lang;
 

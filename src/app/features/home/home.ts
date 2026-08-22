@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ApiService } from '../../core/services/api';
 import { RouterLink } from '@angular/router';
 import { SITE } from '../../content/site.config';
 import { QUICK_LINKS, STATS, VALUES } from '../../content/home.content';
@@ -21,6 +22,9 @@ import { RevealDirective } from '../../shared/directives/reveal.directive';
   templateUrl: './home.html',
 })
 export class Home {
+  /** Moi loi goi API di qua day de duoc do thoi gian va ghi nhan khi hong.
+   *  Hanh vi lui ve giu NGUYEN nhu truoc — chi them viec bao cao. */
+  private readonly api = inject(ApiService);
   private readonly content = inject(ContentService);
 
   readonly site = SITE;
@@ -56,7 +60,7 @@ export class Home {
   /** Anh nen hero: lay tu media/hero, xao tron, chay slide crossfade. */
   private async loadHero(): Promise<void> {
     try {
-      const res = await fetch('/api/hero-images', { credentials: 'same-origin' });
+      const res = await this.api.fetch('/api/hero-images', { credentials: 'same-origin' });
       if (!res.ok) return;
       const imgs = (((await res.json()).images as string[]) ?? []).slice();
       for (let i = imgs.length - 1; i > 0; i--) {

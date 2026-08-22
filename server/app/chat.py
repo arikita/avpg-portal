@@ -44,6 +44,7 @@ from fastapi import (APIRouter, Body, Depends, File, Header, HTTPException,
 from .ad import get_user, is_editor, list_people
 from .images import MAX_IMAGE, read_upload, save_jpeg
 from .news import _queue_push          # dung lai duong Web Push da co
+from .telemetry import bump_metric
 
 log = logging.getLogger("avp.chat")
 
@@ -423,6 +424,7 @@ def send(conv_id: int, payload: dict = Body(...),
         conn.execute("UPDATE chat_member SET last_read_at = now() "
                      "WHERE conv_id = %s AND username = %s", (conv_id, username))
         conn.commit()
+        bump_metric("chat_message")
         _push_new_message(conn, conv_id, username, _name_of(username), body, image)
     msg = _msg_row(r)
     _publish({"t": "msg", "conv": conv_id, "msg": msg["id"]})

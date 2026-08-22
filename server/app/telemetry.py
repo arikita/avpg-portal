@@ -293,6 +293,16 @@ def ingest_client(payload: dict = Body(...), username: str = Depends(current_use
                context={"breadcrumbs": ev.get("breadcrumbs") or [],
                         "build": ev.get("build") or ""},
                http_status=ev.get("status") if isinstance(ev.get("status"), int) else None)
+    # Luot xem trang di GHEP vao cung lo su kien loi, khong tao request rieng:
+    # portal la SPA nen server khong thay viec doi trang, ma them mot request
+    # moi lan dieu huong thi dat gap doi so request cua ca portal.
+    pvs = payload.get("pageviews")
+    if isinstance(pvs, list):
+        info = get_user(username) or {}
+        dept = str(info.get("department") or "")
+        for r in pvs[:MAX_EVENTS_PER_BATCH]:
+            if isinstance(r, str) and r:
+                bump_page_view(r, username, dept)
     return JSONResponse(status_code=204, content=None)
 
 
@@ -491,10 +501,77 @@ def _flush() -> None:
         pass
 
 
+# ---------------------------------------------------------- do bat thuong --
+# Loai bug TE NHAT khong nem exception nao: form gui xong mat du lieu, feed tra
+# rong, chat bao "da gui" ma khong ai nhan. Khong co exception thi ca duong ong
+# o tren KHONG THAY GI, va /admin/errors hien "0 loi" trong khi nguoi dung dang
+# chui. Cach duy nhat bat duoc la nhin SO DEM NGHIEP VU tut bat thuong.
+#
+# So voi TRUNG VI cua 4 tuan truoc CUNG THU CUNG GIO, khong phai gio truoc do:
+# 9h sang thu Hai va 21h Chu nhat khac han nhau, so ngang la bao dong gia suot.
+
+#: Lech qua nguong nay (theo ti le) thi bao.
+ANOMALY_DROP = 0.5
+#: Duoi nguong dem nay thi bo qua — vai bai mot gio thi 1 bai chenh da la 50%,
+#: bao ca nhung luc do la day nguoi ta tat canh bao.
+ANOMALY_MIN_BASE = 8
+
+
+def _check_anomaly() -> None:
+    """So gio VUA XONG voi trung vi 4 tuan cung khung gio. Chay 1 lan/gio."""
+    if not ENABLED or not DSN:
+        return
+    try:
+        with _conn() as conn:
+            rows = conn.execute(
+                """WITH last_hour AS (
+                     SELECT name, n FROM app_metric
+                      WHERE hour = date_trunc('hour', now()) - interval '1 hour'),
+                   base AS (
+                     SELECT name,
+                            percentile_cont(0.5) WITHIN GROUP (ORDER BY n) AS med
+                       FROM app_metric
+                      WHERE hour IN (
+                              date_trunc('hour', now()) - interval '1 hour' - interval '7 days',
+                              date_trunc('hour', now()) - interval '1 hour' - interval '14 days',
+                              date_trunc('hour', now()) - interval '1 hour' - interval '21 days',
+                              date_trunc('hour', now()) - interval '1 hour' - interval '28 days')
+                      GROUP BY name)
+                   SELECT base.name, coalesce(last_hour.n, 0), base.med
+                     FROM base LEFT JOIN last_hour USING (name)
+                    WHERE base.med >= %s""", (ANOMALY_MIN_BASE,)).fetchall()
+        for name, now_n, med in rows:
+            med = float(med or 0)
+            if med <= 0:
+                continue
+            drop = (med - now_n) / med
+            if drop < ANOMALY_DROP:
+                continue
+            # Fingerprint chi gom `name` (khong gom con so) => mot dong duy nhat
+            # cho moi chi so, khong de moi gio de ra mot dong moi.
+            record("server", "MetricAnomaly",
+                   f"chi so nghiep vu '{name}' tut bat thuong",
+                   route="", severity="warning",
+                   context={"metric": name, "gio_vua_roi": int(now_n),
+                            "trung_vi_4_tuan": round(med, 1),
+                            "tut": f"{drop * 100:.0f}%"})
+    except Exception:
+        # Duong ghi bao cao khong duoc tu lam sap minh.
+        pass
+
+
 def _flusher() -> None:
+    last_anomaly = 0
     while True:
         time.sleep(FLUSH_SEC)
         _flush()
+        # Moi tien trinh worker deu chay vong nay; `record()` gop theo
+        # fingerprint nen 2 worker cung bao thi van chi MOT dong, va
+        # _maybe_alert() chong spam bang UPSERT co dieu kien.
+        now = time.time()
+        if now - last_anomaly >= 3600:
+            last_anomaly = now
+            _check_anomaly()
 
 
 def install(app) -> None:

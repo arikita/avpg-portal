@@ -71,5 +71,11 @@
         </div>
       }
     </div>
+
+    <!-- D16: nhan vien phai biet portal ghi log kem ten dang nhap. -->
+    <h2 class="mt-4 mb-3" appReveal>{{ lang() === 'vi' ? 'Về việc ghi nhật ký lỗi' : 'About error logging' }}</h2>
+    <div class="card" appReveal>
+      <p class="muted">{{ logNotice() | tr: lang() }}</p>
+    </div>
   </div>
 </section>
