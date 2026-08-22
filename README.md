@@ -48,7 +48,7 @@ Hai đường đưa bài lên sóng, cùng gọi `publish_due()` trong `server/a
 - **Timer `avp-news-publish`** chạy mỗi phút (`server/publish_scheduled.py`).
 - **API** — mỗi lần mở trang tin hoặc mở một bài, phòng khi timer chết.
 
-`UPDATE ... RETURNING` là nguyên khối nên hai worker uvicorn (hoặc timer chạy
+`UPDATE ... RETURNING` là nguyên khối nên hai worker (hoặc timer chạy
 trùng lúc) không thể đăng hai lần. Đăng xong tác giả nhận thông báo + Web Push.
 
 Cài lại trên máy chủ:
@@ -58,6 +58,37 @@ sudo cp server/systemd/avp-news-publish.* /etc/systemd/system/
 sudo cp server/publish_scheduled.py /opt/avp-portal-api/
 sudo systemctl daemon-reload
 sudo systemctl enable --now avp-news-publish.timer
+```
+
+## Deploy code API — dùng `reload`, KHÔNG dùng `restart`
+
+Service `avp-portal-api` chạy **gunicorn + `uvicorn_worker.UvicornWorker`** (từ 22/08/2026).
+Tiến trình master giữ socket lắng nghe; `SIGHUP` thay worker **lần lượt**, nên socket
+không bao giờ đóng:
+
+```bash
+sudo cp server/app/*.py /opt/avp-portal-api/app/
+sudo systemctl reload avp-portal-api      # <-- reload, khong phai restart
+```
+
+| Lệnh | Điều gì xảy ra | Người đang online |
+|---|---|---|
+| `systemctl reload` | SIGHUP, thay worker lần lượt, master giữ socket | **không ai dính** — đo thật: 400 thăm dò TCP + 60 request HTTP, **0 lỗi** |
+| `systemctl restart` | giết cả master, socket đóng | ~0,2–0,4 giây bị từ chối kết nối |
+
+Chỉ dùng `restart` khi đổi chính file unit hoặc biến môi trường. Trước 22/08 unit chạy
+`uvicorn --workers 2` trực tiếp — uvicorn **bỏ qua SIGHUP**, nên mọi lần deploy đều là
+`restart` và giáng 503 xuống người đang dùng (7 ngày = 37 lỗi, có lần 13 người cùng lúc,
+**không ai báo cáo**). Đó là BS-20 trong sổ điểm mù của repo giám sát.
+
+⚠️ `uvicorn` ≥ 0.31 **đã xoá `uvicorn.workers`** — phải dùng gói riêng `uvicorn-worker`
+và worker class `uvicorn_worker.UvicornWorker`. Viết theo lối cũ thì service không khởi
+động nổi, mà `Restart=always` sẽ quay vòng liên tục.
+
+```bash
+sudo cp server/systemd/avp-portal-api.service /etc/systemd/system/
+sudo systemd-analyze verify /etc/systemd/system/avp-portal-api.service   # bat loi TRUOC
+sudo systemctl daemon-reload && sudo systemctl restart avp-portal-api
 ```
 
 ## Những thứ KHÔNG nằm trong kho này

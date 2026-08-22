@@ -1,0 +1,43 @@
+[Unit]
+Description=AVP Portal API (FastAPI qua gunicorn)
+After=network-online.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+User=www-data
+Group=www-data
+EnvironmentFile=/etc/avp-portal-api.env
+WorkingDirectory=/opt/avp-portal-api
+# gunicorn 26 ghi trang thai vao $HOME/.gunicorn. HOME cua www-data la /var/www va
+# KHONG ghi duoc => moi lan khoi dong no log "Control server error: Permission denied".
+# PrivateTmp=true nen /tmp la namespace rieng cua service, tu don khi stop.
+Environment=HOME=/tmp
+
+# gunicorn thay cho `uvicorn --workers 2`: master giu socket lang nghe, SIGHUP thay
+# worker LAN LUOT => `systemctl reload` khong lam rot request nao (BS-20, 22/08/2026).
+# LUU Y: uvicorn 0.52 DA XOA `uvicorn.workers` => phai dung goi rieng `uvicorn-worker`.
+ExecStart=/opt/avp-portal-api/venv/bin/gunicorn app.main:app \
+    --worker-class uvicorn_worker.UvicornWorker \
+    --workers 2 \
+    --bind 127.0.0.1:8000 \
+    --graceful-timeout 30 \
+    --timeout 120 \
+    --access-logfile - \
+    --error-logfile -
+
+# TU NAY DEPLOY CODE BANG `systemctl reload`, DUNG `restart`.
+# reload = SIGHUP = thay worker lan luot, khong dong socket => 0 loi 503.
+# restart = giet ca master => van co cua so ~1 giay nhu truoc.
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=40
+
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target
