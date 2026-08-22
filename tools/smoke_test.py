@@ -31,7 +31,9 @@ notes: list[str] = []
 
 
 def check(name: str, ok: bool, detail: str = "") -> None:
-    print(f"  [{'OK ' if ok else 'LOI'}] {name}{(' — ' + detail) if detail else ''}")
+    """`detail` la loi giai thich KHI HONG — dat thi khong in, khong thi dong
+    log se noi nguoc su that (vd: "[OK] telemetry dang BAT — TELEMETRY_ENABLED=0")."""
+    print(f"  [{'OK ' if ok else 'LOI'}] {name}{('' if ok else (' — ' + detail) if detail else '')}")
     if not ok:
         fails.append(f"{name}: {detail}" if detail else name)
 

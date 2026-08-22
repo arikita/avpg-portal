@@ -2,6 +2,9 @@
 Description=AVP Portal — smoke test (chan loi truoc khi nguoi dung gap)
 After=avp-portal-api.service
 
+# Script phai nam trong /opt/avp-portal-api/tools/: service chay bang www-data,
+# ma home cua internalsvr khong cho www-data doc (Errno 13). deploy.sh dong bo
+# thu muc nay moi lan deploy.
 [Service]
 Type=oneshot
 User=www-data
@@ -10,4 +13,4 @@ EnvironmentFile=/etc/avp-portal-api.env
 # --report: that bai thi ghi mot su kien `critical` vao app_error, tu do Zabbix
 # va Web Push bao ra ngoai. Khong co co nay thi loi chi nam trong log cua timer
 # — dung kieu "im lang bi hieu nham la khoe manh" ma ca he thong nay sinh ra de chan.
-ExecStart=/opt/avp-portal-api/venv/bin/python /home/internalsvr/avp-portal/tools/smoke_test.py --report
+ExecStart=/opt/avp-portal-api/venv/bin/python /opt/avp-portal-api/tools/smoke_test.py --report

@@ -31,7 +31,7 @@ from datetime import datetime, timedelta, timezone
 
 import psycopg
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from .ad import can_admin_content, get_user
 
@@ -276,10 +276,10 @@ def ingest_client(payload: dict = Body(...), username: str = Depends(current_use
                   user_agent: str | None = Header(default=None)):
     """Nhan LO su kien tu trinh duyet. LUON tra 204, ke ca khi bo qua."""
     if not ENABLED or not _rate_ok(username):
-        return JSONResponse(status_code=204, content=None)
+        return Response(status_code=204)
     events = payload.get("events")
     if not isinstance(events, list):
-        return JSONResponse(status_code=204, content=None)
+        return Response(status_code=204)
     for ev in events[:MAX_EVENTS_PER_BATCH]:
         if not isinstance(ev, dict):
             continue
@@ -303,7 +303,7 @@ def ingest_client(payload: dict = Body(...), username: str = Depends(current_use
         for r in pvs[:MAX_EVENTS_PER_BATCH]:
             if isinstance(r, str) and r:
                 bump_page_view(r, username, dept)
-    return JSONResponse(status_code=204, content=None)
+    return Response(status_code=204)
 
 
 @router.post("/report")

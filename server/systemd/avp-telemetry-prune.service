@@ -1,9 +1,12 @@
 [Unit]
 Description=AVP Portal — don du lieu telemetry cu (bay so 6 trong plan)
 
+# Script phai nam trong /opt/avp-portal-api/tools/: service chay bang www-data,
+# ma home cua internalsvr khong cho www-data doc (Errno 13). deploy.sh dong bo
+# thu muc nay moi lan deploy.
 [Service]
 Type=oneshot
 User=www-data
 Group=www-data
 EnvironmentFile=/etc/avp-portal-api.env
-ExecStart=/opt/avp-portal-api/venv/bin/python /home/internalsvr/avp-portal/tools/prune_telemetry.py
+ExecStart=/opt/avp-portal-api/venv/bin/python /opt/avp-portal-api/tools/prune_telemetry.py

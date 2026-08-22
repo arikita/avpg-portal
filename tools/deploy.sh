@@ -23,10 +23,22 @@ STAMP=$(date +%Y%m%d-%H%M%S)
 say() { printf '\n=== %s\n' "$*"; }
 die() { printf '\nDUNG LAI: %s\n' "$*" >&2; exit 1; }
 
+# Script can quyen root cho /var/www, /var/backups va /opt, NHUNG build thi
+# KHONG duoc chay bang root: no se de lai dist/ va .angular/cache thuoc root
+# trong thu muc cua nguoi dung, lan build sau bang tai khoan thuong se hong.
+OWNER=$(stat -c %U "$SRC")
+run_as_owner() {
+  if [ "$(id -u)" = "0" ] && [ "$OWNER" != "root" ]; then
+    runuser -u "$OWNER" -- env "HOME=$(getent passwd "$OWNER" | cut -d: -f6)" "$@"
+  else
+    "$@"
+  fi
+}
+
 say "1/8  build (khong pipe — phai giu duoc ma thoat)"
 cd "$SRC"
-rm -rf dist
-npx ng build --configuration production
+run_as_owner rm -rf dist
+run_as_owner npx ng build --configuration production
 [ -f "$DIST/index.html" ] || die "build xong ma khong co index.html"
 
 say "2/8  sinh build.json — NGUON DUY NHAT cua build_id"
@@ -34,6 +46,7 @@ say "2/8  sinh build.json — NGUON DUY NHAT cua build_id"
 # loi). Moi cho tu sinh mot kieu la khong doi chieu duoc — nen chi mot nguon.
 BUILD_ID=$(git -C "$SRC" rev-parse --short HEAD 2>/dev/null || echo nogit)-$STAMP
 printf '{"build":"%s","at":"%s"}\n' "$BUILD_ID" "$(date -Is)" > "$DIST/build.json"
+chown "$OWNER" "$DIST/build.json" 2>/dev/null || true
 echo "  build_id = $BUILD_ID"
 
 say "3/8  tach sourcemap ra khoi thu muc web"
@@ -70,6 +83,12 @@ cp -a "$DIST"/. "$LIVE"/
 
 say "6/8  don chunk rac (bat buoc — xem dau file)"
 python3 "$SRC/tools/clean_deploy.py" --apply || { rollback; die "clean_deploy that bai"; }
+
+say "6b/8  dong bo tools sang /opt (www-data phai doc duoc — home cua nguoi
+     dung khong cho www-data vao, systemd timer se bao Errno 13)"
+install -d -o root -g root -m 755 /opt/avp-portal-api/tools
+install -m 755 "$SRC/tools/smoke_test.py" "$SRC/tools/prune_telemetry.py" \
+        "$SRC/tools/decode_stack.py" /opt/avp-portal-api/tools/
 
 say "7/8  smoke test"
 if ! python3 "$SRC/tools/smoke_test.py"; then

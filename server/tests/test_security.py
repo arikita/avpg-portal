@@ -142,3 +142,18 @@ class TestRecordKhongNem:
 
         monkeypatch.setattr(telemetry, "_conn", no)
         assert telemetry.record("client", "Error", "thu") is None
+
+
+# ------------------------------------------- 204 KHONG duoc co than --
+class Test204KhongCoThan:
+    """Loi that gap 22/08: JSONResponse(status_code=204, content=None) van
+    render ra chuoi "null" (4 byte). 204 cam co than => uvicorn nem
+    'Response content longer than Content-Length' o MOI luot goi, tuc toan bo
+    duong ong telemetry phia trinh duyet chet ngay tu dau ma van tra 204."""
+
+    def test_ingest_client_khong_dung_JSONResponse_cho_204(self):
+        import inspect
+        src = inspect.getsource(telemetry.ingest_client)
+        assert "JSONResponse(status_code=204" not in src, \
+            "204 phai dung Response(status_code=204), khong phai JSONResponse"
+        assert "Response(status_code=204)" in src
