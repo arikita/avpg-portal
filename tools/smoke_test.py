@@ -92,15 +92,23 @@ else:
         check("/api/health tra JSON", False, str(e))
 
 # 4) cac endpoint GET chinh --------------------------------------------------
+# /api/admin/* mong doi 403: smoke test chay duoi user `smoke-test`, KHONG nam
+# trong CONTENT_ADMIN_USERS. Doi 403 chu khong phai 200 la co chu dich — no bien
+# smoke test thanh cam bien bao mat: neu bang dieu khien (co danh sach ai dung
+# portal, ho ten AD, phong ban) bong mo cho mot tai khoan bat ky thi lan chay
+# ngay sau do bao that bai.
 for path, want in [("/api/me", 200), ("/api/content", 200), ("/api/directory", 200),
                    ("/api/rail", 200), ("/api/news", 200),
-                   ("/api/telemetry/metrics", 200)]:
+                   ("/api/telemetry/metrics", 200),
+                   ("/api/admin/overview", 403), ("/api/admin/analytics", 403),
+                   ("/api/admin/ga4", 403), ("/api/admin/news", 403),
+                   ("/api/admin/users", 403), ("/api/admin/system", 403)]:
     st, body = get(path)
     ok = st == want
     detail = f"HTTP {st}"
     if ok and body[:1] not in (b"{", b"["):
         ok, detail = False, "khong phai JSON"
-    check(f"GET {path}", ok, "" if ok else detail)
+    check(f"GET {path} = {want}", ok, "" if ok else detail)
 
 # 5) duong ong telemetry con song -------------------------------------------
 st, body = get("/api/telemetry/metrics")

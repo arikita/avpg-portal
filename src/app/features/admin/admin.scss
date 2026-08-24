@@ -1,0 +1,470 @@
+/* Style TOAN CUC (ViewEncapsulation.None) — cung ky thuat voi rich-body.scss.
+ *
+ * Vi sao khong dung style co lap tung component: bang dieu khien co 7 tab la 7
+ * component con, tat ca dung chung the (o so lieu, bang, bieu do). Style co lap
+ * se phai chep 7 lan va lech nhau ngay lan sua thu hai.
+ *
+ * LUAT: MOI selector trong file nay PHAI bat dau bang `.adm` — khong co ngoai
+ * le. Mot dong `table { }` o day se sua giao dien toan portal.
+ */
+
+.adm {
+  /* -- Bang mau bieu do -----------------------------------------------------
+   * Duoc dat o day (khong phai trong tung SVG) de doi theme la doi mot cho.
+   * `--viz-1` la hue TUAN TU (sequential) duy nhat cho moi bieu do do "nhieu
+   * hay it": nhieu hue chi lam nguoi doc phai tra bang mau. Mau trang thai
+   * (loi) LUON di kem chu + bieu tuong, khong bao gio dung mau don doc — hai
+   * trong so chung khong dat 3:1 tren nen sang.
+   */
+  --viz-1: #5b5bf5;
+  --viz-1-soft: color-mix(in srgb, #5b5bf5 10%, transparent);
+  --viz-2: #10c8b6;
+  --viz-grid: var(--border);
+  --viz-axis: var(--text-3);
+  --viz-surface: var(--surface);
+}
+
+:root[data-theme='dark'] .adm {
+  /* Buoc rieng cho nen toi, khong phai dao mau tu dong. */
+  --viz-1: #8b89ff;
+  --viz-1-soft: color-mix(in srgb, #8b89ff 14%, transparent);
+  --viz-2: #2ee6cf;
+}
+
+/* --------------------------------------------------------------- khung -- */
+.adm-shell {
+  display: grid;
+  grid-template-columns: 232px 1fr;
+  gap: 26px;
+  align-items: start;
+}
+
+.adm-rail {
+  position: sticky;
+  top: calc(var(--nav-h) + 16px);
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.adm-rail a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 11px;
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.93rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.adm-rail a:hover { background: var(--surface-2); color: var(--text); }
+
+.adm-rail a.on {
+  background: color-mix(in srgb, var(--brand) 13%, transparent);
+  color: var(--brand);
+}
+
+.adm-rail a svg { width: 17px; height: 17px; flex: 0 0 auto; }
+.adm-rail .adm-count {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: var(--pill);
+  background: var(--surface-3);
+  color: var(--text-3);
+}
+.adm-rail .adm-count.hot { background: var(--danger); color: #fff; }
+
+.adm-rail-sep {
+  margin: 7px 4px 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* ------------------------------------------------------------ tieu de -- */
+.adm-head { display: flex; align-items: end; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.adm-head h1 { font-size: 1.5rem; margin: 0; }
+.adm-head p { color: var(--text-2); font-size: 0.93rem; margin-top: 5px; max-width: 660px; }
+.adm-head .adm-head-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* --------------------------------------------------------------- the --- */
+.adm-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(196px, 1fr)); gap: 14px; }
+
+.adm-card {
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.adm-card.pad-0 { padding: 0; }
+.adm-card h3 { font-size: 1rem; margin: 0; }
+.adm-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.adm-card-head h3 { flex: 1; min-width: 0; }
+.adm-card-body { padding: 16px 18px; }
+
+/* O so lieu: nhan / gia tri / muc thay doi / duong xu huong nho.
+ * Chu so dung font ti le (khong tabular) — o co lon ma tabular thi so bi loang. */
+.adm-stat .k { font-size: 0.82rem; font-weight: 600; color: var(--text-3); display: flex; align-items: center; gap: 7px; }
+.adm-stat .k svg { width: 15px; height: 15px; }
+.adm-stat .v { font-size: 1.85rem; font-weight: 800; line-height: 1.15; margin-top: 7px; color: var(--text); }
+.adm-stat .v small { font-size: 0.95rem; font-weight: 600; color: var(--text-3); margin-left: 4px; }
+.adm-stat .d { margin-top: 5px; font-size: 0.82rem; font-weight: 600; color: var(--text-3); display: flex; align-items: center; gap: 5px; }
+.adm-stat .d.up { color: var(--success); }
+.adm-stat .d.down { color: var(--danger); }
+.adm-stat .d svg { width: 14px; height: 14px; }
+
+/* So dan dat ca trang — DUY NHAT mot cai moi man hinh. */
+.adm-hero { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.adm-hero .n { font-size: clamp(2.6rem, 6vw, 3.4rem); font-weight: 800; line-height: 1; color: var(--text); }
+.adm-hero .t { color: var(--text-2); font-size: 0.98rem; font-weight: 600; }
+
+/* ------------------------------------------------------------ bieu do -- */
+/* Duong xu huong. SVG chi ve NET; chu va cham la HTML nen luon dung co that,
+ * du bieu do nam o cot hep hay khung rong (xem ghi chu trong charts.ts). */
+.adm-trend {
+  position: relative;
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  grid-template-rows: 148px 20px;
+  grid-template-areas: 'ay plot' '. ax';
+  font-variant-numeric: tabular-nums;
+}
+
+.adm-trend .ax-y { grid-area: ay; position: relative; }
+.adm-trend .ax-y span {
+  position: absolute;
+  right: 9px;
+  transform: translateY(50%);
+  font-size: 0.7rem;
+  color: var(--viz-axis);
+  white-space: nowrap;
+}
+
+.adm-trend .plot { grid-area: plot; position: relative; cursor: crosshair; }
+.adm-trend .plot svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* Luoi ke bang the HTML: net toc 1px THAT, khong bi SVG co gian lam day mong. */
+.adm-trend .grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--viz-grid);
+}
+
+.adm-trend .cross {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--viz-grid);
+  transform: translateX(-0.5px);
+}
+
+/* Cham >= 8px, vien 2px mau nen de khong lan vao duong khi de nhau. */
+.adm-trend .dot {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--viz-1);
+  box-shadow: 0 0 0 2px var(--viz-surface);
+  transform: translate(-50%, -50%);
+}
+
+/* Nhan diem CUOI — nhan truc tiep duy nhat tren bieu do. */
+.adm-trend .end {
+  position: absolute;
+  transform: translate(-100%, -180%);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.adm-trend .ax-x { grid-area: ax; position: relative; }
+.adm-trend .ax-x span {
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  color: var(--viz-axis);
+  white-space: nowrap;
+}
+.adm-trend .ax-x span.first { transform: none; }
+.adm-trend .ax-x span.last { transform: translateX(-100%); }
+
+/* Chu giai theo con tro. Nam BEN TRONG .plot nen % bam dung cot ve. */
+.adm-tip {
+  position: absolute;
+  top: 0;
+  z-index: 4;
+  pointer-events: none;
+  transform: translate(-50%, -108%);
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-2);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 0.82rem;
+  white-space: nowrap;
+  color: var(--text);
+}
+.adm-tip .t { color: var(--text-3); font-size: 0.76rem; }
+.adm-tip b { font-variant-numeric: tabular-nums; }
+
+.adm-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 0.83rem; color: var(--text-2); }
+.adm-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.adm-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+/* ------------------------------------------------------------- bang --- */
+.adm-tablewrap { overflow-x: auto; }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.adm-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  background: var(--surface-2);
+}
+.adm-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-2); vertical-align: top; }
+.adm-table tbody tr:last-child td { border-bottom: 0; }
+.adm-table tbody tr.click { cursor: pointer; }
+.adm-table tbody tr.click:hover td { background: var(--surface-2); }
+.adm-table tbody tr.on td { background: color-mix(in srgb, var(--brand) 8%, transparent); }
+.adm-table .num { text-align: right; font-variant-numeric: tabular-nums; color: var(--text); font-weight: 600; }
+.adm-table .strong { color: var(--text); font-weight: 700; }
+.adm-table .clip { max-width: 460px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* --------------------------------------------------------- trang thai -- */
+/* Mau trang thai LUON kem chu — hai trong bon mau khong dat 3:1 tren nen sang,
+ * va nguoi mu mau do-luc khong phan biet duoc "error" voi "warning" neu chi co
+ * cham mau. Cham mau chi de liec nhanh, chu moi la thu mang nghia. */
+.adm-sev { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.82rem; white-space: nowrap; }
+.adm-sev::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--text-3)); flex: 0 0 auto; }
+.adm-sev.critical { --c: #d03b3b; color: #d03b3b; }
+.adm-sev.error { --c: #ec833a; color: #c96617; }
+.adm-sev.warning { --c: #f7a63b; color: #a9701a; }
+.adm-sev.info { --c: var(--info); color: var(--info); }
+:root[data-theme='dark'] .adm-sev.error { color: #f0a26e; }
+:root[data-theme='dark'] .adm-sev.warning { color: #f7c274; }
+
+.adm-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: var(--pill);
+  font-size: 0.76rem;
+  font-weight: 700;
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+.adm-pill.ok { color: var(--success); border-color: color-mix(in srgb, var(--success) 40%, transparent); background: color-mix(in srgb, var(--success) 10%, transparent); }
+.adm-pill.bad { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); background: color-mix(in srgb, var(--danger) 10%, transparent); }
+.adm-pill.warn { color: #a9701a; border-color: color-mix(in srgb, var(--warning) 45%, transparent); background: color-mix(in srgb, var(--warning) 12%, transparent); }
+:root[data-theme='dark'] .adm-pill.warn { color: #f7c274; }
+.adm-pill.brand { color: var(--brand); border-color: color-mix(in srgb, var(--brand) 40%, transparent); background: color-mix(in srgb, var(--brand) 10%, transparent); }
+.adm-pill svg { width: 13px; height: 13px; }
+
+/* ------------------------------------------------- viec can lam / bao -- */
+.adm-todo { display: grid; gap: 9px; }
+.adm-todo button {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.adm-todo button:hover { border-color: var(--brand); }
+.adm-todo button svg { width: 17px; height: 17px; flex: 0 0 auto; }
+.adm-todo button.critical { border-color: color-mix(in srgb, #d03b3b 45%, transparent); background: color-mix(in srgb, #d03b3b 8%, transparent); }
+.adm-todo button.critical svg { color: #d03b3b; }
+.adm-todo button.warning svg { color: #c07a12; }
+.adm-todo button.info svg { color: var(--info); }
+.adm-todo .n { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.adm-note {
+  display: flex;
+  gap: 11px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 0.89rem;
+  line-height: 1.5;
+}
+.adm-note svg { width: 17px; height: 17px; flex: 0 0 auto; margin-top: 2px; color: var(--text-3); }
+.adm-note.warn { border-color: color-mix(in srgb, var(--warning) 40%, transparent); background: color-mix(in srgb, var(--warning) 8%, transparent); }
+.adm-note.warn svg { color: #c07a12; }
+.adm-note strong { color: var(--text); }
+
+/* ------------------------------------------------------------- form --- */
+.adm-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-bottom: 16px; }
+.adm-bar label { display: grid; gap: 4px; font-size: 0.78rem; font-weight: 600; color: var(--text-3); }
+.adm-bar select,
+.adm-bar input {
+  padding: 8px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--border-2);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.88rem;
+  min-width: 140px;
+}
+.adm-bar select:focus,
+.adm-bar input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--ring); }
+.adm-bar .grow { flex: 1; min-width: 200px; }
+.adm-bar .grow input { width: 100%; }
+
+.adm-textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border-radius: 12px;
+  border: 1px solid var(--border-2);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  resize: vertical;
+}
+.adm-textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--ring); }
+.adm-textarea.code { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 0.83rem; }
+
+.adm-split { display: grid; grid-template-columns: minmax(220px, 290px) 1fr; gap: 20px; align-items: start; }
+.adm-list { max-height: 66vh; overflow: auto; padding: 8px; }
+.adm-list .g { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); padding: 10px 8px 4px; }
+.adm-list button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  word-break: break-word;
+}
+.adm-list button:hover { background: var(--surface-2); color: var(--text); }
+.adm-list button.on { background: color-mix(in srgb, var(--brand) 13%, transparent); color: var(--brand); font-weight: 700; }
+
+.adm-mono { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 0.8rem; }
+.adm-pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  max-height: 260px;
+  overflow: auto;
+  padding: 11px 13px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+}
+
+.adm-empty { padding: 34px 16px; text-align: center; color: var(--text-3); font-size: 0.92rem; }
+.adm-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+.adm-muted { color: var(--text-3); font-size: 0.84rem; }
+
+/* -------------------------------------------------------------- nho --- */
+@media (max-width: 1000px) {
+  .adm-shell { grid-template-columns: 1fr; }
+  .adm-rail {
+    position: static;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+    gap: 6px;
+  }
+  .adm-rail .adm-rail-sep { display: none; }
+  .adm-grid-2,
+  .adm-split { grid-template-columns: 1fr; }
+  .adm-list { max-height: 300px; }
+}
+
+/* ------------------------------------------------- xep hang ngang ------ */
+/* Thanh <= 24px, dau du lieu bo tron 4px, chan thanh vuong (dinh o goc 0).
+ * Ranh giua hai thanh la KHOANG TRONG mau nen, khong phai duong vien: vien la
+ * muc khong mang du lieu. */
+.adm-bars { display: grid; gap: 8px; }
+.adm-bar-row { display: grid; grid-template-columns: minmax(90px, 190px) 1fr auto; gap: 12px; align-items: center; }
+.adm-bar-row .k {
+  font-size: 0.86rem;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.adm-bar-row .track { height: 20px; border-radius: 0 4px 4px 0; background: var(--surface-3); }
+.adm-bar-row .fill { height: 100%; border-radius: 0 4px 4px 0; background: var(--viz-1); }
+.adm-bar-row .v {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  min-width: 46px;
+  text-align: right;
+}
+
+/* ------------------------------------------------------ cot theo gio -- */
+/* Duong chan: khong co no thi cac cot nhu treo lo lung giua khung. */
+.adm-cols { display: flex; align-items: flex-end; gap: 2px; height: 120px; border-bottom: 1px solid var(--viz-grid); }
+.adm-cols .c { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; min-width: 0; }
+.adm-cols .col { flex: 1; display: flex; align-items: flex-end; }
+.adm-cols .fill { width: 100%; border-radius: 4px 4px 0 0; background: var(--viz-1); }
+.adm-cols .t {
+  font-size: 0.64rem;
+  color: var(--text-3);
+  text-align: center;
+  margin-top: 5px;
+  font-variant-numeric: tabular-nums;
+}

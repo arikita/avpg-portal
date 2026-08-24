@@ -1,0 +1,134 @@
+<div class="adm-head">
+  <div>
+    <h1>{{ vi() ? 'Tin tức' : 'News' }}</h1>
+    <p>
+      {{ vi()
+        ? 'Toàn bộ bài viết ở mọi trạng thái, kể cả bản nháp và bài hẹn giờ của người khác.'
+        : 'Every post in every state, including other people’s drafts and scheduled posts.' }}
+    </p>
+  </div>
+  <div class="adm-head-actions">
+    @if (canPost()) {
+      <a class="btn btn-primary btn-sm" routerLink="/news/new"><app-icon name="edit" /> {{ vi() ? 'Viết tin mới' : 'New post' }}</a>
+    }
+    <button class="btn btn-ghost btn-sm" (click)="load()"><app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}</button>
+  </div>
+</div>
+
+<div class="adm-cards">
+  <div class="adm-card adm-stat">
+    <div class="k">{{ vi() ? 'Đã đăng' : 'Published' }}</div>
+    <div class="v">{{ count('published') }}</div>
+  </div>
+  <div class="adm-card adm-stat">
+    <div class="k">{{ vi() ? 'Bản nháp' : 'Drafts' }}</div>
+    <div class="v">{{ count('draft') }}</div>
+  </div>
+  <div class="adm-card adm-stat">
+    <div class="k">{{ vi() ? 'Hẹn giờ' : 'Scheduled' }}</div>
+    <div class="v">{{ count('scheduled') }}</div>
+  </div>
+  <div class="adm-card adm-stat">
+    <div class="k">{{ vi() ? 'Đang ẩn' : 'Hidden' }}</div>
+    <div class="v">{{ count('hidden') }}</div>
+  </div>
+</div>
+
+<div class="adm-bar mt-3">
+  <label>
+    {{ vi() ? 'Trạng thái' : 'Status' }}
+    <select [ngModel]="fStatus()" (ngModelChange)="fStatus.set($event); load()">
+      <option value="">{{ vi() ? 'Tất cả' : 'All' }}</option>
+      <option value="published">{{ vi() ? 'Đã đăng' : 'Published' }}</option>
+      <option value="draft">{{ vi() ? 'Nháp' : 'Draft' }}</option>
+      <option value="scheduled">{{ vi() ? 'Hẹn giờ' : 'Scheduled' }}</option>
+      <option value="hidden">{{ vi() ? 'Đang ẩn' : 'Hidden' }}</option>
+    </select>
+  </label>
+  <label class="grow">
+    {{ vi() ? 'Tìm theo tiêu đề hoặc tác giả' : 'Search title or author' }}
+    <input type="search" [ngModel]="q()" (ngModelChange)="q.set($event)" (keyup.enter)="load()" />
+  </label>
+  <button class="btn btn-ghost btn-sm" style="margin-bottom:1px" (click)="load()">{{ vi() ? 'Tìm' : 'Search' }}</button>
+</div>
+
+@if (!canModerate()) {
+  <div class="adm-note">
+    <app-icon name="info" />
+    <div>
+      {{ vi()
+        ? 'Tài khoản của bạn xem được danh sách nhưng không ghim/xoá được bài — quyền đó vẫn thuộc nhóm AD "Information System", không đi kèm quyền vào trang quản trị.'
+        : 'Your account can view this list but cannot pin or delete posts — that stays with the AD group "Information System", separate from admin-panel access.' }}
+    </div>
+  </div>
+}
+
+@if (status()) { <div class="adm-note mt-2"><app-icon name="info" /><div>{{ status() }}</div></div> }
+
+<div class="adm-card pad-0 mt-3">
+  @if (loading()) {
+    <div class="adm-empty">{{ vi() ? 'Đang tải…' : 'Loading…' }}</div>
+  } @else if (!rows().length) {
+    <div class="adm-empty">{{ vi() ? 'Không có bài nào khớp bộ lọc.' : 'No posts match the filter.' }}</div>
+  } @else {
+    <div class="adm-tablewrap">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>{{ vi() ? 'Tiêu đề' : 'Title' }}</th>
+            <th>{{ vi() ? 'Trạng thái' : 'Status' }}</th>
+            <th>{{ vi() ? 'Tác giả' : 'Author' }}</th>
+            <th>{{ vi() ? 'Thời điểm' : 'When' }}</th>
+            <th style="text-align:right">{{ vi() ? 'Xem' : 'Views' }}</th>
+            <th style="text-align:right">{{ vi() ? 'Bình luận' : 'Comments' }}</th>
+            <th style="text-align:right">{{ vi() ? 'Cảm xúc' : 'Reactions' }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rows(); track r.id) {
+            <tr>
+              <td>
+                <a [routerLink]="['/news', r.id]" class="strong">{{ r.title }}</a>
+                <div class="adm-muted" style="margin-top:3px">
+                  {{ r.category }}
+                  @if (r.pinned) { · <span class="adm-pill brand"><app-icon name="star" /> {{ vi() ? 'Ghim' : 'Pinned' }}</span> }
+                  @if (r.polls) { · {{ r.polls }} poll }
+                  @if (!r.hasCover) { · <span class="adm-muted">{{ vi() ? 'chưa có ảnh bìa' : 'no cover' }}</span> }
+                </div>
+              </td>
+              <td>
+                <span class="adm-pill" [class.ok]="r.status === 'published'" [class.warn]="r.status === 'scheduled'">
+                  {{ statusLabel(r.status) }}
+                </span>
+                @if (overdue(r)) {
+                  <div class="adm-sev warning" style="margin-top:4px">{{ vi() ? 'quá hạn phát hành' : 'past due' }}</div>
+                }
+              </td>
+              <td>{{ r.authorName || r.author }}</td>
+              <td style="white-space:nowrap">
+                {{ when(r.publishedAt || r.scheduledAt || r.createdAt) }}
+              </td>
+              <td class="num">{{ r.views }}</td>
+              <td class="num">{{ r.comments }}</td>
+              <td class="num">{{ r.reactions }}</td>
+              <td style="white-space:nowrap">
+                <a class="btn btn-ghost btn-sm" [routerLink]="['/news', r.id, 'edit']"><app-icon name="edit" /></a>
+                @if (canModerate()) {
+                  <button class="btn btn-ghost btn-sm" [disabled]="busy() === r.id" (click)="pin(r)"
+                          [attr.title]="r.pinned ? (vi() ? 'Bỏ ghim' : 'Unpin') : (vi() ? 'Ghim' : 'Pin')">
+                    <app-icon name="star" />
+                  </button>
+                  <button class="btn btn-ghost btn-sm" [disabled]="busy() === r.id" (click)="remove(r)"
+                          [attr.title]="vi() ? 'Xoá' : 'Delete'">
+                    <app-icon name="trash" />
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

@@ -1,123 +1,95 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { ApiService } from '../../core/services/api';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, ViewEncapsulation, computed, inject } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+
 import { LanguageService } from '../../core/services/language.service';
 import { UserService } from '../../core/services/user.service';
 import { IconComponent } from '../../shared/components/icon/icon';
+import { AdminStore } from './admin.store';
+import { AdminOverview } from './tabs/overview';
+import { AdminContent } from './tabs/content';
+import { AdminAnalytics } from './tabs/analytics';
+import { AdminErrors } from './errors/errors';
+import { AdminNews } from './tabs/news';
+import { AdminUsers } from './tabs/users';
+import { AdminSystem } from './tabs/system';
 
-interface Entry {
-  module: string;
-  key: string;
-  value: unknown;
+/** Mot tab tren thanh ben trai. `id` la doan duong dan: /admin/<id>. */
+interface Tab {
+  id: string;
+  icon: string;
+  vi: string;
+  en: string;
+  group?: 'run' | 'watch';
 }
 
-/** Chuoi song ngu { vi, en } - dang pho bien nhat, cho sua bang 2 o rieng. */
-function isBilingual(v: unknown): v is { vi: string; en: string } {
-  if (!v || typeof v !== 'object' || Array.isArray(v)) return false;
-  const k = Object.keys(v as object).sort();
-  return k.length === 2 && k[0] === 'en' && k[1] === 'vi';
-}
+const TABS: Tab[] = [
+  { id: 'overview', icon: 'grid', vi: 'Tổng quan', en: 'Overview' },
+  { id: 'content', icon: 'edit', vi: 'Nội dung', en: 'Content', group: 'run' },
+  { id: 'news', icon: 'newspaper', vi: 'Tin tức', en: 'News' },
+  { id: 'users', icon: 'users', vi: 'Người dùng', en: 'People' },
+  { id: 'analytics', icon: 'zap', vi: 'Lượt truy cập', en: 'Traffic', group: 'watch' },
+  { id: 'errors', icon: 'alert-triangle', vi: 'Lỗi ứng dụng', en: 'Errors' },
+  { id: 'system', icon: 'settings', vi: 'Hệ thống', en: 'System' },
+];
 
+/**
+ * Bang dieu khien quan tri — MOT trang, 7 tab.
+ *
+ * Duong dan la /admin/<tab> chu khong phai trang thai trong bo nho: nguoi quan
+ * tri phai gui duoc link "xem cai loi nay" cho nhau, va thong bao loi tu server
+ * van tro toi /admin/errors?id=123 nhu cu (xem telemetry.py). /admin tran =
+ * tab Tong quan.
+ *
+ * ViewEncapsulation.None: 7 component tab dung chung admin.scss. Moi selector
+ * trong file scss do BAT BUOC bat dau bang `.adm` — xem ghi chu dau file.
+ */
 @Component({
   selector: 'app-admin',
-  imports: [FormsModule, IconComponent, RouterLink],
+  imports: [
+    RouterLink,
+    IconComponent,
+    AdminOverview,
+    AdminContent,
+    AdminAnalytics,
+    AdminErrors,
+    AdminNews,
+    AdminUsers,
+    AdminSystem,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   templateUrl: './admin.html',
+  styleUrl: './admin.scss',
 })
 export class Admin {
-  /** Moi loi goi API di qua day de duoc do thoi gian va ghi nhan khi hong.
-   *  Hanh vi lui ve giu NGUYEN nhu truoc — chi them viec bao cao. */
-  private readonly api = inject(ApiService);
+  private readonly route = inject(ActivatedRoute);
   private readonly user = inject(UserService);
+  readonly store = inject(AdminStore);
   readonly lang = inject(LanguageService).lang;
 
+  readonly tabs = TABS;
   readonly canEdit = computed(() => this.user.me()?.canEdit === true);
   readonly ready = computed(() => this.user.me() !== null);
 
-  readonly entries = signal<Entry[]>([]);
-  readonly selected = signal<Entry | null>(null);
-  readonly draftVi = signal('');
-  readonly draftEn = signal('');
-  readonly draftJson = signal('');
-  readonly status = signal('');
-  readonly saving = signal(false);
-
-  readonly bilingual = computed(() => isBilingual(this.selected()?.value));
-  readonly modules = computed(() => [...new Set(this.entries().map((e) => e.module))].sort());
+  private readonly params = toSignal(this.route.paramMap);
+  readonly tab = computed(() => {
+    const t = this.params()?.get('tab') ?? 'overview';
+    return TABS.some((x) => x.id === t) ? t : 'overview';
+  });
 
   constructor() {
-    void this.load();
+    void this.store.load();
   }
 
-  private async load(): Promise<void> {
-    try {
-      const res = await this.api.fetch('/api/content', { credentials: 'same-origin' });
-      if (!res.ok) return;
-      const data = (await res.json()) as Record<string, Record<string, unknown>>;
-      const list: Entry[] = [];
-      for (const [module, keys] of Object.entries(data))
-        for (const [key, value] of Object.entries(keys)) list.push({ module, key, value });
-      list.sort((a, b) => a.module.localeCompare(b.module) || a.key.localeCompare(b.key));
-      this.entries.set(list);
-    } catch {
-      this.status.set('Không tải được nội dung.');
-    }
+  label(t: Tab): string {
+    return this.lang() === 'vi' ? t.vi : t.en;
   }
 
-  entriesOf(module: string): Entry[] {
-    return this.entries().filter((e) => e.module === module);
-  }
-
-  select(e: Entry): void {
-    this.selected.set(e);
-    this.status.set('');
-    if (isBilingual(e.value)) {
-      this.draftVi.set(e.value.vi);
-      this.draftEn.set(e.value.en);
-    } else {
-      this.draftJson.set(JSON.stringify(e.value, null, 2));
-    }
-  }
-
-  async save(): Promise<void> {
-    const e = this.selected();
-    if (!e) return;
-    let payload: unknown;
-    if (this.bilingual()) {
-      payload = { vi: this.draftVi(), en: this.draftEn() };
-    } else {
-      try {
-        payload = JSON.parse(this.draftJson());
-      } catch (err) {
-        this.status.set('JSON không hợp lệ: ' + (err as Error).message);
-        return;
-      }
-    }
-    this.saving.set(true);
-    this.status.set('Đang lưu…');
-    try {
-      const res = await this.api.fetch(`/api/content/${e.module}/${e.key}`, {
-        method: 'PUT',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        this.status.set('Đã lưu. Tải lại trang để thấy thay đổi.');
-        this.entries.update((list) =>
-          list.map((x) => (x.module === e.module && x.key === e.key ? { ...x, value: payload } : x)),
-        );
-        this.selected.set({ ...e, value: payload });
-      } else if (res.status === 403) {
-        this.status.set('Bạn không có quyền sửa nội dung.');
-      } else {
-        this.status.set('Lưu thất bại: HTTP ' + res.status);
-      }
-    } catch (err) {
-      this.status.set('Lỗi mạng: ' + (err as Error).message);
-    } finally {
-      this.saving.set(false);
-    }
+  /** Huy hieu ben phai ten tab. 0 = khong ve gi (im lang la trang thai binh thuong). */
+  badge(id: string): number {
+    if (id === 'errors') return this.store.newErrors();
+    if (id === 'overview') return this.store.todoCount();
+    return 0;
   }
 }

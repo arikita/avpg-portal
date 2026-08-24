@@ -24,6 +24,7 @@ import psycopg
 log = logging.getLogger("avp.main")
 
 from .ad import can_admin_content, get_user, is_editor, is_news_author, list_directory
+from .admin import router as admin_router
 from .news import router as news_router, notif_router, push_router
 from .profile import avatar_router, router as profile_router
 from .rail import router as rail_router
@@ -59,6 +60,7 @@ app.include_router(feed_router)
 app.include_router(chat_router)
 app.include_router(ws_router)
 app.include_router(telemetry_router)
+app.include_router(admin_router)
 # Gan middleware do thoi gian + bat exception toan cuc. Dat SAU cung de
 # no boc het cac router o tren. Tat bang env TELEMETRY_ENABLED=0.
 telemetry_install(app)

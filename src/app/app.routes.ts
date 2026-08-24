@@ -26,6 +26,10 @@ export const routes: Routes = [
   { path: 'profile', loadComponent: () => import('./features/profile/profile').then((m) => m.Profile), title: title('Hồ sơ của tôi') },
   { path: 'profile/:username', loadComponent: () => import('./features/profile/profile').then((m) => m.Profile), title: title('Hồ sơ nhân viên') },
   { path: 'admin', loadComponent: () => import('./features/admin/admin').then((m) => m.Admin), title: title('Quản trị') },
-  { path: 'admin/errors', loadComponent: () => import('./features/admin/errors/errors').then((m) => m.AdminErrors), title: title('Lỗi ứng dụng') },
+  // Bang dieu khien la MOT component, tab nam trong duong dan: /admin/errors,
+  // /admin/analytics... Giu nguyen /admin/errors?id=123 ma thong bao loi tu
+  // server van dang gui di (xem telemetry.py) — doi duong dan la lam hong het
+  // cac thong bao da nam trong hop thu nguoi dung.
+  { path: 'admin/:tab', loadComponent: () => import('./features/admin/admin').then((m) => m.Admin), title: title('Quản trị') },
   { path: '**', redirectTo: '' },
 ];

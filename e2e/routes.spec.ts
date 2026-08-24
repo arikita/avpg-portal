@@ -22,8 +22,15 @@ const ROUTES: [string, string][] = [
   ['/feed', 'main'],
   ['/chat', 'main'],
   ['/profile', 'main'],
+  // Bang dieu khien la mot component cho 7 tab; moi tab la mot component con
+  // lazy nen phai mo tung cai — tab hong chi lo ra khi thuc su render.
   ['/admin', 'main'],
+  ['/admin/content', 'main'],
+  ['/admin/news', 'main'],
+  ['/admin/users', 'main'],
+  ['/admin/analytics', 'main'],
   ['/admin/errors', 'main'],
+  ['/admin/system', 'main'],
 ];
 
 /** Bo qua tieng on khong phai loi that cua ung dung. */

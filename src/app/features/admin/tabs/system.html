@@ -1,0 +1,222 @@
+<div class="adm-head">
+  <div>
+    <h1>{{ vi() ? 'Hệ thống' : 'System' }}</h1>
+    <p>
+      {{ vi()
+        ? 'Trạng thái máy chủ portal (hcm-internalsvr, 10.10.100.136). Trang này chỉ đọc — muốn khởi động lại dịch vụ thì phải SSH.'
+        : 'Portal server status (hcm-internalsvr, 10.10.100.136). Read-only — restarting a service needs SSH.' }}
+    </p>
+  </div>
+  <div class="adm-head-actions">
+    <button class="btn btn-ghost btn-sm" (click)="load()"><app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}</button>
+  </div>
+</div>
+
+@if (loading() && !data()) {
+  <p class="adm-muted">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p>
+} @else if (!data()) {
+  <div class="adm-note warn"><app-icon name="alert-triangle" /><div>{{ vi() ? 'Không đọc được trạng thái hệ thống.' : 'Could not load system status.' }}</div></div>
+} @else {
+  <div class="adm-cards">
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="hash" /> Build</div>
+      <div class="v" style="font-size:1.15rem">{{ data()!.buildId || '—' }}</div>
+      <div class="d">{{ vi() ? 'bản đang phục vụ' : 'currently served' }}</div>
+    </div>
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="folder" /> {{ vi() ? 'Cơ sở dữ liệu' : 'Database' }}</div>
+      <div class="v" style="font-size:1.4rem">{{ data()!.dbSize }}</div>
+      <div class="d">
+        <span class="adm-pill" [class.ok]="data()!.dbOk" [class.bad]="!data()!.dbOk">
+          {{ data()!.dbOk ? (vi() ? 'Kết nối tốt' : 'Connected') : (vi() ? 'Mất kết nối' : 'Down') }}
+        </span>
+      </div>
+    </div>
+    @if (data()!.disk; as d) {
+      <div class="adm-card adm-stat">
+        <div class="k"><app-icon name="download" /> {{ vi() ? 'Đĩa' : 'Disk' }}</div>
+        <div class="v" style="font-size:1.4rem">{{ d.freeGb }} GB<small>{{ vi() ? 'còn trống' : 'free' }}</small></div>
+        <div class="progress-track mt-1"><div class="progress-fill" [style.width.%]="d.usedPct"></div></div>
+        <div class="d">{{ d.usedPct }}% {{ vi() ? 'đã dùng' : 'used' }} / {{ d.totalGb }} GB</div>
+      </div>
+    }
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="shield-check" /> {{ vi() ? 'Thu thập lỗi' : 'Telemetry' }}</div>
+      <div class="v" style="font-size:1.4rem">
+        <span class="adm-pill" [class.ok]="data()!.telemetry" [class.bad]="!data()!.telemetry">
+          {{ data()!.telemetry ? (vi() ? 'Đang bật' : 'On') : (vi() ? 'Đang tắt' : 'Off') }}
+        </span>
+      </div>
+      <div class="d">TELEMETRY_ENABLED</div>
+    </div>
+  </div>
+
+  @if (statStale()) {
+    <div class="adm-note warn mt-3">
+      <app-icon name="alert-triangle" />
+      <div>
+        {{ vi()
+          ? 'Bộ đếm request không ghi được dòng nào trong hơn 10 phút. Hoặc thật sự không ai dùng portal, hoặc luồng gom số liệu đã chết — đừng đọc bảng lỗi trống thành "mọi thứ đều ổn".'
+          : 'The request counter has not written a row in over 10 minutes. Either nobody is using the portal, or the collector died — do not read an empty error table as "all good".' }}
+      </div>
+    </div>
+  }
+
+  <!-- Dich vu -->
+  <div class="adm-card pad-0 mt-3">
+    <div class="adm-card-head"><h3>{{ vi() ? 'Dịch vụ & hẹn giờ' : 'Services & timers' }}</h3></div>
+    <div class="adm-tablewrap">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>{{ vi() ? 'Đơn vị' : 'Unit' }}</th>
+            <th>{{ vi() ? 'Trạng thái' : 'State' }}</th>
+            <th>{{ vi() ? 'Từ lúc' : 'Since' }}</th>
+            <th>{{ vi() ? 'Chạy tiếp lúc' : 'Next run' }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of data()!.units; track u.unit) {
+            <tr>
+              <td>
+                <div class="strong">{{ u.label }}</div>
+                <div class="adm-muted adm-mono">{{ u.unit }}</div>
+              </td>
+              <td>
+                <span class="adm-pill" [class.ok]="ok(u)" [class.bad]="u.state === 'failed'">
+                  {{ u.state }}
+                </span>
+                @if (u.result && u.result !== 'success') {
+                  <div class="adm-sev error" style="margin-top:4px">{{ u.result }}</div>
+                }
+              </td>
+              <td class="adm-muted">{{ u.since || '—' }}</td>
+              <td class="adm-muted">{{ u.next || '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="adm-grid-2 mt-3">
+    <!-- Chi so nghiep vu -->
+    <div class="adm-card pad-0">
+      <div class="adm-card-head">
+        <h3>{{ vi() ? 'Hoạt động 7 ngày' : 'Activity, 7 days' }}</h3>
+      </div>
+      <div class="adm-card-body">
+        <adm-bars [data]="metricBars()" [empty]="vi() ? 'Chưa có số liệu.' : 'No data yet.'" />
+        <p class="adm-muted mt-2">
+          {{ vi()
+            ? 'Đây là loại cảm biến bắt được lỗi KHÔNG ném exception: nếu "Bài đăng trên tường" tụt về 0 sau một lần deploy thì có gì đó hỏng mà bảng lỗi vẫn trống.'
+            : 'This is the sensor that catches bugs which throw no exception: if "wall posts" drops to zero after a deploy, something broke while the error table stayed empty.' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- GA4 + media -->
+    <div class="adm-card pad-0">
+      <div class="adm-card-head"><h3>{{ vi() ? 'Tích hợp' : 'Integrations' }}</h3></div>
+      <div class="adm-tablewrap">
+        <table class="adm-table">
+          <tbody>
+            <tr>
+              <td>GA4 {{ vi() ? 'mã đo' : 'measurement ID' }}</td>
+              <td class="strong adm-mono">{{ data()!.ga4.measurementId }}</td>
+            </tr>
+            <tr>
+              <td>GA4 property</td>
+              <td class="strong adm-mono">{{ data()!.ga4.property }}</td>
+            </tr>
+            <tr>
+              <td>{{ vi() ? 'Khoá đọc số liệu GA4' : 'GA4 read key' }}</td>
+              <td>
+                <span class="adm-pill" [class.ok]="data()!.ga4.keyConfigured" [class.warn]="!data()!.ga4.keyConfigured">
+                  {{ data()!.ga4.keyConfigured ? (vi() ? 'Đã cấu hình' : 'Configured') : (vi() ? 'Chưa cấu hình' : 'Not configured') }}
+                </span>
+              </td>
+            </tr>
+            @if (data()!.media; as m) {
+              <tr>
+                <td>{{ vi() ? 'Thư mục media' : 'Media directory' }}</td>
+                <td>
+                  <span class="adm-pill" [class.ok]="m.exists" [class.bad]="!m.exists">{{ m.path }}</span>
+                </td>
+              </tr>
+            }
+            <tr>
+              <td>{{ vi() ? 'Lượt xem ghi gần nhất' : 'Last page view written' }}</td>
+              <td class="adm-muted">{{ when(data()!.lastPageView) || '—' }}</td>
+            </tr>
+            <tr>
+              <td>{{ vi() ? 'Số liệu request gần nhất' : 'Last request stat' }}</td>
+              <td class="adm-muted">{{ when(data()!.lastStat) || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bang & don rac -->
+  <div class="adm-grid-2 mt-3">
+    <div class="adm-card pad-0">
+      <div class="adm-card-head"><h3>{{ vi() ? 'Bảng lớn nhất' : 'Largest tables' }}</h3></div>
+      <div class="adm-tablewrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>{{ vi() ? 'Bảng' : 'Table' }}</th>
+              <th style="text-align:right">{{ vi() ? 'Dung lượng' : 'Size' }}</th>
+              <th style="text-align:right">{{ vi() ? 'Số dòng' : 'Rows' }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of data()!.tables; track t.name) {
+              <tr>
+                <td class="adm-mono">{{ t.name }}</td>
+                <td class="num">{{ t.size }}</td>
+                <td class="num">{{ fmt(t.rows) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="adm-card pad-0">
+      <div class="adm-card-head">
+        <h3>{{ vi() ? 'Dọn rác telemetry' : 'Telemetry retention' }}</h3>
+        <span class="adm-muted">03:30</span>
+      </div>
+      <div class="adm-tablewrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>{{ vi() ? 'Bảng' : 'Table' }}</th>
+              <th>{{ vi() ? 'Giữ lại' : 'Keep' }}</th>
+              <th style="text-align:right">{{ vi() ? 'Dòng' : 'Rows' }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of data()!.retention; track r.table) {
+              <tr>
+                <td class="adm-mono">{{ r.table }}</td>
+                <td>{{ r.keep }}</td>
+                <td class="num">{{ fmt(r.rows) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="adm-card-body">
+        <p class="adm-muted">
+          {{ vi()
+            ? 'Đĩa của .136 chỉ khoảng 19 GB. Một lỗi lặp một triệu lần đủ làm đầy đĩa nếu timer dọn rác chết — cột "Số dòng" là chỗ nhìn ra điều đó sớm.'
+            : 'The .136 disk is only ~19 GB. One error repeating a million times can fill it if the prune timer dies — the row counts are where that shows up early.' }}
+        </p>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,269 @@
+<div class="adm-head">
+  <div>
+    <h1>{{ vi() ? 'Lượt truy cập' : 'Traffic' }}</h1>
+    <p>
+      {{ vi()
+        ? 'Hai nguồn số liệu đặt cạnh nhau: bảng tự host trong PostgreSQL (biết ai và phòng ban nào dùng portal) và GA4 (thiết bị, phiên, thời lượng).'
+        : 'Two data sources side by side: the self-hosted PostgreSQL tables (who and which department actually uses the portal) and GA4 (devices, sessions, duration).' }}
+    </p>
+  </div>
+  <div class="adm-head-actions">
+    <button class="btn btn-ghost btn-sm" [class.btn-soft]="days() === 7" (click)="setDays(7)">7 {{ vi() ? 'ngày' : 'd' }}</button>
+    <button class="btn btn-ghost btn-sm" [class.btn-soft]="days() === 30" (click)="setDays(30)">30 {{ vi() ? 'ngày' : 'd' }}</button>
+    <button class="btn btn-ghost btn-sm" [class.btn-soft]="days() === 90" (click)="setDays(90)">90 {{ vi() ? 'ngày' : 'd' }}</button>
+  </div>
+</div>
+
+<!-- ==================================================== TU HOST ========= -->
+<h2 style="font-size:1.05rem; margin-bottom:12px">
+  {{ vi() ? 'Số liệu tự host · trong mạng nội bộ' : 'Self-hosted · stays on the internal network' }}
+</h2>
+
+@if (loading() && !data()) {
+  <p class="adm-muted">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p>
+} @else if (!data()) {
+  <div class="adm-note warn">
+    <app-icon name="alert-triangle" />
+    <div>{{ vi() ? 'Không đọc được số liệu tự host.' : 'Could not load self-hosted data.' }}</div>
+  </div>
+} @else {
+  <div class="adm-cards">
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="user" /> {{ vi() ? 'Hoạt động hôm nay' : 'Active today' }}</div>
+      <div class="v">{{ data()!.active.d1 }}</div>
+      <div class="d">{{ vi() ? 'người riêng biệt' : 'unique people' }}</div>
+    </div>
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="users" /> {{ vi() ? 'Hoạt động 7 ngày' : 'Active, 7 days' }}</div>
+      <div class="v">{{ data()!.active.d7 }}</div>
+      <div class="d">{{ vi() ? 'người riêng biệt' : 'unique people' }}</div>
+    </div>
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="calendar" /> {{ vi() ? 'Hoạt động 30 ngày' : 'Active, 30 days' }}</div>
+      <div class="v">{{ data()!.active.d30 }}</div>
+      <div class="d">{{ vi() ? 'người riêng biệt' : 'unique people' }}</div>
+    </div>
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="eye" /> {{ vi() ? 'Lượt xem' : 'Page views' }}</div>
+      <div class="v">{{ fmt(data()!.totals.views) }}</div>
+      <div class="d">{{ data()!.days }} {{ vi() ? 'ngày qua' : 'days' }} · {{ data()!.totals.users }} {{ vi() ? 'người' : 'people' }}</div>
+    </div>
+  </div>
+
+  <div class="adm-grid-2 mt-3">
+    <div class="adm-card pad-0">
+      <div class="adm-card-head"><h3>{{ vi() ? 'Lượt xem trang' : 'Page views' }}</h3></div>
+      <div class="adm-card-body">
+        <adm-trend [data]="viewSeries()" [unit]="vi() ? 'lượt xem' : 'views'" [title]="vi() ? 'Lượt xem theo ngày' : 'Page views per day'" />
+      </div>
+    </div>
+    <div class="adm-card pad-0">
+      <div class="adm-card-head"><h3>{{ vi() ? 'Người dùng riêng biệt' : 'Unique people' }}</h3></div>
+      <div class="adm-card-body">
+        <adm-trend [data]="userSeries()" [unit]="vi() ? 'người' : 'people'" [title]="vi() ? 'Người dùng theo ngày' : 'Unique people per day'" />
+      </div>
+    </div>
+  </div>
+
+  <div class="adm-grid-2 mt-3">
+    <div class="adm-card pad-0">
+      <div class="adm-card-head">
+        <h3>{{ vi() ? 'Trang được xem nhiều nhất' : 'Most viewed pages' }}</h3>
+      </div>
+      <div class="adm-card-body">
+        <adm-bars [data]="routeBars()" [empty]="vi() ? 'Chưa có lượt xem nào.' : 'No page views yet.'" />
+      </div>
+    </div>
+    <div class="adm-card pad-0">
+      <div class="adm-card-head">
+        <h3>{{ vi() ? 'Phòng ban dùng portal' : 'Departments using the portal' }}</h3>
+        <span class="adm-muted">{{ vi() ? 'số người' : 'people' }}</span>
+      </div>
+      <div class="adm-card-body">
+        <adm-bars [data]="deptBars()" [empty]="vi() ? 'Chưa có dữ liệu phòng ban.' : 'No department data yet.'" />
+      </div>
+    </div>
+  </div>
+
+  <div class="adm-card pad-0 mt-3">
+    <div class="adm-card-head">
+      <h3>{{ vi() ? 'Giờ trong ngày' : 'Hour of day' }}</h3>
+      <span class="adm-muted">{{ vi() ? 'lượt xem, giờ +07' : 'page views, +07' }}</span>
+    </div>
+    <div class="adm-card-body">
+      <adm-cols [data]="hourCols()" />
+    </div>
+  </div>
+
+  <!-- Danh sach theo TEN NGUOI: mac dinh dong lai. Xem duoc khong co nghia la
+       nen mo san — day la du lieu co tinh chat giam sat. -->
+  <div class="adm-card pad-0 mt-3">
+    <div class="adm-card-head">
+      <h3>{{ vi() ? 'Người dùng nhiều nhất' : 'Most active people' }}</h3>
+      <button class="btn btn-ghost btn-sm" (click)="showPeople.set(!showPeople())">
+        <app-icon name="eye" /> {{ showPeople() ? (vi() ? 'Ẩn' : 'Hide') : (vi() ? 'Hiện' : 'Show') }}
+      </button>
+    </div>
+    @if (!showPeople()) {
+      <div class="adm-card-body">
+        <div class="adm-note">
+          <app-icon name="shield" />
+          <div>
+            {{ vi()
+              ? 'Bảng này ghi kèm tên tài khoản nên mang tính giám sát nhân viên. Việc portal có ghi log kèm username đã được nói rõ trong trang Hỗ trợ. Chỉ mở khi thực sự cần điều tra một sự việc cụ thể.'
+              : 'This table is tied to usernames, so it is employee monitoring. The fact that the portal logs usernames is disclosed on the Help page. Open it only when investigating something specific.' }}
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="adm-tablewrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>{{ vi() ? 'Tài khoản' : 'Account' }}</th>
+              <th style="text-align:right">{{ vi() ? 'Lượt xem' : 'Views' }}</th>
+              <th style="text-align:right">{{ vi() ? 'Số ngày' : 'Days' }}</th>
+              <th>{{ vi() ? 'Lần cuối' : 'Last seen' }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of data()!.people; track p.username) {
+              <tr>
+                <td class="strong">{{ p.username }}</td>
+                <td class="num">{{ p.views.toLocaleString('vi-VN') }}</td>
+                <td class="num">{{ p.days }}</td>
+                <td>{{ when(p.last) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+}
+
+<!-- ======================================================= GA4 ========== -->
+<h2 style="font-size:1.05rem; margin:28px 0 12px">Google Analytics 4</h2>
+
+@if (gaLoading() && !ga()) {
+  <p class="adm-muted">{{ vi() ? 'Đang hỏi Google…' : 'Asking Google…' }}</p>
+} @else if (!ga()) {
+  <div class="adm-note warn">
+    <app-icon name="alert-triangle" />
+    <div>{{ vi() ? 'Không gọi được endpoint GA4.' : 'Could not reach the GA4 endpoint.' }}</div>
+  </div>
+} @else if (!ga()!.configured || ga()!.ok === false) {
+  <!-- Chua co khoa (hoac khoa hong): van hien du huong dan, KHONG bo trong -->
+  <div class="adm-card">
+    <div style="display:flex; gap:12px; align-items:start; flex-wrap:wrap">
+      <div style="flex:1; min-width:260px">
+        <h3>{{ vi() ? 'Chưa lấy được số liệu GA4' : 'GA4 data not available yet' }}</h3>
+        <p class="adm-muted mt-1">
+          {{ vi()
+            ? 'Thẻ đo GA4 đã chạy trên portal và vẫn đang gửi dữ liệu về Google bình thường — phần thiếu chỉ là quyền để portal ĐỌC NGƯỢC số liệu đó về hiển thị ở đây.'
+            : 'The GA4 tag is live on the portal and keeps sending data to Google — what is missing is only the permission for the portal to READ that data back and show it here.' }}
+        </p>
+        <p class="adm-muted mt-1">
+          {{ vi() ? 'Mã đo' : 'Measurement ID' }}: <b>{{ ga()!.measurementId }}</b> ·
+          Property: <b>{{ ga()!.property }}</b>
+          @if (ga()!.detail) { · {{ ga()!.detail }} }
+        </p>
+        @if (ga()!.error) {
+          <div class="adm-pre mt-2">{{ ga()!.error }}</div>
+        }
+      </div>
+      <a class="btn btn-ghost btn-sm" [href]="gaLink()" target="_blank" rel="noopener">
+        <app-icon name="external-link" /> {{ vi() ? 'Mở báo cáo GA4' : 'Open GA4' }}
+      </a>
+    </div>
+
+    @if (ga()!.setup?.length) {
+      <ol class="steps mt-3">
+        @for (s of ga()!.setup!; track $index) {
+          <li class="step">
+            <span class="n"></span>
+            <div class="body"><p>{{ s }}</p></div>
+          </li>
+        }
+      </ol>
+    }
+  </div>
+} @else {
+  <div class="adm-cards">
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="wifi" /> {{ vi() ? 'Đang truy cập (30 phút)' : 'Active now (30 min)' }}</div>
+      <div class="v">{{ ga()!.realtimeUsers }}</div>
+      <div class="d">{{ vi() ? 'theo thời gian thực' : 'realtime' }}</div>
+    </div>
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="users" /> {{ vi() ? 'Người dùng' : 'Users' }}</div>
+      <div class="v">{{ fmt(ga()!.totals!.users) }}</div>
+      <div class="d">{{ ga()!.days }} {{ vi() ? 'ngày qua' : 'days' }}</div>
+    </div>
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="compass" /> {{ vi() ? 'Phiên' : 'Sessions' }}</div>
+      <div class="v">{{ fmt(ga()!.totals!.sessions) }}</div>
+      <div class="d">{{ ga()!.totals!.engagementRate }}% {{ vi() ? 'phiên có tương tác' : 'engaged' }}</div>
+    </div>
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="clock" /> {{ vi() ? 'Thời lượng / người' : 'Time / user' }}</div>
+      <div class="v">{{ engaged() }}</div>
+      <div class="d">{{ fmt(ga()!.totals!.views) }} {{ vi() ? 'lượt xem' : 'views' }}</div>
+    </div>
+  </div>
+
+  <div class="adm-grid-2 mt-3">
+    <div class="adm-card pad-0">
+      <div class="adm-card-head">
+        <h3>{{ vi() ? 'Lượt xem theo GA4' : 'Page views per GA4' }}</h3>
+        <a class="btn btn-ghost btn-sm" [href]="gaLink()" target="_blank" rel="noopener">
+          <app-icon name="external-link" /> GA4
+        </a>
+      </div>
+      <div class="adm-card-body">
+        <adm-trend [data]="gaSeries()" [unit]="vi() ? 'lượt xem' : 'views'" [title]="'GA4'" />
+      </div>
+    </div>
+    <div class="adm-card pad-0">
+      <div class="adm-card-head"><h3>{{ vi() ? 'Thiết bị' : 'Devices' }}</h3></div>
+      <div class="adm-card-body">
+        <adm-bars [data]="deviceBars()" [empty]="vi() ? 'Chưa có dữ liệu.' : 'No data.'" />
+      </div>
+    </div>
+  </div>
+
+  <div class="adm-card pad-0 mt-3">
+    <div class="adm-card-head"><h3>{{ vi() ? 'Trang phổ biến (GA4)' : 'Top pages (GA4)' }}</h3></div>
+    <div class="adm-tablewrap">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>{{ vi() ? 'Tiêu đề' : 'Title' }}</th>
+            <th>{{ vi() ? 'Đường dẫn' : 'Path' }}</th>
+            <th style="text-align:right">{{ vi() ? 'Lượt xem' : 'Views' }}</th>
+            <th style="text-align:right">{{ vi() ? 'Người' : 'Users' }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of ga()!.pages!; track p.path + p.title) {
+            <tr>
+              <td class="strong clip">{{ p.title }}</td>
+              <td class="adm-mono clip">{{ p.path }}</td>
+              <td class="num">{{ p.views.toLocaleString('vi-VN') }}</td>
+              <td class="num">{{ p.users.toLocaleString('vi-VN') }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="adm-note mt-3">
+    <app-icon name="info" />
+    <div>
+      {{ vi()
+        ? 'Số của GA4 và số tự host sẽ KHÔNG bằng nhau, và điều đó là bình thường: GA4 bị trình chặn quảng cáo lọc bớt và gộp phiên theo luật riêng, còn bảng tự host đếm mọi lần đổi trang của người đã đăng nhập. Dùng GA4 để xem xu hướng và thiết bị; dùng bảng tự host khi cần con số chính xác về người và phòng ban.'
+        : 'GA4 and self-hosted numbers will NOT match, and that is expected: GA4 is filtered by ad blockers and groups sessions by its own rules, while the self-hosted table counts every route change by a signed-in user. Use GA4 for trends and devices; use the self-hosted table when you need exact people and departments.' }}
+    </div>
+  </div>
+}

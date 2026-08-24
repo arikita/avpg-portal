@@ -1,0 +1,153 @@
+<div class="adm-head">
+  <div>
+    <h1>{{ vi() ? 'Người dùng & quyền' : 'People & permissions' }}</h1>
+    <p>
+      {{ vi()
+        ? 'Ai có quyền gì, ai đang trực tuyến, ai thật sự dùng portal 30 ngày qua.'
+        : 'Who has which permission, who is online, who actually used the portal in the last 30 days.' }}
+    </p>
+  </div>
+  <div class="adm-head-actions">
+    <button class="btn btn-ghost btn-sm" (click)="load()"><app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}</button>
+  </div>
+</div>
+
+@if (loading() && !data()) {
+  <p class="adm-muted">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p>
+} @else if (!data()) {
+  <div class="adm-note warn"><app-icon name="alert-triangle" /><div>{{ vi() ? 'Không đọc được dữ liệu người dùng.' : 'Could not load user data.' }}</div></div>
+} @else {
+  <div class="adm-cards">
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="key" /> {{ vi() ? 'Quản trị viên' : 'Admins' }}</div>
+      <div class="v">{{ data()!.admins.length }}</div>
+      <div class="d">{{ vi() ? 'vào được trang này' : 'can open this panel' }}</div>
+    </div>
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="wifi" /> {{ vi() ? 'Đang trực tuyến' : 'Online' }}</div>
+      <div class="v">{{ data()!.online.length }}</div>
+      <div class="d">{{ vi() ? '2 phút gần nhất' : 'last 2 minutes' }}</div>
+    </div>
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="bell" /> {{ vi() ? 'Bật thông báo đẩy' : 'Push enabled' }}</div>
+      <div class="v">{{ data()!.pushUsers }}</div>
+      <div class="d">{{ vi() ? 'người đã cho phép' : 'people allowed it' }}</div>
+    </div>
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="camera" /> {{ vi() ? 'Có ảnh đại diện' : 'With avatar' }}</div>
+      <div class="v">{{ data()!.profilesWithAvatar }}</div>
+      <div class="d">{{ vi() ? 'hồ sơ đã tải ảnh lên' : 'profiles with a photo' }}</div>
+    </div>
+  </div>
+
+  <!-- Quyen -->
+  <div class="adm-card pad-0 mt-3">
+    <div class="adm-card-head">
+      <h3>{{ vi() ? 'Ai vào được trang quản trị' : 'Who can open the admin panel' }}</h3>
+    </div>
+    <div class="adm-tablewrap">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>{{ vi() ? 'Tài khoản' : 'Account' }}</th>
+            <th>{{ vi() ? 'Họ tên' : 'Name' }}</th>
+            <th>{{ vi() ? 'Phòng ban' : 'Department' }}</th>
+            <th>{{ vi() ? 'Kiểm duyệt tin' : 'News moderation' }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of data()!.admins; track a.username) {
+            <tr>
+              <td class="strong">{{ a.username }}</td>
+              <td>
+                <a [routerLink]="['/profile', a.username]">{{ a.fullName }}</a>
+                @if (a.title) { <div class="adm-muted">{{ a.title }}</div> }
+              </td>
+              <td>{{ a.department || '—' }}</td>
+              <td>
+                @if (a.moderator) {
+                  <span class="adm-pill ok"><app-icon name="check" /> {{ vi() ? 'Có' : 'Yes' }}</span>
+                } @else {
+                  <span class="adm-pill">{{ vi() ? 'Không' : 'No' }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="adm-card-body">
+      <div class="adm-note">
+        <app-icon name="shield" />
+        <div>
+          {{ vi()
+            ? 'Ba loại quyền đến từ ba nguồn khác nhau và cố ý không gộp: vào trang quản trị = danh sách CONTENT_ADMIN_USERS trong /etc/avp-portal-api.env trên .136 (sửa xong phải khởi động lại dịch vụ avp-portal-api); kiểm duyệt/ghim/xoá tin = nhóm AD "Information System"; đăng tin = nhóm AD HR/Marketing/IS. Không cấp quyền được từ giao diện web — đó là chủ ý, để một tài khoản bị chiếm không tự nâng quyền cho mình.'
+            : 'Three permissions from three separate sources, deliberately not merged: admin-panel access = the CONTENT_ADMIN_USERS list in /etc/avp-portal-api.env on .136 (restart avp-portal-api after editing); moderating/pinning/deleting news = AD group "Information System"; posting news = AD groups HR/Marketing/IS. None of them can be granted from the web UI — by design, so a hijacked account cannot escalate itself.' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="adm-grid-2 mt-3">
+    <div class="adm-card pad-0">
+      <div class="adm-card-head">
+        <h3>{{ vi() ? 'Đang trực tuyến' : 'Online now' }}</h3>
+        <span class="adm-muted">{{ data()!.online.length }}</span>
+      </div>
+      <div class="adm-card-body">
+        @if (!data()!.online.length) {
+          <div class="adm-empty">{{ vi() ? 'Không có ai đang mở portal.' : 'Nobody has the portal open.' }}</div>
+        } @else {
+          <div style="display:flex; gap:7px; flex-wrap:wrap">
+            @for (u of data()!.online; track u) {
+              <a class="adm-pill" [routerLink]="['/profile', u]">{{ u }}</a>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="adm-card pad-0">
+      <div class="adm-card-head">
+        <h3>{{ vi() ? 'Đăng tin nhiều nhất' : 'Top news authors' }}</h3>
+        <span class="adm-muted">{{ vi() ? 'số bài' : 'posts' }}</span>
+      </div>
+      <div class="adm-card-body">
+        <adm-bars [data]="contributorBars()" [empty]="vi() ? 'Chưa có bài nào.' : 'No posts yet.'" />
+      </div>
+    </div>
+  </div>
+
+  <div class="adm-card pad-0 mt-3">
+    <div class="adm-card-head">
+      <h3>{{ vi() ? 'Hoạt động gần đây' : 'Recent activity' }}</h3>
+      <span class="adm-muted">{{ vi() ? '30 ngày qua, mới nhất trước' : 'last 30 days, newest first' }}</span>
+    </div>
+    @if (!data()!.active.length) {
+      <div class="adm-empty">{{ vi() ? 'Chưa ghi nhận lượt truy cập nào.' : 'No visits recorded yet.' }}</div>
+    } @else {
+      <div class="adm-tablewrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>{{ vi() ? 'Tài khoản' : 'Account' }}</th>
+              <th style="text-align:right">{{ vi() ? 'Lượt xem' : 'Views' }}</th>
+              <th style="text-align:right">{{ vi() ? 'Số ngày vào' : 'Days seen' }}</th>
+              <th>{{ vi() ? 'Lần cuối' : 'Last seen' }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of data()!.active; track a.username) {
+              <tr>
+                <td class="strong"><a [routerLink]="['/profile', a.username]">{{ a.username }}</a></td>
+                <td class="num">{{ a.views.toLocaleString('vi-VN') }}</td>
+                <td class="num">{{ a.days }}</td>
+                <td>{{ ago(a.last, vi()) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+}

@@ -45,10 +45,37 @@ Kiến trúc: `Browser --Kerberos--> Apache (GSSAPI) ├─ / → SPA tĩnh └�
 
 ## Module đã có
 
-Nội dung động (content+history, quyền = group AD `Information System`) · Danh bạ từ AD · Tin tức (news: react/comment lồng/poll/thông báo/Web Push/**hẹn giờ phát hành** — timer `avp-news-publish` mỗi phút) · Hồ sơ cá nhân + tường (wall) · Bảng tin `/feed` (**2 cột bên** từ 20/08: thẻ cá nhân, mosaic ảnh AVP Cup, đang trực tuyến, tin mới, poll bỏ phiếu tại chỗ, thành viên mới — gộp trong `GET /api/rail`) · Chat realtime (WebSocket qua vé, PostgreSQL LISTEN/NOTIFY, Web Push cho người đã đóng portal) · Hero slideshow · Auto-login WorkIT.
+**Bảng điều khiển quản trị `/admin`** (7 tab, xem mục riêng bên dưới) · Nội dung động (content+history) · Danh bạ từ AD · Tin tức (news: react/comment lồng/poll/thông báo/Web Push/**hẹn giờ phát hành** — timer `avp-news-publish` mỗi phút) · Hồ sơ cá nhân + tường (wall) · Bảng tin `/feed` (**2 cột bên** từ 20/08: thẻ cá nhân, mosaic ảnh AVP Cup, đang trực tuyến, tin mới, poll bỏ phiếu tại chỗ, thành viên mới — gộp trong `GET /api/rail`) · Chat realtime (WebSocket qua vé, PostgreSQL LISTEN/NOTIFY, Web Push cho người đã đóng portal) · Hero slideshow · Auto-login WorkIT.
+
+## Bảng điều khiển quản trị `/admin` (24/08/2026)
+
+Một component `features/admin/admin.ts` + 7 component tab con; đường dẫn là **`/admin/<tab>`**
+(`overview` `content` `news` `users` `analytics` `errors` `system`). `/admin` trần = Tổng quan.
+
+- **ĐỪNG đổi `/admin/errors`**: thông báo lỗi tự động gửi link `/admin/errors?id=123` (xem `telemetry.py`),
+  đổi đường dẫn là hỏng mọi thông báo đã nằm trong hộp thư người dùng. Tab lỗi đọc `?id=` để mở thẳng.
+- Backend `server/app/admin.py` — **6 endpoint CHỈ ĐỌC**, mọi endpoint qua `_require_admin`.
+  Ghi vẫn đi đường cũ: `PUT /api/content/*` (có `content_history`), `/api/telemetry/errors/{id}/status`,
+  `/api/news/*`. `server/tests/test_admin.py` đọc bảng định tuyến để bắt route quên hàng rào.
+- **`smoke_test.py` mong đợi `/api/admin/* = 403`** (chạy dưới user `smoke-test`) — đó là cảm biến bảo mật,
+  không phải lỗi cấu hình. Ra 200 nghĩa là allowlist đã mở toang.
+- Ba loại quyền, **cố ý không gộp**: vào `/admin` = env `CONTENT_ADMIN_USERS`; ghim/xoá tin = group AD
+  `Information System`; đăng tin = group HR/Marketing/IS. Không cấp quyền được từ web.
+- Biểu đồ tự vẽ (`features/admin/charts.ts`) — không thư viện (Apache không cho tải CDN).
+  **SVG chỉ vẽ nét, chữ/chấm là HTML**: SVG có viewBox sẽ co giãn chữ theo bề rộng thẻ, cột hẹp thì
+  nhãn còn ~6px không đọc nổi. Style dùng chung ở `admin.scss` với `ViewEncapsulation.None` —
+  **mọi selector trong file đó phải bắt đầu bằng `.adm`**.
+- **GA4 trong tab Lượt truy cập**: endpoint `/api/admin/ga4` tự ký JWT RS256 bằng `cryptography` +
+  `requests` (đã có sẵn trong venv, không cài thêm gói Google). Chưa có khoá thì trả hướng dẫn 4 bước
+  chứ không 500. Bật bằng `GA4_SA_JSON=/etc/avp-portal-ga4.json` trong `/etc/avp-portal-api.env`.
+- **Bẫy deploy**: `.136` KHÔNG có Chrome/playwright nên `tools/deploy.sh` bước 1b (boot check) phải chạy
+  `SKIP_BOOT_CHECK=1`. Bù lại: kéo `/var/www/avp-portal` về clasvr rồi chạy `tools/boot_check.mjs` trên
+  chính bản đang phục vụ. Đừng bỏ qua bước bù — deploy mù chính là nguyên nhân sự cố 13/08 và 22/08.
 
 ## Đang treo
 
 - Login read-only `avp_bday_ro` trên Workit DB `.108:14333` (cần cho sinh nhật + khối nhân sự trên hồ sơ) — **chờ user tạo**.
 - `SECRETS.md` plaintext trên .136 (có Cloudflare API token khuyến nghị revoke) → nên đẩy sang password manager.
+- **Khoá đọc GA4 Data API** — cần user tạo service account Google Cloud + cấp Viewer property 550323823,
+  rồi đặt `GA4_SA_JSON`. Chưa có thì tab Lượt truy cập vẫn chạy bằng số liệu tự host.
 - Sửa poll của bài đã đăng · @mention · avatar từ NAS/AD `thumbnailPhoto` · thống kê hồ sơ chưa cộng bài tường.

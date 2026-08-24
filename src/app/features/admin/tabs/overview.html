@@ -1,0 +1,202 @@
+<div class="adm-head">
+  <div>
+    <h1>{{ vi() ? 'Tổng quan' : 'Overview' }}</h1>
+    <p>
+      {{ vi()
+        ? 'Portal hôm nay ra sao và có gì cần chạm tay vào. Số liệu tự host, giờ +07.'
+        : 'How the portal is doing today and what needs attention. Self-hosted data, +07.' }}
+    </p>
+  </div>
+  <div class="adm-head-actions">
+    @if (ov()?.buildId) {
+      <span class="adm-pill"><app-icon name="hash" /> build {{ ov()!.buildId }}</span>
+    }
+    <button class="btn btn-ghost btn-sm" (click)="reload()">
+      <app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}
+    </button>
+  </div>
+</div>
+
+@if (store.failed() && !ov()) {
+  <div class="adm-note warn">
+    <app-icon name="alert-triangle" />
+    <div>
+      {{ vi()
+        ? 'Không đọc được số liệu quản trị. Kiểm tra dịch vụ avp-portal-api và PostgreSQL trên .136.'
+        : 'Could not load admin data. Check the avp-portal-api service and PostgreSQL on .136.' }}
+    </div>
+  </div>
+} @else if (!ov()) {
+  <p class="adm-muted">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p>
+} @else {
+  <!-- So dan dat: DUY NHAT mot con so lon tren man hinh nay -->
+  <div class="adm-card">
+    <div class="adm-hero">
+      <span class="n">{{ ov()!.today.users.toLocaleString('vi-VN') }}</span>
+      <span class="t">
+        {{ vi() ? 'người đã mở portal hôm nay' : 'people opened the portal today' }}
+        @if (deltaUsers() !== null) {
+          ·
+          <span [style.color]="deltaUsers()! >= 0 ? 'var(--success)' : 'var(--danger)'">
+            {{ deltaUsers()! >= 0 ? '+' : '' }}{{ deltaUsers() }}%
+          </span>
+          {{ vi() ? 'so với hôm qua' : 'vs yesterday' }}
+        }
+      </span>
+    </div>
+  </div>
+
+  <!-- KPI -->
+  <div class="adm-cards mt-3">
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="eye" /> {{ vi() ? 'Lượt xem hôm nay' : 'Page views today' }}</div>
+      <div class="v">{{ fmt(ov()!.today.views) }}</div>
+      @if (deltaViews() !== null) {
+        <div class="d" [class.up]="deltaViews()! >= 0" [class.down]="deltaViews()! < 0">
+          {{ deltaViews()! >= 0 ? '+' : '' }}{{ deltaViews() }}% {{ vi() ? 'so với hôm qua' : 'vs yesterday' }}
+        </div>
+      }
+    </div>
+
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="alert-triangle" /> {{ vi() ? 'Lỗi chưa xử lý' : 'Unhandled errors' }}</div>
+      <div class="v">{{ errorTotal() }}</div>
+      <div class="d">{{ ov()!.errors24h }} {{ vi() ? 'loại lỗi hoạt động trong 24h' : 'error types active in 24h' }}</div>
+    </div>
+
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="zap" /> {{ vi() ? 'Request 5 phút' : 'Requests / 5 min' }}</div>
+      <div class="v">{{ fmt(ov()!.req5m.n) }}<small>{{ ov()!.req5m.msAvg }} ms</small></div>
+      <div class="d">
+        {{ ov()!.req5m.err5xx }} {{ vi() ? 'lỗi 5xx' : '5xx' }} ·
+        {{ ov()!.req5m.slow }} {{ vi() ? 'chậm >3s' : 'slow >3s' }}
+      </div>
+    </div>
+
+    <div class="adm-card adm-stat">
+      <div class="k"><app-icon name="wifi" /> {{ vi() ? 'Đang trực tuyến' : 'Online now' }}</div>
+      <div class="v">{{ ov()!.counts['online'] }}</div>
+      <div class="d">{{ vi() ? 'có mặt trong 2 phút qua' : 'seen in the last 2 minutes' }}</div>
+    </div>
+  </div>
+
+  <!-- Viec can lam -->
+  <div class="adm-card mt-3">
+    <h3>{{ vi() ? 'Việc cần làm' : 'Needs attention' }}</h3>
+    @if (!ov()!.todo.length) {
+      <p class="adm-muted mt-2">
+        {{ vi()
+          ? 'Không có việc nào đang chờ. Lưu ý: im lặng chưa chắc là khoẻ — nếu bảng lỗi trống suốt nhiều ngày, kiểm tra Zabbix xem đường ống telemetry còn sống không.'
+          : 'Nothing pending. Note: silence is not health — if the error table stays empty for days, check Zabbix that the telemetry pipeline is alive.' }}
+      </p>
+    } @else {
+      <div class="adm-todo mt-2">
+        @for (t of ov()!.todo; track t.key) {
+          <button [class]="t.level" (click)="go(t.tab)">
+            <app-icon [name]="todoIcon(t.level)" />
+            <span>{{ todoText(t.key, t.n) }}</span>
+            @if (t.n) { <span class="n">{{ t.n }}</span> }
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Xu huong: HAI bieu do rieng, khong gop hai truc y vao mot khung -->
+  <div class="adm-grid-2 mt-3">
+    <div class="adm-card pad-0">
+      <div class="adm-card-head">
+        <h3>{{ vi() ? 'Lượt xem trang · 14 ngày' : 'Page views · 14 days' }}</h3>
+      </div>
+      <div class="adm-card-body">
+        <adm-trend [data]="viewSeries()" [unit]="vi() ? 'lượt xem' : 'views'" [title]="vi() ? 'Lượt xem 14 ngày' : 'Page views, 14 days'" />
+      </div>
+    </div>
+    <div class="adm-card pad-0">
+      <div class="adm-card-head">
+        <h3>{{ vi() ? 'Người dùng riêng biệt · 14 ngày' : 'Unique people · 14 days' }}</h3>
+      </div>
+      <div class="adm-card-body">
+        <adm-trend [data]="userSeries()" [unit]="vi() ? 'người' : 'people'" [title]="vi() ? 'Người dùng 14 ngày' : 'Unique people, 14 days'" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Noi dung & cong dong -->
+  <div class="adm-grid-2 mt-3">
+    <div class="adm-card pad-0">
+      <div class="adm-card-head"><h3>{{ vi() ? 'Nội dung & cộng đồng' : 'Content & community' }}</h3></div>
+      <div class="adm-tablewrap">
+        <table class="adm-table">
+          <tbody>
+            <tr>
+              <td>{{ vi() ? 'Tin đã đăng' : 'Published news' }}</td>
+              <td class="num">{{ ov()!.counts['newsPublished'] }}</td>
+              <td>{{ vi() ? 'Bản nháp' : 'Drafts' }}</td>
+              <td class="num">{{ ov()!.counts['newsDraft'] }}</td>
+            </tr>
+            <tr>
+              <td>{{ vi() ? 'Hẹn giờ' : 'Scheduled' }}</td>
+              <td class="num">{{ ov()!.counts['newsScheduled'] }}</td>
+              <td>{{ vi() ? 'Đang ẩn' : 'Hidden' }}</td>
+              <td class="num">{{ ov()!.counts['newsHidden'] }}</td>
+            </tr>
+            <tr>
+              <td>{{ vi() ? 'Bài tường 7 ngày' : 'Wall posts, 7 days' }}</td>
+              <td class="num">{{ ov()!.counts['wall7d'] }}</td>
+              <td>{{ vi() ? 'Tin nhắn 24h' : 'Chat, 24h' }}</td>
+              <td class="num">{{ fmt(ov()!.counts['chat24h']) }}</td>
+            </tr>
+            <tr>
+              <td>{{ vi() ? 'Hồ sơ cá nhân' : 'Profiles' }}</td>
+              <td class="num">{{ ov()!.counts['profiles'] }}</td>
+              <td>{{ vi() ? 'Bật thông báo đẩy' : 'Push enabled' }}</td>
+              <td class="num">{{ ov()!.counts['pushSubs'] }}</td>
+            </tr>
+            <tr>
+              <td>{{ vi() ? 'Mục nội dung động' : 'Content items' }}</td>
+              <td class="num">{{ ov()!.counts['contentItems'] }}</td>
+              <td>{{ vi() ? 'Thu thập lỗi' : 'Telemetry' }}</td>
+              <td class="num">
+                <span class="adm-pill" [class.ok]="ov()!.telemetry" [class.bad]="!ov()!.telemetry">
+                  {{ ov()!.telemetry ? (vi() ? 'Đang bật' : 'On') : (vi() ? 'Đang tắt' : 'Off') }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="adm-card pad-0">
+      <div class="adm-card-head">
+        <h3>{{ vi() ? 'Sửa nội dung gần đây' : 'Recent content edits' }}</h3>
+        <a class="btn btn-ghost btn-sm" [routerLink]="['/admin', 'content']">{{ vi() ? 'Mở' : 'Open' }}</a>
+      </div>
+      @if (!ov()!.recentContent.length) {
+        <div class="adm-empty">{{ vi() ? 'Chưa có ai sửa nội dung.' : 'No content edits yet.' }}</div>
+      } @else {
+        <div class="adm-tablewrap">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>{{ vi() ? 'Mục' : 'Item' }}</th>
+                <th>{{ vi() ? 'Người sửa' : 'By' }}</th>
+                <th>{{ vi() ? 'Lúc' : 'When' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of ov()!.recentContent; track c.at) {
+                <tr>
+                  <td class="strong">{{ c.module }} · {{ c.key }}</td>
+                  <td>{{ c.by || '—' }}</td>
+                  <td>{{ when(c.at) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+}

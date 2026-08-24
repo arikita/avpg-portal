@@ -1,0 +1,124 @@
+<div class="adm-head">
+  <div>
+    <h1>{{ vi() ? 'Nội dung portal' : 'Portal content' }}</h1>
+    <p>
+      {{ vi()
+        ? 'Sửa và lưu — không cần build lại. Mỗi lần lưu, bản cũ được giữ lại và khôi phục được.'
+        : 'Edit and save — no rebuild needed. Every save keeps the previous version, restorable.' }}
+    </p>
+  </div>
+</div>
+
+<div class="adm-note">
+  <app-icon name="info" />
+  <div>
+    {{ vi()
+      ? 'Ô này ghi thẳng vào cơ sở dữ liệu — nguồn đang phục vụ người dùng. Bản dự phòng nằm trong bundle (src/app/content/*.ts) không tự đổi theo; nếu sửa nội dung quan trọng thì nhờ IT cập nhật cả hai, kẻo API chết là trang hiện lại chữ cũ.'
+      : 'This writes straight to the database — the source being served. The in-bundle fallback (src/app/content/*.ts) does not follow automatically; for important text ask IT to update both, or the page falls back to the old wording when the API is down.' }}
+  </div>
+</div>
+
+<div class="adm-bar mt-3">
+  <label class="grow">
+    {{ vi() ? 'Tìm trong khoá và nội dung' : 'Search keys and values' }}
+    <input
+      type="search"
+      [ngModel]="q()"
+      (ngModelChange)="q.set($event)"
+      [placeholder]="vi() ? 'ví dụ: chính sách, hero, footer…' : 'e.g. policy, hero, footer…'"
+    />
+  </label>
+  <span class="adm-muted" style="padding-bottom:9px">
+    {{ filtered().length }}/{{ entries().length }} {{ vi() ? 'mục' : 'items' }}
+  </span>
+</div>
+
+<div class="adm-split">
+  <div class="adm-card pad-0">
+    <div class="adm-list">
+      @if (!filtered().length) {
+        <div class="adm-empty">{{ vi() ? 'Không có mục nào khớp.' : 'Nothing matches.' }}</div>
+      }
+      @for (m of modules(); track m) {
+        <div class="g">{{ m }}</div>
+        @for (e of entriesOf(m); track e.module + '/' + e.key) {
+          <button [class.on]="isOn(e)" (click)="select(e)">{{ e.key }}</button>
+        }
+      }
+    </div>
+  </div>
+
+  <div class="adm-card">
+    @if (!selected()) {
+      <div class="adm-empty">{{ vi() ? 'Chọn một mục bên trái để sửa.' : 'Pick an item on the left.' }}</div>
+    } @else {
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
+        <h3 style="flex:1; min-width:0">{{ selected()!.module }} · {{ selected()!.key }}</h3>
+        <button class="btn btn-ghost btn-sm" (click)="toggleHistory()">
+          <app-icon name="clock" />
+          {{ showHistory() ? (vi() ? 'Ẩn lịch sử' : 'Hide history') : (vi() ? 'Lịch sử sửa' : 'Edit history') }}
+        </button>
+      </div>
+
+      @if (showHistory()) {
+        <div class="mt-2">
+          @if (!history().length) {
+            <p class="adm-muted">{{ vi() ? 'Mục này chưa từng được sửa qua trang quản trị.' : 'This item has never been edited here.' }}</p>
+          } @else {
+            <div class="adm-tablewrap">
+              <table class="adm-table">
+                <thead>
+                  <tr>
+                    <th>{{ vi() ? 'Lúc' : 'When' }}</th>
+                    <th>{{ vi() ? 'Người sửa' : 'By' }}</th>
+                    <th>{{ vi() ? 'Bản trước đó' : 'Previous value' }}</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (h of history(); track h.changedAt) {
+                    <tr>
+                      <td style="white-space:nowrap">{{ when(h.changedAt) }}</td>
+                      <td>{{ h.changedBy || '—' }}</td>
+                      <td class="clip adm-mono">{{ preview(h.value) }}</td>
+                      <td>
+                        <button class="btn btn-ghost btn-sm" (click)="useVersion(h)">
+                          {{ vi() ? 'Dùng lại' : 'Restore' }}
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <p class="adm-muted mt-2">
+              {{ vi()
+                ? '"Dùng lại" chỉ nạp bản cũ vào ô soạn thảo — phải bấm Lưu mới áp dụng, và lần lưu đó cũng được ghi vào lịch sử.'
+                : '"Restore" only loads the old value into the editor — press Save to apply; that save is itself recorded in the history.' }}
+            </p>
+          }
+        </div>
+      }
+
+      @if (bilingual()) {
+        <label class="adm-muted" style="display:block; margin-top:14px; font-size:.82rem">Tiếng Việt</label>
+        <textarea class="adm-textarea" [ngModel]="draftVi()" (ngModelChange)="draftVi.set($event)" rows="5"></textarea>
+        <label class="adm-muted" style="display:block; margin-top:12px; font-size:.82rem">English</label>
+        <textarea class="adm-textarea" [ngModel]="draftEn()" (ngModelChange)="draftEn.set($event)" rows="5"></textarea>
+      } @else {
+        <label class="adm-muted" style="display:block; margin-top:14px; font-size:.82rem">
+          JSON —
+          {{ vi() ? 'giữ đúng cấu trúc, sai định dạng sẽ không lưu được' : 'keep the structure valid' }}
+        </label>
+        <textarea class="adm-textarea code" [ngModel]="draftJson()" (ngModelChange)="draftJson.set($event)" rows="18"></textarea>
+      }
+
+      <div style="margin-top:14px; display:flex; gap:12px; align-items:center; flex-wrap:wrap">
+        <button class="btn btn-primary" (click)="save()" [disabled]="saving()">
+          <app-icon name="check" /> {{ vi() ? 'Lưu' : 'Save' }}
+        </button>
+        <span class="adm-muted">{{ status() }}</span>
+      </div>
+    }
+  </div>
+</div>

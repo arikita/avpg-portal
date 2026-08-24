@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+
 import { ApiService } from '../../../core/services/api';
 import { LanguageService } from '../../../core/services/language.service';
-import { UserService } from '../../../core/services/user.service';
 import { IconComponent } from '../../../shared/components/icon/icon';
+import { AdminStore, when } from '../admin.store';
 
 /** Mot dong trong bang loi (da gop theo fingerprint). */
 export interface ErrorRow {
@@ -37,17 +39,16 @@ export interface ErrorSample {
 
 @Component({
   selector: 'app-admin-errors',
-  imports: [FormsModule, IconComponent, RouterLink],
+  imports: [FormsModule, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './errors.html',
 })
 export class AdminErrors {
   private readonly api = inject(ApiService);
-  private readonly user = inject(UserService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly store = inject(AdminStore);
   readonly lang = inject(LanguageService).lang;
-
-  readonly canEdit = computed(() => this.user.me()?.canEdit === true);
-  readonly ready = computed(() => this.user.me() !== null);
+  readonly vi = computed(() => this.lang() === 'vi');
 
   readonly rows = signal<ErrorRow[]>([]);
   readonly newBySeverity = signal<Record<string, number>>({});
@@ -65,8 +66,25 @@ export class AdminErrors {
     Object.values(this.newBySeverity()).reduce((a, b) => a + b, 0),
   );
 
+  /** Thong bao loi tu server tro toi /admin/errors?id=123 (xem telemetry.py) —
+   *  mo dung loi do ngay, dung bat nguoi ta tu do trong bang. */
+  private readonly deepLink = toSignal(this.route.queryParamMap);
+
   constructor() {
     void this.load();
+    effect(() => {
+      const id = Number(this.deepLink()?.get('id') ?? 0);
+      if (id && untracked(() => this.selected()?.id) !== id) void this.openById(id);
+    });
+  }
+
+  when = when;
+
+  /** newBySeverity() la Record<string, number>: TypeScript coi moi khoa la co
+   *  san, con server chi tra ve muc do NAO DANG CO loi. Doc qua ham nay de o
+   *  khong co loi hien 0 chu khong hien trong. */
+  sev(k: string): number {
+    return this.newBySeverity()[k] ?? 0;
   }
 
   async load(): Promise<void> {
@@ -84,7 +102,7 @@ export class AdminErrors {
     this.loading.set(false);
     if (!data) {
       this.status.set(
-        this.lang() === 'vi'
+        this.vi()
           ? 'Không tải được danh sách lỗi (bạn có quyền xem không?).'
           : 'Could not load errors (do you have permission?).',
       );
@@ -94,16 +112,19 @@ export class AdminErrors {
     this.newBySeverity.set(data.newBySeverity ?? {});
   }
 
+  private async openById(id: number): Promise<void> {
+    const data = await this.api.json<{ error: ErrorRow; samples: ErrorSample[] }>(
+      `/api/telemetry/errors/${id}`,
+    );
+    if (!data) return;
+    this.selected.set(data.error);
+    this.samples.set(data.samples ?? []);
+  }
+
   async open(row: ErrorRow): Promise<void> {
     this.selected.set(row);
     this.samples.set([]);
-    const data = await this.api.json<{ error: ErrorRow; samples: ErrorSample[] }>(
-      `/api/telemetry/errors/${row.id}`,
-    );
-    if (data) {
-      this.selected.set(data.error);
-      this.samples.set(data.samples ?? []);
-    }
+    await this.openById(row.id);
   }
 
   close(): void {
@@ -126,27 +147,9 @@ export class AdminErrors {
     this.selected.set({ ...row, status: st });
     this.rows.update((rs) => rs.map((r) => (r.id === row.id ? { ...r, status: st } : r)));
     void this.load();
-  }
-
-  /**
-   * Gio +07 tuong minh. Zabbix, Graylog va trang nay phai cung mot moc thi moi
-   * doi chieu duoc — da tung vap chuyen Forti ghi tz="+0700" con eventtime la UTC.
-   */
-  when(iso: string): string {
-    if (!iso) return '';
-    try {
-      return new Date(iso).toLocaleString('vi-VN', {
-        timeZone: 'Asia/Ho_Chi_Minh',
-        hour12: false,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch {
-      return iso;
-    }
+    // Huy hieu do tren thanh tab lay so tu /overview — doi trang thai xong phai
+    // doc lai, khong thi con so cu treo do den luc tai lai trang.
+    void this.store.load(true);
   }
 
   crumbsOf(s: ErrorSample): { t: number; type: string; text: string }[] {
