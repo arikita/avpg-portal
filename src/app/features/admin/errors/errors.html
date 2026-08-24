@@ -86,15 +86,16 @@
   } @else {
     <div class="adm-tablewrap">
       <table class="adm-table">
+        <!-- 6 cot, khong phai 8. Tach rieng Loai/Thong diep va So lan/Nguoi dinh
+             lam bang rong 976px trong khi cot noi dung chi co 878px => tran ra
+             va day CA TRANG sang cuon ngang (do duoc 24/08/2026). -->
         <thead>
           <tr>
             <th>{{ vi() ? 'Mức' : 'Sev' }}</th>
-            <th>{{ vi() ? 'Loại' : 'Kind' }}</th>
-            <th>{{ vi() ? 'Thông điệp' : 'Message' }}</th>
-            <th style="text-align:right">{{ vi() ? 'Số lần' : 'Count' }}</th>
-            <th style="text-align:right">{{ vi() ? 'Người dính' : 'Users' }}</th>
-            <th>{{ vi() ? 'Lần cuối' : 'Last seen' }}</th>
+            <th>{{ vi() ? 'Lỗi' : 'Error' }}</th>
             <th>{{ vi() ? 'Đường dẫn' : 'Route' }}</th>
+            <th style="text-align:right">{{ vi() ? 'Ảnh hưởng' : 'Impact' }}</th>
+            <th>{{ vi() ? 'Lần cuối' : 'Last seen' }}</th>
             <th>{{ vi() ? 'Trạng thái' : 'Status' }}</th>
           </tr>
         </thead>
@@ -102,12 +103,16 @@
           @for (r of rows(); track r.id) {
             <tr class="click" [class.on]="selected()?.id === r.id" (click)="open(r)">
               <td><span class="adm-sev" [class]="'adm-sev ' + r.severity">{{ r.severity }}</span></td>
-              <td class="strong" style="white-space:nowrap">{{ r.kind }}</td>
-              <td class="clip">{{ r.message }}</td>
-              <td class="num">{{ r.count }}</td>
-              <td class="num">{{ r.usersHit }}</td>
-              <td style="white-space:nowrap">{{ when(r.lastSeen) }}</td>
+              <td class="ttl">
+                <div class="strong">{{ r.kind }}</div>
+                <div class="adm-muted clip">{{ r.message }}</div>
+              </td>
               <td class="adm-mono">{{ r.route }}</td>
+              <td class="num" style="white-space:nowrap">
+                {{ r.count }} {{ vi() ? 'lần' : 'x' }}
+                <div class="adm-muted">{{ r.usersHit }} {{ vi() ? 'người' : 'users' }}</div>
+              </td>
+              <td style="white-space:nowrap">{{ when(r.lastSeen) }}</td>
               <td><span class="adm-pill" [class.ok]="r.status === 'resolved'">{{ r.status }}</span></td>
             </tr>
           }

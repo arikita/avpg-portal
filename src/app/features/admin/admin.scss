@@ -39,6 +39,19 @@
   align-items: start;
 }
 
+/* BAT BUOC — day la GOC cua loi "khung khong hien thi het".
+ *
+ * Mac dinh mot o trong grid co `min-width: auto`, nghia la NO KHONG CO ANH CO
+ * NHO HON NOI DUNG cua no. Mot cai bang rong 976px trong cot `1fr` se banh cot
+ * do ra 976px du chi con 878px cho, va phan thua day CA TRANG sang cuon ngang —
+ * trong khi `.adm-tablewrap{overflow-x:auto}` khong he duoc dung toi vi no chua
+ * bao gio bi ep nho lai.
+ *
+ * `min-width: 0` cho phep o co lai; luc do bang moi that su cuon BEN TRONG
+ * khung cua no. Do bang so 24/08/2026: bo dong nay thi tab Loi tran 100px o
+ * 1440px va 256px o 1024px. */
+.adm-shell > * { min-width: 0; }
+
 .adm-rail {
   position: sticky;
   top: calc(var(--nav-h) + 16px);

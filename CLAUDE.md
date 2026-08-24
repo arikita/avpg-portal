@@ -83,6 +83,15 @@ Một component `features/admin/admin.ts` + 7 component tab con; đường dẫn
   **Dead/rage click là `info`, không phải `error`** — một bảng lỗi toàn báo động giả thì không ai đọc,
   và đó là kiểu hỏng tệ nhất vì không ai nhận ra. Bảng phân loại nằm ở `_severity()` trong
   `telemetry.py`, là **nguồn duy nhất**; có test trong `test_security.py::TestSeverity`.
+- **Bộ soát trang admin** (viết 24/08/2026, dùng lại thay vì viết lại):
+  `python3 tools/audit_admin_api.py` chạy **trên .136** — kiểm hàng rào quyền (admin 200 / người lạ 403),
+  hình dạng dữ liệu, thời gian, tham số. `node tools/audit_admin_ui.mjs <dist> tools/fixtures/admin_api.json`
+  chạy **trên clasvr** (cần `CHROME_BIN`) — 7 tab × 4 bề rộng × sáng/tối + 13 thao tác thật; dùng API giả
+  nên không cần Kerberos, không đụng dữ liệu thật. Trỏ vào `/var/www/avp-portal` kéo về thì mới thật sự
+  chứng minh được điều gì.
+- **`min-width: 0` trên `.adm-shell > *` là BẮT BUỘC.** Ô grid mặc định `min-width: auto` = không co nhỏ
+  hơn nội dung, nên một bảng rộng banh cột `1fr` ra và **đẩy cả trang cuộn ngang**, trong khi
+  `.adm-tablewrap{overflow-x:auto}` không hề được dùng tới. Bỏ dòng đó thì tab Lỗi tràn 100px ở 1440px.
 - **Bẫy deploy**: `.136` KHÔNG có Chrome/playwright nên `tools/deploy.sh` bước 1b (boot check) phải chạy
   `SKIP_BOOT_CHECK=1`. Bù lại: kéo `/var/www/avp-portal` về clasvr rồi chạy `tools/boot_check.mjs` trên
   chính bản đang phục vụ. Đừng bỏ qua bước bù — deploy mù chính là nguyên nhân sự cố 13/08 và 22/08.

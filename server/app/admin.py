@@ -250,6 +250,15 @@ GA4_PROPERTY_ID = os.environ.get("GA4_PROPERTY_ID", "550323823").strip()
 GA4_SA_JSON = os.environ.get("GA4_SA_JSON", "").strip()
 _ga4_token: dict[str, Any] = {"value": "", "exp": 0.0}
 
+# Nho ket qua GA4 trong 2 phut.
+#
+# Mot lan tra loi day du la 5 luot goi NOI TIEP sang Google => do duoc 3,0 giay
+# (24/08/2026). Nguoi quan tri bam qua lai 7/30/90 ngay la moi lan cho lai tung
+# ay. So lieu GA4 von tre vai phut nen nho 2 phut khong lam sai gi ca.
+# Moi worker gunicorn giu bo nho rieng — chap nhan duoc, chi la 2 ban sao.
+GA4_CACHE_SEC = 120
+_ga4_cache: dict[int, tuple[float, dict]] = {}
+
 SETUP_STEPS = [
     "Google Cloud Console → tao project (hoac dung project san co) → APIs & "
     "Services → bat 'Google Analytics Data API'.",
@@ -333,6 +342,10 @@ def ga4(days: int = 28, username: str = Depends(_require_admin)) -> dict:
                 "measurementId": "G-0D97GKKZ6W", "setup": SETUP_STEPS}
 
     days = min(365, max(1, days))
+    hit = _ga4_cache.get(days)
+    if hit and time.time() - hit[0] < GA4_CACHE_SEC:
+        return dict(hit[1], cached=True)
+
     rng = [{"startDate": f"{days - 1}daysAgo", "endDate": "today"}]
     try:
         totals = _ga4_run({
@@ -374,7 +387,7 @@ def ga4(days: int = 28, username: str = Depends(_require_admin)) -> dict:
 
     t = (_ga4_rows(totals) or [["0"] * 5])[0]
     live_rows = _ga4_rows(live)
-    return {
+    out = {
         "configured": True, "ok": True, "days": days, "property": GA4_PROPERTY_ID,
         "measurementId": "G-0D97GKKZ6W",
         "totals": {"users": int(float(t[0] or 0)), "sessions": int(float(t[1] or 0)),
@@ -389,6 +402,10 @@ def ga4(days: int = 28, username: str = Depends(_require_admin)) -> dict:
         "devices": [{"device": r[0], "users": int(float(r[1] or 0))} for r in _ga4_rows(tech)],
         "realtimeUsers": int(float(live_rows[0][0])) if live_rows else 0,
     }
+    # CHI nho lan thanh cong. Nho ca loi thi mot su co mang chop se khoa tab
+    # trong 2 phut du Google da tra loi lai binh thuong.
+    _ga4_cache[days] = (time.time(), out)
+    return out
 
 
 # ===========================================================================
