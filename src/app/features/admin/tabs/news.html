@@ -73,22 +73,22 @@
   } @else {
     <div class="adm-tablewrap">
       <table class="adm-table">
+        <!-- 5 cot, khong phai 8. Ban dau tach rieng Xem/Binh luan/Cam xuc va
+             Tac gia/Thoi diem => bang tran khoi khung 885px, tieu de gay 5 dong
+             va cot thao tac BI CAT MAT NUT XOA (user bao 24/08/2026). -->
         <thead>
           <tr>
             <th>{{ vi() ? 'Tiêu đề' : 'Title' }}</th>
             <th>{{ vi() ? 'Trạng thái' : 'Status' }}</th>
-            <th>{{ vi() ? 'Tác giả' : 'Author' }}</th>
-            <th>{{ vi() ? 'Thời điểm' : 'When' }}</th>
-            <th style="text-align:right">{{ vi() ? 'Xem' : 'Views' }}</th>
-            <th style="text-align:right">{{ vi() ? 'Bình luận' : 'Comments' }}</th>
-            <th style="text-align:right">{{ vi() ? 'Cảm xúc' : 'Reactions' }}</th>
-            <th></th>
+            <th>{{ vi() ? 'Tác giả · thời điểm' : 'Author · when' }}</th>
+            <th style="text-align:right">{{ vi() ? 'Tương tác' : 'Engagement' }}</th>
+            <th class="act"></th>
           </tr>
         </thead>
         <tbody>
           @for (r of rows(); track r.id) {
             <tr>
-              <td>
+              <td class="ttl">
                 <a [routerLink]="['/news', r.id]" class="strong">{{ r.title }}</a>
                 <div class="adm-muted" style="margin-top:3px">
                   {{ r.category }}
@@ -105,25 +105,34 @@
                   <div class="adm-sev warning" style="margin-top:4px">{{ vi() ? 'quá hạn phát hành' : 'past due' }}</div>
                 }
               </td>
-              <td>{{ r.authorName || r.author }}</td>
-              <td style="white-space:nowrap">
-                {{ when(r.publishedAt || r.scheduledAt || r.createdAt) }}
+              <td>
+                <div class="strong">{{ r.authorName || r.author }}</div>
+                <div class="adm-muted" style="white-space:nowrap">
+                  {{ when(r.publishedAt || r.scheduledAt || r.createdAt) }}
+                </div>
               </td>
-              <td class="num">{{ r.views }}</td>
-              <td class="num">{{ r.comments }}</td>
-              <td class="num">{{ r.reactions }}</td>
-              <td style="white-space:nowrap">
-                <a class="btn btn-ghost btn-sm" [routerLink]="['/news', r.id, 'edit']"><app-icon name="edit" /></a>
-                @if (canModerate()) {
-                  <button class="btn btn-ghost btn-sm" [disabled]="busy() === r.id" (click)="pin(r)"
-                          [attr.title]="r.pinned ? (vi() ? 'Bỏ ghim' : 'Unpin') : (vi() ? 'Ghim' : 'Pin')">
-                    <app-icon name="star" />
-                  </button>
-                  <button class="btn btn-ghost btn-sm" [disabled]="busy() === r.id" (click)="remove(r)"
-                          [attr.title]="vi() ? 'Xoá' : 'Delete'">
-                    <app-icon name="trash" />
-                  </button>
-                }
+              <td>
+                <div class="adm-stats">
+                  <span [attr.title]="vi() ? 'Lượt xem' : 'Views'"><app-icon name="eye" />{{ r.views }}</span>
+                  <span [attr.title]="vi() ? 'Bình luận' : 'Comments'"><app-icon name="message" />{{ r.comments }}</span>
+                  <span [attr.title]="vi() ? 'Cảm xúc' : 'Reactions'"><app-icon name="heart" />{{ r.reactions }}</span>
+                </div>
+              </td>
+              <td class="act">
+                <div class="adm-act">
+                  <a class="btn btn-ghost btn-sm" [routerLink]="['/news', r.id, 'edit']"
+                     [attr.title]="vi() ? 'Sửa bài' : 'Edit'"><app-icon name="edit" /></a>
+                  @if (canModerate()) {
+                    <button class="btn btn-ghost btn-sm" [disabled]="busy() === r.id" (click)="pin(r)"
+                            [attr.title]="r.pinned ? (vi() ? 'Bỏ ghim' : 'Unpin') : (vi() ? 'Ghim' : 'Pin')">
+                      <app-icon name="star" />
+                    </button>
+                    <button class="btn btn-ghost btn-sm" [disabled]="busy() === r.id" (click)="remove(r)"
+                            [attr.title]="vi() ? 'Xoá' : 'Delete'">
+                      <app-icon name="trash" />
+                    </button>
+                  }
+                </div>
               </td>
             </tr>
           }

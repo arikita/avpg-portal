@@ -267,6 +267,44 @@
 .adm-table .strong { color: var(--text); font-weight: 700; }
 .adm-table .clip { max-width: 460px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* Cot tieu de can san cho, khong de bi bop den muc gay 5 dong. */
+.adm-table .ttl { min-width: 230px; }
+
+/* Cot thao tac PHAI LUON THAY DUOC. Neu bang van tran o man hinh hep thi cot
+ * nay dan vao le phai chu khong bi cat mat — mat nut Xoa la loi user bao
+ * 24/08/2026, va do la cai nut khong duoc phep "bien mat am tham". */
+.adm-table th.act,
+.adm-table td.act {
+  position: sticky;
+  right: 0;
+  white-space: nowrap;
+  text-align: right;
+  background: var(--surface);
+  box-shadow: -9px 0 12px -9px rgba(20, 26, 46, 0.16);
+}
+.adm-table th.act { background: var(--surface-2); }
+.adm-table tbody tr:hover td.act { background: var(--surface-2); }
+:root[data-theme='dark'] .adm-table th.act,
+:root[data-theme='dark'] .adm-table td.act { box-shadow: -9px 0 12px -9px rgba(0, 0, 0, 0.55); }
+/* Ba nut can ~130px. Khong ghim min-width thi trinh duyet bop cot nay xuong
+ * 103px de nhuong cho cot tieu de, va nut thu ba (Xoa) tran ra ngoai khung. */
+.adm-table th.act,
+.adm-table td.act { min-width: 138px; padding-left: 8px; }
+.adm-table td.act .btn { padding: 6px 9px; }
+.adm-act { display: flex; gap: 6px; justify-content: flex-end; }
+
+/* Ba so lieu tuong tac gom vao MOT o: bieu tuong + so, khong xuong dong. */
+.adm-stats { display: flex; gap: 12px; justify-content: flex-end; white-space: nowrap; }
+.adm-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text);
+}
+.adm-stats svg { width: 14px; height: 14px; color: var(--text-3); }
+
 /* --------------------------------------------------------- trang thai -- */
 /* Mau trang thai LUON kem chu — hai trong bon mau khong dat 3:1 tren nen sang,
  * va nguoi mu mau do-luc khong phan biet duoc "error" voi "warning" neu chi co
