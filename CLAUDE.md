@@ -41,6 +41,12 @@ Kiến trúc: `Browser --Kerberos--> Apache (GSSAPI) ├─ / → SPA tĩnh └�
 - Nhánh Basic vẫn giữ cho curl/script **tự gửi** `Authorization: Basic`.
 - **BẪY: `mod_auth_form` cần `mod_request`** — thiếu thì `apache2ctl configtest` vẫn "Syntax OK" nhưng Apache CHẾT khi restart (19/08 site down ~2 phút). Bật đủ: `auth_form session session_cookie session_crypto request`.
 - `/api` dùng form **không** đặt `AuthFormLoginRequiredLocation` → trả 401 sạch cho `fetch()`, không chuyển hướng HTML. Nghiệm thu 19/08: `REMOTE_USER` = `haivl` (sAMAccountName), API 200.
+- **Sau khi đăng nhập về ĐÚNG trang đã bấm** (24/08/2026): ô ẩn `httpd_location` trước đây cắm cứng `/`
+  nên ai mở link từ thông báo đẩy, đăng nhập xong đều bị nem về trang chủ. Nay JS trong `login.html` đọc
+  `location.pathname` — thanh địa chỉ vẫn giữ URL gốc vì Apache trả trang login làm **thân của 401**
+  (`ErrorDocument`), không phải redirect. Đích được nhớ trong `sessionStorage` để sống qua màn hình
+  "sai mật khẩu". **Bắt buộc lọc `//host` và `/\host`** — giá trị này đi thẳng vào header `Location`,
+  không lọc là lỗ hổng chuyển hướng mở. Kiểm bằng `node tools/audit_login_redirect.mjs`.
 - Bản sao cấu hình: `server/apache/avp-portal.conf`; backup trên server `/etc/apache2/backups/avp-portal.conf.2026-08-19-preform`.
 
 ## Module đã có

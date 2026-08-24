@@ -93,7 +93,9 @@ button:active{transform:translateY(1px)}
              autocomplete="current-password" required>
     </div>
 
-    <input type="hidden" name="httpd_location" value="/">
+    <!-- Dich den sau khi dang nhap. Mac dinh "/" — Javascript ben duoi thay
+         bang trang nguoi dung THUC SU muon vao (xem ghi chu o cuoi file). -->
+    <input type="hidden" name="httpd_location" id="dich" value="/">
     <button type="submit">Đăng nhập</button>
 
     <p class="note">
@@ -101,10 +103,49 @@ button:active{transform:translateY(1px)}
     </p>
   </form>
 <script>
+(function () {
   if (location.search.indexOf('loi=1') > -1) {
     document.getElementById('err').classList.add('on');
     document.getElementById('pw').focus();
   }
+
+  // ---------------------------------------------------------------------
+  // Dua nguoi dung ve DUNG TRANG HO DINH VAO, khong phai lúc nào cũng trang chủ.
+  //
+  // Trang nay duoc Apache tra ra lam THAN cua 401 (ErrorDocument), khong phai
+  // redirect — nen thanh dia chi VAN GIU nguyen duong dan goc. Mo /news/43 thi
+  // location.pathname o day chinh la /news/43. Truoc 24/08/2026 o an
+  // httpd_location cam cung "/" nen ai mo link tu thong bao day, dang nhap xong
+  // deu bi nem ve trang chu roi phai tu tim lai bai do.
+  //
+  // BAO MAT — o nay di thang vao header Location cua Apache, nen phai loc:
+  //   "//evil.com" va "/\evil.com" la duong dan TUONG DOI GIAO THUC, trinh
+  //   duyet hieu la sang HOST KHAC => tro thanh lo hong chuyen huong mo. Chi
+  //   nhan duong dan bat dau bang MOT dau "/" va khong phai chinh trang login.
+  // ---------------------------------------------------------------------
+  var KEY = 'avp.login.dich';
+
+  function sach(p) {
+    if (typeof p !== 'string' || p.charAt(0) !== '/') return '';
+    if (p.charAt(1) === '/' || p.charAt(1) === '\\') return '';
+    if (p.indexOf('/dang-nhap') === 0) return '';
+    return p.slice(0, 300);
+  }
+
+  var dich = sach(location.pathname + location.search);
+
+  if (dich) {
+    // Nho lai: nhap sai mat khau thi Apache dua ve /dang-nhap/?loi=1, luc do
+    // duong dan goc da mat khoi thanh dia chi.
+    try { sessionStorage.setItem(KEY, dich); } catch (e) { /* che do rieng tu */ }
+  } else if (location.search.indexOf('loi=1') > -1) {
+    // CHI lay lai khi dang thu lai sau khi sai mat khau. Khong lam vay khi
+    // nguoi dung tu go /dang-nhap/ — luc do ho muon vao trang chu that.
+    try { dich = sach(sessionStorage.getItem(KEY) || ''); } catch (e) { dich = ''; }
+  }
+
+  if (dich) document.getElementById('dich').value = dich;
+})();
 </script>
 </body>
 </html>
