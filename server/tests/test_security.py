@@ -157,3 +157,42 @@ class Test204KhongCoThan:
         assert "JSONResponse(status_code=204" not in src, \
             "204 phai dung Response(status_code=204), khong phai JSONResponse"
         assert "Response(status_code=204)" in src
+
+# ------------------------------------------------------ phan loai muc do --
+class TestSeverity:
+    """Bang _severity la NGUON DUY NHAT quyet dinh cai gi bao dong.
+
+    Sai o day khong lam sap gi ca — no chi lam nguoi ta thoi doc bang loi, va
+    do la kieu hong te nhat vi khong ai nhan ra. Da xay ra 24/08/2026: dead
+    click va rage click bi xep "error" nen 17 dong bao dong gia chon mat mot
+    NetworkError that.
+    """
+
+    @pytest.mark.parametrize("kind", ["DeadClick", "RageClick", "deadclick"])
+    def test_tin_hieu_hanh_vi_la_info(self, kind):
+        assert telemetry._severity("client", kind, "bam khong co phan hoi: button", None) == "info"
+
+    @pytest.mark.parametrize("kind", ["SlowApi", "NetworkError", "WebSocketDrop"])
+    def test_cham_va_mang_chop_la_warning(self, kind):
+        assert telemetry._severity("client", kind, "", None) == "warning"
+
+    @pytest.mark.parametrize("kind", ["ChunkLoadError", "chunkload"])
+    def test_chunk_hong_van_la_critical(self, kind):
+        # Day la cai bay 13/08: trinh duyet chay chunk cu ma khong bao gi.
+        assert telemetry._severity("client", kind, "", None) == "critical"
+
+    def test_bootstrap_hong_la_critical(self):
+        assert telemetry._severity("client", "Bootstrap", "failed to bootstrap", None) == "critical"
+
+    def test_http_5xx_van_la_error(self):
+        assert telemetry._severity("server", "HTTP500", "", 500) == "error"
+
+    def test_http_4xx_la_warning(self):
+        assert telemetry._severity("server", "HTTP404", "", 404) == "warning"
+
+    def test_nguoi_dung_tu_bao_la_info(self):
+        assert telemetry._severity("user", "UserReport", "", None) == "info"
+
+    def test_exception_khong_ro_van_la_error(self):
+        """Mac dinh phai la error: ha het xuong warning thi bang loi thanh vo dung."""
+        assert telemetry._severity("client", "TypeError", "x is not a function", None) == "error"

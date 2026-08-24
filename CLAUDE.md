@@ -71,6 +71,14 @@ Một component `features/admin/admin.ts` + 7 component tab con; đường dẫn
   (`www-data`, 600), bật bằng `GA4_SA_JSON` trong `/etc/avp-portal-api.env`.
   **Đổi biến trong env file phải `systemctl restart`, KHÔNG `reload`** — reload chỉ thay worker, master
   gunicorn giữ môi trường cũ. Chưa có khoá thì endpoint trả hướng dẫn 4 bước chứ không 500.
+- **Bắt lỗi client — bài học 24/08/2026.** Dead click ban đầu chỉ coi *đổi route* hoặc *gọi API* là
+  có phản hồi ⇒ mọi nút phản hồi bằng cách **đổi DOM tại chỗ** (đổi sáng/tối, VI/EN, mở modal, bung
+  accordion) đều bị báo chết: 12/18 dòng lỗi là báo động giả, chôn mất `NetworkError` thật. Nay dùng
+  `MutationObserver` với cửa sổ **500ms** (không phải 1200ms — trang chủ có slideshow đổi ảnh mỗi 6s,
+  cửa sổ dài dễ trùng nhịp tự động và bỏ sót dead click thật). Rage click chỉ xét phần tử bấm được.
+  **Dead/rage click là `info`, không phải `error`** — một bảng lỗi toàn báo động giả thì không ai đọc,
+  và đó là kiểu hỏng tệ nhất vì không ai nhận ra. Bảng phân loại nằm ở `_severity()` trong
+  `telemetry.py`, là **nguồn duy nhất**; có test trong `test_security.py::TestSeverity`.
 - **Bẫy deploy**: `.136` KHÔNG có Chrome/playwright nên `tools/deploy.sh` bước 1b (boot check) phải chạy
   `SKIP_BOOT_CHECK=1`. Bù lại: kéo `/var/www/avp-portal` về clasvr rồi chạy `tools/boot_check.mjs` trên
   chính bản đang phục vụ. Đừng bỏ qua bước bù — deploy mù chính là nguyên nhân sự cố 13/08 và 22/08.

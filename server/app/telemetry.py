@@ -135,11 +135,20 @@ def _severity(source: str, kind: str, message: str, http_status: int | None) -> 
         return "critical"
     if source == "user":
         return "info"
+    # TIN HIEU HANH VI, KHONG PHAI LOI. De o "error" thi mot bang toan nut dang
+    # chay dung se day con so "loi chua xu ly" len va CHON MAT loi that — dung
+    # cai da xay ra 24/08/2026: 17 dong "error", trong do 12 dong la dead/rage
+    # click sinh ra tu mot heuristic sai, con NetworkError that thi lan giua.
+    if k in ("deadclick", "rageclick"):
+        return "info"
     if http_status and http_status >= 500:
         return "error"
     if http_status and 400 <= http_status < 500:
         return "warning"
-    if k in ("slow", "perf"):
+    # Cham / mang chop / WebSocket rot: dang de y nhung KHONG phai hong. Mot
+    # nguoi dong tab giua chung cung sinh "Failed to fetch" — bao do la error
+    # thi ngay nao cung co bao dong.
+    if k in ("slow", "perf", "slowapi", "networkerror", "websocketdrop"):
         return "warning"
     return "error"
 

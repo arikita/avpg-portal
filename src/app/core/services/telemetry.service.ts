@@ -28,8 +28,17 @@ const LS_TTL_MS = 24 * 3600 * 1000;
 /** Rage click: bam >= ngan nay lan vao cung mot phan tu trong cua so nay. */
 const RAGE_N = 5;
 const RAGE_MS = 2000;
-/** Dead click: bam roi trong ngan nay ma khong doi route, khong goi API, DOM khong doi. */
+/** Dead click: cho ngan nay roi moi ket luan (dieu huong / goi API co the cham). */
 const DEAD_MS = 1200;
+/**
+ * Giao dien phai PHAN UNG trong ngan nay thi moi tinh la "co phan hoi".
+ *
+ * Vi sao 500ms chu khong phai ca 1200ms: trang chu co slideshow tu doi anh moi
+ * 6 giay, chat va thong bao tu goi API moi 60 giay. Cua so cang dai thi cang de
+ * vo tinh trung mot nhip tu dong nhu vay va bo sot dead click that. 500ms du
+ * rong cho moi phan ung do NGUOI bam sinh ra, va chi trung slideshow ~8% so lan.
+ */
+const RESPOND_MS = 500;
 
 export interface Crumb {
   t: number;
@@ -287,6 +296,11 @@ export class TelemetryService {
       const label = describe(el);
       this.crumb('click', label);
 
+      // Rage click chi co nghia tren PHAN TU BAM DUOC. Ban goc bat ca div nen
+      // trang (div.hero-scrim, div.container.inner) — bam nhieu lan vao nen
+      // trang la chuyen binh thuong, khong phai dau hieu hong.
+      if (!isClickable(el)) return;
+
       const now = Date.now();
       if (label === this.clickKey) {
         this.clickTimes.push(now);
@@ -302,12 +316,53 @@ export class TelemetryService {
 
       // Dead click: chi xet phan tu TRONG NHU bam duoc, khong xet chu thuong.
       if (!isClickable(el)) return;
+      // Trinh duyet tu lo: mo tab moi, tai file, mailto:/tel:. Nhung cai do
+      // KHONG doi DOM va KHONG goi API cua portal — bao la dead click thi sai.
+      if (leavesPage(el)) return;
+
       const navBefore = this.lastNavAt;
       const apiBefore = this.lastApiAt;
+      const clickAt = Date.now();
+      let responded = false;
+      let obs: MutationObserver | null = null;
+      try {
+        // BAN GOC (sua 24/08/2026) chi coi "doi route" hoac "goi API" la co
+        // phan hoi => moi nut phan hoi bang cach DOI DOM TAI CHO deu bi bao
+        // chet: nut doi giao dien sang/toi, nut VI/EN, nut Bao loi, mo modal,
+        // bung accordion... 10 trong 18 dong loi luc do la loai nay, ma tat ca
+        // deu la giao dien dang chay dung.
+        obs = new MutationObserver(() => {
+          if (Date.now() - clickAt > RESPOND_MS) return;
+          responded = true;
+          try {
+            obs?.disconnect();
+          } catch {
+            /* bo qua */
+          }
+        });
+        obs.observe(document.documentElement, {
+          subtree: true,
+          childList: true,
+          attributes: true,
+          characterData: true,
+        });
+        setTimeout(() => {
+          try {
+            obs?.disconnect();
+          } catch {
+            /* bo qua */
+          }
+        }, RESPOND_MS);
+      } catch {
+        // Trinh duyet khong ho tro thi coi nhu CO phan hoi. Tha bo sot con hon
+        // bao sai: mot bang loi day bao dong gia thi khong ai doc nua.
+        responded = true;
+      }
+
       setTimeout(() => {
-        if (this.lastNavAt === navBefore && this.lastApiAt === apiBefore) {
-          this.report({ kind: 'DeadClick', message: `bam khong co phan hoi: ${label}` });
-        }
+        if (responded) return;
+        if (this.lastNavAt !== navBefore || this.lastApiAt !== apiBefore) return;
+        this.report({ kind: 'DeadClick', message: `bam khong co phan hoi: ${label}` });
       }, DEAD_MS);
     } catch {
       /* bo qua */
@@ -341,5 +396,17 @@ function describe(el: HTMLElement): string {
 }
 
 function isClickable(el: HTMLElement): boolean {
-  return !!el.closest('button,a,[role="button"],input[type="submit"],input[type="button"]');
+  const t = el.closest<HTMLElement>('button,a,[role="button"],input[type="submit"],input[type="button"]');
+  // Nut da bi vo hieu hoa thi khong phan hoi la DUNG, khong phai loi.
+  return !!t && !t.hasAttribute('disabled') && t.getAttribute('aria-disabled') !== 'true';
+}
+
+/** Bam xong thi trinh duyet tu lo (tab moi / tai file / mailto:) — trang hien
+ *  tai khong doi gi ca, va do la hanh vi dung. */
+function leavesPage(el: HTMLElement): boolean {
+  const a = el.closest('a');
+  if (!a) return false;
+  if (a.hasAttribute('download') || a.target === '_blank') return true;
+  const href = a.getAttribute('href') || '';
+  return /^(mailto:|tel:|sms:|https?:\/\/)/i.test(href) && !href.startsWith(location.origin);
 }
