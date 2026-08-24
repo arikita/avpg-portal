@@ -28,6 +28,16 @@ ExecStart=/opt/avp-portal-api/venv/bin/gunicorn app.main:app \
 # TU NAY DEPLOY CODE BANG `systemctl reload`, DUNG `restart`.
 # reload = SIGHUP = thay worker lan luot, khong dong socket => 0 loi 503.
 # restart = giet ca master => van co cua so ~1 giay nhu truoc.
+#
+# NHUNG (bo sung 24/08/2026): "khong lam rot request nao" CHI DUNG VOI REQUEST
+# HTTP NGAN. WebSocket la ket noi SONG LAU do worker giu; worker cu tat la MOI
+# ket noi chat cua MOI nguoi dang online deu rot. Da do bang telemetry: reload
+# luc 11:11:39 -> 2 nguoi bao rot luc 11:11:45; reload luc 11:22:48 -> 2 nguoi
+# nua luc 11:22:54. Client tu noi lai trong ~1 giay nen nguoi dung hau nhu khong
+# thay, nhung DUNG ngac nhien khi thay WebSocketDrop sau moi lan deploy API.
+#
+# Doi bien trong EnvironmentFile thi PHAI `restart`: SIGHUP chi thay worker,
+# master gunicorn van giu moi truong cu nen bien moi khong vao.
 ExecReload=/bin/kill -s HUP $MAINPID
 KillMode=mixed
 KillSignal=SIGTERM

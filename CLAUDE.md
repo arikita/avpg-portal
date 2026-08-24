@@ -71,6 +71,10 @@ Một component `features/admin/admin.ts` + 7 component tab con; đường dẫn
   (`www-data`, 600), bật bằng `GA4_SA_JSON` trong `/etc/avp-portal-api.env`.
   **Đổi biến trong env file phải `systemctl restart`, KHÔNG `reload`** — reload chỉ thay worker, master
   gunicorn giữ môi trường cũ. Chưa có khoá thì endpoint trả hướng dẫn 4 bước chứ không 500.
+- **`systemctl reload` KHÔNG giữ được WebSocket.** SIGHUP thay worker gunicorn lần lượt nên request HTTP
+  ngắn không rớt, nhưng **mọi kết nối chat của mọi người đang online đều rớt**. Đo được: reload 11:11:39
+  → 2 người báo rớt 11:11:45; reload 11:22:48 → 2 người nữa. Client tự nối lại ~1 giây nên người dùng
+  hầu như không thấy — đừng ngạc nhiên khi thấy `WebSocketDrop` sau mỗi lần deploy API.
 - **Bắt lỗi client — bài học 24/08/2026.** Dead click ban đầu chỉ coi *đổi route* hoặc *gọi API* là
   có phản hồi ⇒ mọi nút phản hồi bằng cách **đổi DOM tại chỗ** (đổi sáng/tối, VI/EN, mở modal, bung
   accordion) đều bị báo chết: 12/18 dòng lỗi là báo động giả, chôn mất `NetworkError` thật. Nay dùng

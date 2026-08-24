@@ -15,6 +15,30 @@ import { TelemetryService } from './telemetry.service';
 
 /** Cham hon nguong nay thi ghi nhan mot su kien warning. */
 const SLOW_MS = 3000;
+
+/**
+ * Loi mang nay co dang bao khong?
+ *
+ * BAI HOC 24/08/2026 — `lienttk` sinh hai NetworkError luc 10:20:22, nhung log
+ * Apache cho thay CA HAI request do tra 200 trong 40ms luc 10:20:23. Doc them
+ * log: may nguoi do thoi goi API tu 08:59 den 10:20 (81 phut im lang) roi ba
+ * request bat lai cung mot luc. Do la may NGU DAY (hoac Edge dong bang tab nen
+ * — tinh nang Sleeping tabs bat san). Fetch dang do bi trinh duyet huy, ung
+ * dung tu thu lai va thanh cong ngay sau do.
+ *
+ * Bao nhung lan nhu vay la lam ban bang loi bang thu khong ai sua duoc. Chi bao
+ * khi nguoi dung DANG NHIN va may DANG CO MANG — luc do "Failed to fetch" moi
+ * thuc su nghia la API hong.
+ */
+function worthReporting(): boolean {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return false;
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return false;
+  } catch {
+    /* khong doc duoc thi cu bao — tha bao thua con hon mu tit */
+  }
+  return true;
+}
 /** Qua han thi huy — khong de nguoi dung ngoi nhin vong quay vo tan. */
 const TIMEOUT_MS = 15000;
 
@@ -64,7 +88,9 @@ export class ApiService {
       const aborted = (err as Error)?.name === 'AbortError';
       // Noi goi tu huy (vi du doi trang) thi khong phai loi — dung bao.
       const mine = aborted && ms >= TIMEOUT_MS - 50;
-      if (!aborted || mine) {
+      // Qua han 15s thi VAN bao du tab dang an: do la API that su khong tra loi,
+      // khac han chuyen trinh duyet huy request khi may ngu.
+      if ((!aborted && worthReporting()) || mine) {
         this.telemetry.report({
           kind: mine ? 'ApiTimeout' : 'NetworkError',
           message: `${method} ${safePath(path)}: ${mine ? `qua han ${TIMEOUT_MS}ms` : (err as Error)?.message || 'loi mang'}`,

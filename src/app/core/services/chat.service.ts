@@ -9,6 +9,15 @@ const TYPING_MS = 4_000;     // bao "dang go" tu tat sau ngan nay
 const MAX_BACKOFF = 20_000;
 /** Rot ket noi tu ngan nay lan tro len trong mot phien thi bao mot su kien. */
 const WS_DROP_ALERT = 3;
+/**
+ * Cua so dem rot ket noi.
+ *
+ * Ban dau `drops` cong don CA PHIEN va khong bao gio reset — nguoi dung de
+ * portal mo ca ngay, nen 3 lan rot RAI RAC trong 8 tieng (hai lan deploy API +
+ * mot lan doi Wi-Fi) cung du bao dong. Do khong phai "rot lien tuc" nhu ghi chu
+ * ben duoi noi. Nay dem theo cua so truot: 3 lan trong 10 phut moi la that.
+ */
+const WS_DROP_WINDOW_MS = 10 * 60_000;
 /** Toi da may bong bong thu nho — nhieu hon nua thi che mat man hinh. */
 const MAX_MINIMISED = 4;
 
@@ -28,7 +37,8 @@ export class ChatService {
   private readonly telemetry = inject(TelemetryService);
   /** Dem so lan rot ket noi trong mot phien. Chat la thu nguoi dung tin la
    *  "da gui" — rot song ma khong ai biet la tin nhan im lang khong toi noi. */
-  private drops = 0;
+  /** Moc thoi gian cac lan rot gan day (chi giu trong WS_DROP_WINDOW_MS). */
+  private drops: number[] = [];
   private dropReported = false;
   private readonly userSvc = inject(UserService);
 
@@ -113,14 +123,18 @@ export class ChatService {
       if (this.pingTimer) clearInterval(this.pingTimer);
       this.pingTimer = null;
       this.ws = null;
-      // Rot mot hai lan la chuyen binh thuong (doi Wi-Fi, may ngu). Rot lien
-      // tuc moi la dau hieu hong that — bao MOT lan moi phien, khong bao moi lan.
-      this.drops++;
-      if (this.drops >= WS_DROP_ALERT && !this.dropReported) {
+      // Rot mot hai lan la chuyen binh thuong (doi Wi-Fi, may ngu, deploy API —
+      // `systemctl reload` thay worker gunicorn nen MOI WebSocket deu rot).
+      // Rot lien tuc moi la dau hieu hong that: dem theo cua so truot, va bao
+      // MOT lan moi phien chu khong bao moi lan.
+      const now = Date.now();
+      this.drops = this.drops.filter((t) => now - t < WS_DROP_WINDOW_MS);
+      this.drops.push(now);
+      if (this.drops.length >= WS_DROP_ALERT && !this.dropReported) {
         this.dropReported = true;
         this.telemetry.report({
           kind: 'WebSocketDrop',
-          message: `chat rot ket noi ${this.drops} lan trong mot phien`,
+          message: `chat rot ket noi ${this.drops.length} lan trong ${WS_DROP_WINDOW_MS / 60000} phut`,
         });
       }
       this.retry();
