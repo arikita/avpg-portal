@@ -65,9 +65,12 @@ Một component `features/admin/admin.ts` + 7 component tab con; đường dẫn
   **SVG chỉ vẽ nét, chữ/chấm là HTML**: SVG có viewBox sẽ co giãn chữ theo bề rộng thẻ, cột hẹp thì
   nhãn còn ~6px không đọc nổi. Style dùng chung ở `admin.scss` với `ViewEncapsulation.None` —
   **mọi selector trong file đó phải bắt đầu bằng `.adm`**.
-- **GA4 trong tab Lượt truy cập**: endpoint `/api/admin/ga4` tự ký JWT RS256 bằng `cryptography` +
-  `requests` (đã có sẵn trong venv, không cài thêm gói Google). Chưa có khoá thì trả hướng dẫn 4 bước
-  chứ không 500. Bật bằng `GA4_SA_JSON=/etc/avp-portal-ga4.json` trong `/etc/avp-portal-api.env`.
+- **GA4 trong tab Lượt truy cập — ĐÃ CHẠY 24/08/2026.** `/api/admin/ga4` tự ký JWT RS256 bằng
+  `cryptography` + `requests` (có sẵn trong venv, không cài thêm gói Google). Service account
+  `avp-portal-ga4@avp-portal-analytics.iam.gserviceaccount.com`, khoá `/etc/avp-portal-ga4.json`
+  (`www-data`, 600), bật bằng `GA4_SA_JSON` trong `/etc/avp-portal-api.env`.
+  **Đổi biến trong env file phải `systemctl restart`, KHÔNG `reload`** — reload chỉ thay worker, master
+  gunicorn giữ môi trường cũ. Chưa có khoá thì endpoint trả hướng dẫn 4 bước chứ không 500.
 - **Bẫy deploy**: `.136` KHÔNG có Chrome/playwright nên `tools/deploy.sh` bước 1b (boot check) phải chạy
   `SKIP_BOOT_CHECK=1`. Bù lại: kéo `/var/www/avp-portal` về clasvr rồi chạy `tools/boot_check.mjs` trên
   chính bản đang phục vụ. Đừng bỏ qua bước bù — deploy mù chính là nguyên nhân sự cố 13/08 và 22/08.
@@ -76,6 +79,6 @@ Một component `features/admin/admin.ts` + 7 component tab con; đường dẫn
 
 - Login read-only `avp_bday_ro` trên Workit DB `.108:14333` (cần cho sinh nhật + khối nhân sự trên hồ sơ) — **chờ user tạo**.
 - `SECRETS.md` plaintext trên .136 (có Cloudflare API token khuyến nghị revoke) → nên đẩy sang password manager.
-- **Khoá đọc GA4 Data API** — cần user tạo service account Google Cloud + cấp Viewer property 550323823,
-  rồi đặt `GA4_SA_JSON`. Chưa có thì tab Lượt truy cập vẫn chạy bằng số liệu tự host.
+- **Private key GA4 nằm trong git**: `docs/avp-portal-analytics-d21837f17568.json` ở repo
+  `avpg-network-monitoring` (commit `cb3fab8`, đã push `origin/main`) → nên xoá khỏi history + tạo khoá mới.
 - Sửa poll của bài đã đăng · @mention · avatar từ NAS/AD `thumbnailPhoto` · thống kê hồ sơ chưa cộng bài tường.
