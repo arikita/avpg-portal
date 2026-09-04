@@ -50,7 +50,7 @@ die() { printf '\nDUNG LAI: %s\n' "$*" >&2; exit 1; }
 say "1/6  goi Python"
 echo "    venv: $VENV"
 [ -x "$VENV/bin/pip" ] || die "khong thay $VENV/bin/pip — dat bien VENV tro dung cho"
-"$VENV/bin/pip" install --quiet reportlab pypdf
+"$VENV/bin/pip" install --quiet --no-cache-dir reportlab pypdf
 "$VENV/bin/python" - <<'EOF'
 import reportlab, pypdf
 print(f"    reportlab {reportlab.Version} · pypdf {pypdf.__version__}")
@@ -65,7 +65,11 @@ fi
 echo "    $FONT"
 
 say "3/6  bang cam_ket (+ doi chu so huu — xem dau file)"
-sudo -u postgres psql -q -d "$DB" -f "$SRC/server/schema_camket.sql"
+# ĐỌC FILE BẰNG STDIN, KHONG DUNG -f: `sudo -u postgres psql -f <file>` bat
+# chinh user postgres mo file, ma file nay nam trong /home/internalsvr —
+# home dir khong cho user khac vao, nen ra "Permission denied" (dinh that
+# 04/09/2026). Chuyen huong stdin thi ROOT doc file roi dua noi dung sang.
+sudo -u postgres psql -q -d "$DB" < "$SRC/server/schema_camket.sql"
 sudo -u postgres psql -q -d "$DB" -c "ALTER TABLE cam_ket OWNER TO $DB"
 CHU=$(sudo -u postgres psql -tAd "$DB" -c \
   "SELECT tableowner FROM pg_tables WHERE tablename='cam_ket'")
