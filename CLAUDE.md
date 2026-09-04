@@ -275,7 +275,12 @@ Bài trắc nghiệm cho nhân viên làm **sau buổi training của phòng IT*
 
 ## Ký cam kết bảo mật `/onboarding/cam-ket` (04/09/2026)
 
-**CHƯA DEPLOY** — code xong, chờ user duyệt nội dung bản cam kết rồi mới đưa lên.
+**ĐÃ CHẠY TRÊN PRODUCTION 04/09/2026** — build `nogit-20260904-111537`.
+
+**THỨ TỰ BẮT BUỘC: `setup_cam_ket.sh` XONG rồi mới `deploy.sh`.** Ngược lại thì deploy luôn thất
+bại: `smoke_test.py` khoá `/api/admin/cam-ket = 403`, mà endpoint đó chỉ tồn tại sau khi setup chép
+`server/app/*.py` sang `/opt`. Ra 404 là deploy tự khôi phục và dừng — cảm biến làm đúng việc, không
+phải lỗi.
 
 Nhân viên mới ký cam kết bảo mật ngay trên portal, nhúng khung ký của **Documenso self-hosted**
 (`sign.anvietphatgroup.com`, trên `hcm-procsvr` **10.10.100.130**, sau Caddy, build `f1dd1471`).
@@ -319,6 +324,15 @@ Chuỗi hội nhập: đọc `/regulations` → làm `/onboarding/kiem-tra` → 
   env, copy PDF, rồi **`systemctl restart` — KHÔNG `reload`** (reload chỉ thay worker, master
   gunicorn giữ môi trường cũ nên biến mới không được đọc). Kết thúc bằng một lượt gọi thật
   `/api/cam-ket`. `tools/deploy.sh` bước **6c** cũng tự copy PDF + toạ độ ô ký sau mỗi lần deploy.
+- **BA BẪY khi triển khai, đã dính đủ cả ba ngày 04/09** (script nay chặn hết, ghi ra để hiểu vì sao
+  nó viết như vậy): ① venv nằm ở `/opt/avp-portal-api/**venv**`, không phải `/opt/avp-portal-api` —
+  nay script tự đọc `ExecStart=` trong unit systemd chứ không đoán · ② `deploy.sh` **không** chép
+  `server/app/*.py`; `README.md:70` ghi đó là lệnh `cp` chạy tay, bỏ sót thì `camket.py` không tới
+  `/opt` và `/api/cam-ket` trả 404 trong khi mọi thứ nhìn như đã deploy xong · ③ `sudo -u postgres
+  psql -f <file>` bắt user `postgres` mở file nằm trong `/home/internalsvr` ⇒ **Permission denied**;
+  phải chuyển hướng stdin để root đọc file.
+- **`sudo` xoá sạch biến môi trường**: `SKIP_BOOT_CHECK=1 sudo bash tools/deploy.sh` đặt biến cho
+  `sudo` chứ không cho `bash` bên trong ⇒ deploy dừng ở bước 1b. Phải `sudo -E`.
 - **Kiểm**: `python3 -m pytest server/tests/test_cam_ket.py` (22 phép đo) và
   `CHROME_BIN=... node tools/audit_cam_ket.mjs <dist>` (32 phép đo, API giả nên không tạo tài liệu
   thật trên Documenso). `smoke_test.py` đã thêm `/api/admin/cam-ket = 403`.
