@@ -1,0 +1,141 @@
+/* Bai kiem tra hoi nhap IT — mot cau moi man hinh.
+ *
+ * Component nay dung encapsulation mac dinh (khong phai admin.scss voi
+ * ViewEncapsulation.None), nen ten lop khong can tien to `.adm`/`.lte`.
+ */
+
+/* Doc mot cau hoi dai qua man hinh 1920 la met mat. Khoa be rong lai. */
+.qz-narrow {
+  max-width: 760px;
+}
+
+/* Bon con so "luat choi" truoc khi bat dau: bao nhieu cau, bao nhieu thi dat,
+   mat bao lau, co lam lai duoc khong. Nguoi ta lo lang truoc bai kiem tra
+   chu yeu vi khong biet ba dieu do. */
+.qz-facts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    text-align: center;
+  }
+  .k { color: var(--text-3); font-size: .78rem; font-weight: 600; }
+  .v { color: var(--text); font-size: 1.05rem; font-weight: 800; }
+  .n { color: var(--text-3); font-size: .72rem; }
+}
+
+.qz-bar { position: sticky; top: calc(var(--nav-h) + 8px); z-index: 3; }
+
+.qz-q {
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  line-height: 1.45;
+}
+
+.qz-opts { display: grid; gap: 10px; }
+
+/* Ca o la mot nut bam, khong phai mot cai radio 16px canh mot dong chu:
+   tren dien thoai ban vao chu cung phai an. */
+.qz-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: border-color .18s, background .18s, transform .12s;
+
+  &:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); }
+  &:active { transform: translateY(1px); }
+  &:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  .dot {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    margin-top: 1px;
+    border-radius: 50%;
+    border: 2px solid var(--border-2);
+    color: transparent;
+    transition: background .18s, border-color .18s, color .18s;
+  }
+  .dot svg { width: 13px; height: 13px; }
+
+  &.on {
+    border-color: var(--brand);
+    background: color-mix(in srgb, var(--brand) 10%, var(--surface));
+    .dot { background: var(--brand); border-color: var(--brand); color: #fff; }
+  }
+}
+
+.qz-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+
+  .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+}
+
+/* Cac cau chua tra loi, bam vao nhay thang toi — khong bat ai do tu do lai. */
+.qz-jump {
+  display: inline-block;
+  margin: 4px 6px 0 0;
+  padding: 3px 10px;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent);
+  border-radius: var(--pill);
+  cursor: pointer;
+}
+
+.qz-score {
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+
+  .icon-badge { background: var(--grad-warm); }
+  &.ok .icon-badge { background: var(--grad-brand-2); }
+
+  .num {
+    font-size: clamp(2.6rem, 8vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--danger);
+  }
+  &.ok .num { color: var(--success); }
+  .num span { font-size: .42em; color: var(--text-3); font-weight: 700; }
+
+  p { max-width: 52ch; }
+}
+
+.qz-wrong {
+  display: grid;
+  gap: 12px;
+
+  .card { padding: 16px 18px; display: grid; gap: 10px; justify-items: start; }
+  .q { font-weight: 600; color: var(--text); line-height: 1.5; }
+}
+
+@media (max-width: 640px) {
+  .qz-facts { grid-template-columns: repeat(2, 1fr); }
+  .qz-nav { flex-direction: column-reverse; .btn { width: 100%; } }
+}

@@ -23,7 +23,8 @@ from fastapi.responses import Response
 from fastapi import APIRouter, Body, Depends, File, Header, HTTPException, UploadFile
 
 from .htmlclean import clean_html
-from .ad import get_user, is_editor, is_news_author
+from .ad import can_manage_post, get_user, is_editor, is_news_author
+from .ad import dept_of
 
 try:  # pywebpush chi can cho Web Push; thieu cung khong sap app.
     from pywebpush import WebPushException, webpush
@@ -63,7 +64,8 @@ FACEPILE = 5  # so nguoi react hien tren the
 
 POST_COLS = ("id, title_vi, title_en, summary_vi, summary_en, body_vi, body_en, "
              "cover, category, status, pinned, author, author_name, "
-             "created_at, updated_at, published_at, comments_enabled, scheduled_at")
+             "created_at, updated_at, published_at, comments_enabled, scheduled_at, "
+             "author_dept")
 
 # Ten dung o cho "nguoi gui" cua thong bao he thong (bai hen gio da len song).
 SYSTEM_NAME = "Cổng thông tin"
@@ -98,8 +100,11 @@ def _name_of(username: str) -> str:
 
 
 def _post_row(r) -> dict:
+    # 19 cot, khop POST_COLS — them `author_dept` o cuoi (25/08/2026). Neu doi
+    # POST_COLS ma quen doi day thi cac truong lech nhau MOT bac va khong co
+    # ngoai le nao bao: tieu de nhay sang tom tat, ngay thang thanh chuoi rong.
     (pid, tvi, ten, svi, sen, bvi, ben, cover, cat, status, pinned,
-     author, aname, created, updated, published, comments_on, sched) = r
+     author, aname, created, updated, published, comments_on, sched, dept) = r
     return {
         "id": pid,
         "title": {"vi": tvi, "en": ten or tvi},
@@ -107,6 +112,7 @@ def _post_row(r) -> dict:
         "body": {"vi": bvi, "en": ben or bvi},
         "cover": cover, "category": cat, "status": status, "pinned": pinned,
         "author": author, "authorName": aname or author,
+        "authorDept": dept or "",
         "createdAt": created.isoformat(), "updatedAt": updated.isoformat(),
         "publishedAt": published.isoformat() if published else None,
         "scheduledAt": sched.isoformat() if sched else None,
@@ -391,8 +397,12 @@ def _detail(pid: int, username: str, record_view: bool = False) -> dict:
         post["poll"] = polls[0] if polls else None      # giu cho ban cu
         post["views"] = _views_map(conn, [pid]).get(pid, 0)
     post["emojis"] = EMOJIS
-    post["canEdit"] = (post["author"] == username) or is_editor(username)
-    post["canModerate"] = is_editor(username)
+    # Mot co duy nhat: ai co toan quyen tren bai NAY. Truoc day `canModerate`
+    # chi hoi "co phai IS khong" nen HR/MKT khong thao tac duoc bai cua chinh
+    # phong minh.
+    quyen = can_manage_post(username, post["author"], post.get("authorDept") or "")
+    post["canEdit"] = quyen
+    post["canModerate"] = quyen
     return post
 
 
@@ -442,6 +452,8 @@ def feed(username: str = Depends(current_user), category: str | None = None,
         p["views"] = vw.get(p["id"], 0)
         p["hasPoll"] = p["id"] in has_poll
         p.pop("body", None)
+    for p in posts:
+        p["canManage"] = can_manage_post(username, p["author"], p.get("authorDept") or "")
     return {"posts": posts, "emojis": EMOJIS, "canPost": author}
 
 
@@ -471,13 +483,14 @@ def create_post(payload: dict = Body(...), username: str = Depends(require_autho
         row = conn.execute(
             "INSERT INTO news_post (title_vi, title_en, summary_vi, summary_en, body_vi, "
             "body_en, cover, category, status, comments_enabled, author, author_name, "
-            "scheduled_at, published_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, "
+            "author_dept, scheduled_at, published_at) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, "
             "CASE WHEN %s = 'published' THEN now() ELSE NULL END) RETURNING id",
             (title_vi, _bi(payload, "title", "en"), _bi(payload, "summary", "vi"),
              _bi(payload, "summary", "en"), _bi(payload, "body", "vi"),
              _bi(payload, "body", "en"), (payload.get("cover") or "").strip(),
              (payload.get("category") or "announcement").strip(), status,
-             comments_on, username, aname, sched, status)).fetchone()
+             comments_on, username, aname, dept_of(username), sched, status)).fetchone()
         _create_polls(conn, row[0], payload)
         conn.commit()
     from .telemetry import bump_metric
@@ -492,8 +505,9 @@ def update_post(pid: int, payload: dict = Body(...),
         r = conn.execute(f"SELECT {POST_COLS} FROM news_post WHERE id = %s", (pid,)).fetchone()
         if not r:
             raise HTTPException(status_code=404, detail="khong co bai viet")
-        if r[11] != username and not is_editor(username):
-            raise HTTPException(status_code=403, detail="chi tac gia hoac IS duoc sua")
+        if not can_manage_post(username, r[11], r[18]):
+            raise HTTPException(status_code=403,
+                                detail="chi tac gia, phong ban cua bai, hoac IT duoc sua")
         conn.execute("INSERT INTO news_post_history (post_id, snapshot, changed_by) "
                      "VALUES (%s,%s,%s)",
                      (pid, json.dumps(_post_row(r), ensure_ascii=False), username))
@@ -524,12 +538,14 @@ def update_post(pid: int, payload: dict = Body(...),
 
 @router.post("/{pid}/pin")
 def pin_post(pid: int, username: str = Depends(current_user)) -> dict:
-    if not is_editor(username):
-        raise HTTPException(status_code=403, detail="chi IS duoc ghim bai")
     with _conn() as conn:
-        r = conn.execute("SELECT pinned FROM news_post WHERE id = %s", (pid,)).fetchone()
+        r = conn.execute("SELECT pinned, author, author_dept FROM news_post "
+                         "WHERE id = %s", (pid,)).fetchone()
         if not r:
             raise HTTPException(status_code=404, detail="khong co bai viet")
+        if not can_manage_post(username, r[1], r[2]):
+            raise HTTPException(status_code=403,
+                                detail="chi tac gia, phong ban cua bai, hoac IT duoc ghim")
         conn.execute("UPDATE news_post SET pinned = %s WHERE id = %s", (not r[0], pid))
         conn.commit()
     return {"pinned": not r[0]}
@@ -538,11 +554,13 @@ def pin_post(pid: int, username: str = Depends(current_user)) -> dict:
 @router.delete("/{pid}")
 def delete_post(pid: int, username: str = Depends(current_user)) -> dict:
     with _conn() as conn:
-        r = conn.execute("SELECT author FROM news_post WHERE id = %s", (pid,)).fetchone()
+        r = conn.execute("SELECT author, author_dept FROM news_post WHERE id = %s",
+                         (pid,)).fetchone()
         if not r:
             raise HTTPException(status_code=404, detail="khong co bai viet")
-        if r[0] != username and not is_editor(username):
-            raise HTTPException(status_code=403, detail="chi tac gia hoac IS duoc xoa")
+        if not can_manage_post(username, r[0], r[1]):
+            raise HTTPException(status_code=403,
+                                detail="chi tac gia, phong ban cua bai, hoac IT duoc xoa")
         conn.execute("DELETE FROM news_post WHERE id = %s", (pid,))
         conn.commit()
     return {"ok": True}

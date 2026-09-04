@@ -1,0 +1,257 @@
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <p class="text-secondary mb-0 me-auto">
+    {{ vi()
+      ? 'Kết quả bài kiểm tra sau buổi hội nhập IT (/onboarding/kiem-tra), 180 ngày gần đây.'
+      : 'Results of the IT induction check (/onboarding/kiem-tra), last 180 days.' }}
+  </p>
+  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="load()">
+    <app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}
+  </button>
+</div>
+
+@if (loading() && !data()) {
+  <p class="text-secondary">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p>
+} @else if (!data()) {
+  <div class="alert alert-warning d-flex gap-2" role="alert">
+    <app-icon name="alert-triangle" />
+    <div>{{ vi() ? 'Không đọc được kết quả bài kiểm tra.' : 'Could not load quiz results.' }}</div>
+  </div>
+} @else {
+  <div class="row">
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-primary">
+        <div class="inner">
+          <h3>{{ peopleCount() }}</h3>
+          <p>{{ vi() ? 'Người đã làm bài' : 'People who took it' }}</p>
+        </div>
+        <app-icon name="users" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? '180 ngày gần đây' : 'last 180 days' }}</span>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-success">
+        <div class="inner">
+          <h3>{{ data()!.passedPeople }}</h3>
+          <p>{{ vi() ? 'Đã đạt' : 'Passed' }}</p>
+        </div>
+        <app-icon name="shield-check" class="small-box-icon" />
+        <span class="small-box-footer adm-static">
+          {{ vi() ? 'từ ' : 'from ' }}{{ data()!.pass }}/{{ data()!.total }} {{ vi() ? 'câu đúng' : 'correct' }}
+        </span>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-info">
+        <div class="inner">
+          <h3>{{ passRate() }}<small>%</small></h3>
+          <p>{{ vi() ? 'Tỉ lệ đạt' : 'Pass rate' }}</p>
+        </div>
+        <app-icon name="zap" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? 'trên số người đã làm' : 'of those who took it' }}</span>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-secondary">
+        <div class="inner">
+          <h3>{{ data()!.attempts }}</h3>
+          <p>{{ vi() ? 'Tổng số lượt làm' : 'Total attempts' }}</p>
+        </div>
+        <app-icon name="redo" class="small-box-icon" />
+        <span class="small-box-footer adm-static">
+          {{ vi() ? 'kể cả làm lại · mỗi lượt ' : 'incl. retakes · ' }}{{ data()!.total }}/{{ data()!.pool }} {{ vi() ? 'câu' : 'per attempt' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================ CAU HAY SAI NHAT === -->
+  <div class="card mb-3">
+    <div class="card-header">
+      <h3 class="card-title">{{ vi() ? 'Chủ đề hay sai nhất' : 'Most-missed topics' }}</h3>
+    </div>
+    <div class="card-body">
+      <p class="text-secondary">
+        {{ vi()
+          ? 'Một chủ đề mà phần lớn người làm sai thường không phải lỗi của nhân viên — đó là chỗ buổi training nói chưa rõ, hoặc một quy định chưa bao giờ được giải thích. Đây là danh sách việc cần sửa cho buổi sau. Tỉ lệ tính trên SỐ LẦN CÂU ĐÓ ĐƯỢC HỎI, vì mỗi lượt chỉ bốc 10 trong 50 câu.'
+          : 'A topic most people get wrong is usually not the employees’ fault — it marks a gap in the session, or a rule that was never really explained. Treat this as the to-fix list for next time. Rates are per TIMES ASKED, since each attempt draws only 10 of 50 questions.' }}
+      </p>
+
+      @if (!data()!.weakest.length) {
+        <p class="text-secondary mb-0">{{ vi() ? 'Chưa có ai làm bài, nên chưa có gì để đọc.' : 'Nobody has taken it yet, so there is nothing to read.' }}</p>
+      } @else {
+        <adm-bars [data]="topicBars()" />
+
+        <div class="table-responsive mt-3">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>{{ vi() ? 'Chủ đề' : 'Topic' }}</th>
+                <th class="text-end">{{ vi() ? 'Lượt được hỏi' : 'Times asked' }}</th>
+                <th class="text-end">{{ vi() ? 'Lượt sai' : 'Wrong' }}</th>
+                <th class="text-end">{{ vi() ? 'Tỉ lệ sai' : 'Wrong rate' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (t of topicRows(); track t.id) {
+                <tr>
+                  <td>{{ t.label }}</td>
+                  <td class="text-end text-secondary">{{ t.asked }}</td>
+                  <td class="text-end">{{ t.wrong }}</td>
+                  <td class="text-end">
+                    <span class="badge" [class.text-bg-danger]="t.pct >= 40" [class.text-bg-secondary]="t.pct < 40">
+                      {{ t.pct }}%
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ============================================ CHI TIET TUNG CAU === -->
+  @if (data()!.weakest.length) {
+    <div class="card mb-3">
+      <div class="card-header">
+        <h3 class="card-title">{{ vi() ? 'Chi tiết từng câu' : 'Question by question' }}</h3>
+      </div>
+      <div class="card-body">
+        <p class="text-secondary">
+          {{ vi()
+            ? 'Xếp theo tỉ lệ sai. Câu được hỏi dưới 5 lần có gắn nhãn “ít mẫu” — tỉ lệ của chúng chưa nói lên điều gì, đừng sửa nội dung training vì một con số 100% của 2 lượt.'
+            : 'Sorted by wrong rate. Questions asked fewer than 5 times are tagged “low sample” — their rates mean little; do not rewrite training material because of a 100% built on 2 attempts.' }}
+        </p>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>{{ vi() ? 'Câu hỏi' : 'Question' }}</th>
+                <th>{{ vi() ? 'Nội dung liên quan' : 'Related material' }}</th>
+                <th class="text-end">{{ vi() ? 'Được hỏi' : 'Asked' }}</th>
+                <th class="text-end">{{ vi() ? 'Sai' : 'Wrong' }}</th>
+                <th class="text-end">{{ vi() ? 'Tỉ lệ' : 'Rate' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (w of weakRows(); track w.id) {
+                <tr>
+                  <td>{{ w.text }}</td>
+                  <td class="text-secondary">{{ w.ref ? (w.ref | tr: lang()) : '—' }}</td>
+                  <td class="text-end text-secondary">{{ w.asked }}</td>
+                  <td class="text-end">{{ w.wrong }}</td>
+                  <td class="text-end">
+                    @if (w.itMau) {
+                      <span class="badge text-bg-secondary">{{ vi() ? 'ít mẫu' : 'low sample' }}</span>
+                    } @else {
+                      <span class="badge" [class.text-bg-danger]="w.pct >= 40" [class.text-bg-secondary]="w.pct < 40">
+                        {{ w.pct }}%
+                      </span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ======================================================== AI DA LAM === -->
+  <div class="card mb-3">
+    <div class="card-header">
+      <h3 class="card-title">{{ vi() ? 'Ai đã làm bài' : 'Who has taken it' }}</h3>
+    </div>
+    <div class="card-body">
+      @if (!data()!.people.length) {
+        <p class="text-secondary mb-0">{{ vi() ? 'Chưa có ai làm bài.' : 'Nobody has taken it yet.' }}</p>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>{{ vi() ? 'Họ tên' : 'Name' }}</th>
+                <th>{{ vi() ? 'Phòng ban' : 'Department' }}</th>
+                <th class="text-end">{{ vi() ? 'Điểm cao nhất' : 'Best' }}</th>
+                <th class="text-end">{{ vi() ? 'Số lần' : 'Attempts' }}</th>
+                <th class="text-end">{{ vi() ? 'Thời gian làm' : 'Time taken' }}</th>
+                <th>{{ vi() ? 'Lần cuối' : 'Last' }}</th>
+                <th>{{ vi() ? 'Kết quả' : 'Result' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of data()!.people; track p.username) {
+                <tr>
+                  <td>
+                    {{ p.fullName }}
+                    <span class="text-secondary d-block adm-static">{{ p.username }}</span>
+                  </td>
+                  <td class="text-secondary">{{ p.department || '—' }}</td>
+                  <td class="text-end">{{ p.best }}/{{ data()!.total }}</td>
+                  <td class="text-end">{{ p.attempts }}</td>
+                  <td class="text-end text-secondary">{{ phut(p.seconds) }}</td>
+                  <td class="text-secondary">{{ ago(p.lastAt, vi()) }}</td>
+                  <td>
+                    @if (p.passed) {
+                      <span class="badge text-bg-success">{{ vi() ? 'Đạt' : 'Passed' }}</span>
+                    } @else {
+                      <span class="badge text-bg-warning">{{ vi() ? 'Chưa đạt' : 'Not yet' }}</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ============================================ NGUOI MOI CHUA LAM === -->
+  <div class="card mb-3">
+    <div class="card-header">
+      <h3 class="card-title">{{ vi() ? 'Nhân viên mới chưa làm bài' : 'New joiners who have not taken it' }}</h3>
+    </div>
+    <div class="card-body">
+      <p class="text-secondary">
+        {{ vi()
+          ? 'Tài khoản AD tạo trong 90 ngày gần đây mà chưa có bài làm nào. Cố ý KHÔNG liệt kê cả công ty — bài này dành cho người vừa được training.'
+          : 'AD accounts created in the last 90 days with no submission. Deliberately not the whole company — this check is for people who were just inducted.' }}
+      </p>
+
+      @if (!data()!.newcomers.length) {
+        <p class="text-secondary mb-0">
+          {{ vi() ? 'Không có ai — mọi nhân viên mới đều đã làm bài.' : 'Nobody — every recent joiner has taken it.' }}
+        </p>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>{{ vi() ? 'Họ tên' : 'Name' }}</th>
+                <th>{{ vi() ? 'Chức danh' : 'Title' }}</th>
+                <th>{{ vi() ? 'Phòng ban' : 'Department' }}</th>
+                <th>{{ vi() ? 'Vào từ' : 'Joined' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (n of data()!.newcomers; track n.username) {
+                <tr>
+                  <td>
+                    {{ n.name }}
+                    <span class="text-secondary d-block adm-static">{{ n.username }}</span>
+                  </td>
+                  <td class="text-secondary">{{ n.title || '—' }}</td>
+                  <td class="text-secondary">{{ n.department || '—' }}</td>
+                  <td class="text-secondary">{{ n.joinedAt }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+}

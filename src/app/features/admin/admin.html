@@ -1,54 +1,207 @@
-<section class="section-sm adm">
-  <div class="container">
-    @if (!ready()) {
-      <p class="lead">{{ lang() === 'vi' ? 'Đang kiểm tra quyền…' : 'Checking permissions…' }}</p>
-    } @else if (!canEdit()) {
-      <span class="eyebrow"><app-icon name="lock" /> {{ lang() === 'vi' ? 'Quản trị' : 'Admin' }}</span>
-      <div class="adm-note mt-3">
+<!-- Lop `.lte` dong vai <body> cua AdminLTE: toan bo CSS cua template da duoc
+     nhot xuong duoi lop nay (xem tools/build_adminlte_css.mjs). Cac lop
+     layout-fixed / sidebar-expand-lg / bg-body-tertiary la dung bo lop ma
+     demo AdminLTE dat tren <body>. `app-loaded` von do adminlte.js them de
+     bat transition — khong nap JS cua template nen phai tu dat, thieu no thi
+     header/sidebar bi giu o trang thai an. -->
+<div
+  class="lte layout-fixed sidebar-expand-lg bg-body-tertiary app-loaded"
+  [class.sidebar-collapse]="railCollapsed()"
+  [class.sidebar-open]="railOpen()"
+  [attr.data-bs-theme]="theme()"
+  data-lte-color-mode="off"
+>
+  @if (!cssReady()) {
+    <p class="adm-boot">{{ lang() === 'vi' ? 'Đang tải giao diện…' : 'Loading…' }}</p>
+  } @else if (!ready()) {
+    <p class="adm-boot">{{ lang() === 'vi' ? 'Đang kiểm tra quyền…' : 'Checking permissions…' }}</p>
+  } @else if (!canEdit()) {
+    <!-- Khong co quyen: bao ngay o day, khong dung khung sidebar — dung khung
+         quan tri cho nguoi khong vao duoc la trong nhu loi tai. -->
+    <div class="adm-denied">
+      <div class="alert alert-warning d-flex gap-3" role="alert">
         <app-icon name="shield" />
         <div>
-          {{ lang() === 'vi'
-            ? 'Bạn không có quyền vào trang quản trị. Quyền này cấp theo danh sách CONTENT_ADMIN_USERS trên máy chủ, không theo nhóm AD — nhờ IT thêm tài khoản của bạn vào đó.'
-            : 'You do not have access to the admin panel. Access is granted through the CONTENT_ADMIN_USERS allowlist on the server, not by AD group — ask IT to add your account.' }}
+          <h2 class="fs-5 alert-heading">{{ lang() === 'vi' ? 'Không có quyền quản trị' : 'No admin access' }}</h2>
+          <p class="mb-2">
+            {{ lang() === 'vi'
+              ? 'Quyền này cấp theo danh sách CONTENT_ADMIN_USERS trên máy chủ, không theo nhóm AD — nhờ IT thêm tài khoản của bạn vào đó.'
+              : 'Access is granted through the CONTENT_ADMIN_USERS allowlist on the server, not by AD group — ask IT to add your account.' }}
+          </p>
+          <a class="btn btn-sm btn-outline-secondary" routerLink="/">
+            {{ lang() === 'vi' ? 'Về trang chủ' : 'Back to portal' }}
+          </a>
         </div>
       </div>
-    } @else {
-      <div class="adm-shell">
-        <!-- ------------------------------------------------ thanh tab -- -->
-        <nav class="adm-rail" [attr.aria-label]="lang() === 'vi' ? 'Khu vực quản trị' : 'Admin sections'">
-          @for (t of tabs; track t.id) {
-            @if (t.group === 'run') {
-              <div class="adm-rail-sep">{{ lang() === 'vi' ? 'Vận hành' : 'Operate' }}</div>
-            } @else if (t.group === 'watch') {
-              <div class="adm-rail-sep">{{ lang() === 'vi' ? 'Theo dõi' : 'Monitor' }}</div>
-            }
-            <a
-              [routerLink]="['/admin', t.id]"
-              [class.on]="tab() === t.id"
-              [attr.aria-current]="tab() === t.id ? 'page' : null"
-            >
-              <app-icon [name]="t.icon" />
-              {{ label(t) }}
-              @if (badge(t.id)) {
-                <span class="adm-count" [class.hot]="t.id === 'errors'">{{ badge(t.id) }}</span>
-              }
-            </a>
-          }
-        </nav>
+    </div>
+  } @else {
+    <div class="app-wrapper">
+      <!-- ------------------------------------------------------- navbar -- -->
+      <nav class="app-header navbar navbar-expand bg-body">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <button
+                type="button"
+                class="nav-link btn btn-link"
+                (click)="toggleRail()"
+                [attr.aria-label]="lang() === 'vi' ? 'Thu/mở thanh bên' : 'Toggle sidebar'"
+              >
+                <app-icon name="menu" />
+              </button>
+            </li>
+            <li class="nav-item d-none d-md-block">
+              <a class="nav-link" routerLink="/">
+                <app-icon name="arrow-right" class="adm-flip me-1" />
+                {{ lang() === 'vi' ? 'Về portal' : 'Back to portal' }}
+              </a>
+            </li>
+          </ul>
 
-        <!-- --------------------------------------------------- noi dung -- -->
-        <div>
-          @switch (tab()) {
-            @case ('content') { <app-admin-content /> }
-            @case ('analytics') { <app-admin-analytics /> }
-            @case ('errors') { <app-admin-errors /> }
-            @case ('news') { <app-admin-news /> }
-            @case ('users') { <app-admin-users /> }
-            @case ('system') { <app-admin-system /> }
-            @default { <app-admin-overview /> }
-          }
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item">
+              <div class="btn-group btn-group-sm" role="group" aria-label="Language">
+                <button
+                  type="button"
+                  class="btn"
+                  [class.btn-primary]="lang() === 'vi'"
+                  [class.btn-outline-secondary]="lang() !== 'vi'"
+                  (click)="setLang('vi')"
+                >VI</button>
+                <button
+                  type="button"
+                  class="btn"
+                  [class.btn-primary]="lang() === 'en'"
+                  [class.btn-outline-secondary]="lang() !== 'en'"
+                  (click)="setLang('en')"
+                >EN</button>
+              </div>
+            </li>
+            <li class="nav-item">
+              <button
+                type="button"
+                class="nav-link btn btn-link"
+                (click)="toggleTheme()"
+                [attr.aria-label]="theme() === 'dark' ? 'Chuyển sáng' : 'Chuyển tối'"
+              >
+                <app-icon [name]="theme() === 'dark' ? 'sun' : 'moon'" />
+              </button>
+            </li>
+            <li class="nav-item d-flex align-items-center gap-2">
+              <span class="d-none d-sm-inline">{{ fullName() }}</span>
+              <!-- Cung component voi thanh menu portal: mot cho sua, hai noi
+                   giong nhau. Xem ghi chu ve "dang xuat" trong account-menu.ts. -->
+              <app-account-menu />
+            </li>
+          </ul>
         </div>
-      </div>
-    }
-  </div>
-</section>
+      </nav>
+
+      <!-- ------------------------------------------------------ sidebar -- -->
+      <!-- data-bs-theme="dark" tren chinh the <aside>: day la cach AdminLTE
+           lam sidebar toi ke ca khi trang dang o che do sang. -->
+      <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+        <div class="sidebar-brand">
+          <a routerLink="/admin" class="brand-link">
+            <img src="img/brand/logo-mark.png" alt="" class="brand-image opacity-75 shadow" />
+            <span class="brand-text fw-light">{{ site.short }} {{ lang() === 'vi' ? 'Quản trị' : 'Admin' }}</span>
+          </a>
+        </div>
+
+        <div class="sidebar-wrapper">
+          <nav class="mt-2" [attr.aria-label]="lang() === 'vi' ? 'Khu vực quản trị' : 'Admin sections'">
+            <ul class="nav sidebar-menu flex-column">
+              @for (t of tabs; track t.id) {
+                @if (t.group) {
+                  <li class="nav-header">{{ groupLabel(t.group) }}</li>
+                }
+                <li class="nav-item">
+                  <a
+                    [routerLink]="['/admin', t.id]"
+                    class="nav-link"
+                    [class.active]="tab() === t.id"
+                    [attr.aria-current]="tab() === t.id ? 'page' : null"
+                    (click)="closeRail()"
+                  >
+                    <app-icon [name]="t.icon" class="nav-icon" />
+                    <p>
+                      {{ label(t) }}
+                      @if (badge(t.id)) {
+                        <span
+                          class="nav-badge badge"
+                          [class.text-bg-danger]="t.id === 'errors'"
+                          [class.text-bg-secondary]="t.id !== 'errors'"
+                        >{{ badge(t.id) }}</span>
+                      }
+                    </p>
+                  </a>
+                </li>
+              }
+              <li class="nav-header">{{ lang() === 'vi' ? 'Cổng thông tin' : 'Portal' }}</li>
+              <li class="nav-item">
+                <a routerLink="/" class="nav-link">
+                  <app-icon name="home" class="nav-icon" />
+                  <p>{{ lang() === 'vi' ? 'Về portal' : 'Back to portal' }}</p>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- ------------------------------------------------------ noi dung -- -->
+      <main class="app-main">
+        <div class="app-content-header">
+          <div class="container-fluid">
+            <div class="row align-items-center">
+              <div class="col-sm-6">
+                <h1 class="mb-0 fs-3">{{ tabTitle() }}</h1>
+              </div>
+              <div class="col-sm-6">
+                <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb float-sm-end mb-0">
+                    <li class="breadcrumb-item">
+                      <a routerLink="/">{{ lang() === 'vi' ? 'Trang chủ' : 'Home' }}</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                      <a routerLink="/admin">{{ lang() === 'vi' ? 'Quản trị' : 'Admin' }}</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ tabTitle() }}</li>
+                  </ol>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-content">
+          <div class="container-fluid">
+            @switch (tab()) {
+              @case ('content') { <app-admin-content /> }
+              @case ('analytics') { <app-admin-analytics /> }
+              @case ('errors') { <app-admin-errors /> }
+              @case ('news') { <app-admin-news /> }
+              @case ('users') { <app-admin-users /> }
+              @case ('quiz') { <app-admin-quiz /> }
+              @case ('system') { <app-admin-system /> }
+              @default { <app-admin-overview /> }
+            }
+          </div>
+        </div>
+      </main>
+
+      <!-- So hieu AdminLTE de BEN TRAI chu khong `float-end` nhu ban mau: goc
+           phai duoi la cho cua nut chat va nut bao loi cua portal (chung noi
+           tren moi trang), de ben do la bi che. -->
+      <footer class="app-footer">
+        <strong>© {{ site.year }} {{ site.company }}</strong> —
+        {{ lang() === 'vi' ? 'Trang nội bộ.' : 'Internal use only.' }}
+        <span class="d-none d-sm-inline text-secondary"> · AdminLTE {{ adminLteVersion }}</span>
+      </footer>
+
+      <!-- Man dien thoai: bam ra ngoai de dong thanh ben (AdminLTE ve san lop
+           phu nay, chi hien khi co .sidebar-open). -->
+      <div class="sidebar-overlay" (click)="closeRail()"></div>
+    </div>
+  }
+</div>

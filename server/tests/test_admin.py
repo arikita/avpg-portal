@@ -39,10 +39,11 @@ def routes():
 
 
 class TestMoiRouteDeuCoHangRao:
-    def test_co_du_sau_endpoint(self):
+    def test_co_du_bay_endpoint(self):
         paths = {r.path for r in routes()}
         assert paths == {"/api/admin/" + p for p in
-                         ("overview", "analytics", "ga4", "news", "users", "system")}
+                         ("overview", "analytics", "ga4", "news", "users", "system",
+                          "quiz")}
 
     @pytest.mark.parametrize("route", routes(), ids=lambda r: r.path)
     def test_route_phu_thuoc_require_admin(self, route):

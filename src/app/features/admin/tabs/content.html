@@ -1,15 +1,10 @@
-<div class="adm-head">
-  <div>
-    <h1>{{ vi() ? 'Nội dung portal' : 'Portal content' }}</h1>
-    <p>
-      {{ vi()
-        ? 'Sửa và lưu — không cần build lại. Mỗi lần lưu, bản cũ được giữ lại và khôi phục được.'
-        : 'Edit and save — no rebuild needed. Every save keeps the previous version, restorable.' }}
-    </p>
-  </div>
-</div>
+<p class="text-secondary">
+  {{ vi()
+    ? 'Sửa và lưu — không cần build lại. Mỗi lần lưu, bản cũ được giữ lại và khôi phục được.'
+    : 'Edit and save — no rebuild needed. Every save keeps the previous version, restorable.' }}
+</p>
 
-<div class="adm-note">
+<div class="alert alert-info d-flex gap-2" role="alert">
   <app-icon name="info" />
   <div>
     {{ vi()
@@ -18,106 +13,152 @@
   </div>
 </div>
 
-<div class="adm-bar mt-3">
-  <label class="grow">
-    {{ vi() ? 'Tìm trong khoá và nội dung' : 'Search keys and values' }}
+<div class="row g-2 align-items-end mb-3">
+  <div class="col-md-8 col-lg-6">
+    <label class="form-label fs-7 text-secondary mb-1" for="adm-content-q">
+      {{ vi() ? 'Tìm trong khoá và nội dung' : 'Search keys and values' }}
+    </label>
     <input
+      id="adm-content-q"
       type="search"
+      class="form-control"
       [ngModel]="q()"
       (ngModelChange)="q.set($event)"
       [placeholder]="vi() ? 'ví dụ: chính sách, hero, footer…' : 'e.g. policy, hero, footer…'"
     />
-  </label>
-  <span class="adm-muted" style="padding-bottom:9px">
+  </div>
+  <div class="col-md-4 text-secondary fs-7 pb-2">
     {{ filtered().length }}/{{ entries().length }} {{ vi() ? 'mục' : 'items' }}
-  </span>
+  </div>
 </div>
 
-<div class="adm-split">
-  <div class="adm-card pad-0">
-    <div class="adm-list">
-      @if (!filtered().length) {
-        <div class="adm-empty">{{ vi() ? 'Không có mục nào khớp.' : 'Nothing matches.' }}</div>
-      }
-      @for (m of modules(); track m) {
-        <div class="g">{{ m }}</div>
-        @for (e of entriesOf(m); track e.module + '/' + e.key) {
-          <button [class.on]="isOn(e)" (click)="select(e)">{{ e.key }}</button>
+<div class="row">
+  <!-- --------------------------------------------- danh sach khoa ------ -->
+  <div class="col-lg-4">
+    <div class="card mb-4">
+      <div class="card-body p-0 adm-picker">
+        @if (!filtered().length) {
+          <div class="text-center text-secondary py-5">
+            {{ vi() ? 'Không có mục nào khớp.' : 'Nothing matches.' }}
+          </div>
         }
-      }
+        <div class="list-group list-group-flush">
+          @for (m of modules(); track m) {
+            <div class="list-group-item bg-body-secondary fw-bold text-uppercase fs-7 py-1">{{ m }}</div>
+            @for (e of entriesOf(m); track e.module + '/' + e.key) {
+              <button
+                type="button"
+                class="list-group-item list-group-item-action text-break"
+                [class.active]="isOn(e)"
+                (click)="select(e)"
+              >{{ e.key }}</button>
+            }
+          }
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="adm-card">
+  <!-- ------------------------------------------------- o soan thao ----- -->
+  <div class="col-lg-8">
     @if (!selected()) {
-      <div class="adm-empty">{{ vi() ? 'Chọn một mục bên trái để sửa.' : 'Pick an item on the left.' }}</div>
-    } @else {
-      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
-        <h3 style="flex:1; min-width:0">{{ selected()!.module }} · {{ selected()!.key }}</h3>
-        <button class="btn btn-ghost btn-sm" (click)="toggleHistory()">
-          <app-icon name="clock" />
-          {{ showHistory() ? (vi() ? 'Ẩn lịch sử' : 'Hide history') : (vi() ? 'Lịch sử sửa' : 'Edit history') }}
-        </button>
+      <div class="card mb-4">
+        <div class="card-body text-center text-secondary py-5">
+          {{ vi() ? 'Chọn một mục bên trái để sửa.' : 'Pick an item on the left.' }}
+        </div>
       </div>
+    } @else {
+      <div class="card card-primary card-outline mb-4">
+        <div class="card-header">
+          <h2 class="card-title">{{ selected()!.module }} · {{ selected()!.key }}</h2>
+          <div class="card-tools">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="toggleHistory()">
+              <app-icon name="clock" />
+              {{ showHistory() ? (vi() ? 'Ẩn lịch sử' : 'Hide history') : (vi() ? 'Lịch sử sửa' : 'Edit history') }}
+            </button>
+          </div>
+        </div>
 
-      @if (showHistory()) {
-        <div class="mt-2">
-          @if (!history().length) {
-            <p class="adm-muted">{{ vi() ? 'Mục này chưa từng được sửa qua trang quản trị.' : 'This item has never been edited here.' }}</p>
-          } @else {
-            <div class="adm-tablewrap">
-              <table class="adm-table">
-                <thead>
-                  <tr>
-                    <th>{{ vi() ? 'Lúc' : 'When' }}</th>
-                    <th>{{ vi() ? 'Người sửa' : 'By' }}</th>
-                    <th>{{ vi() ? 'Bản trước đó' : 'Previous value' }}</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (h of history(); track h.changedAt) {
+        <div class="card-body">
+          @if (showHistory()) {
+            @if (!history().length) {
+              <p class="text-secondary">
+                {{ vi() ? 'Mục này chưa từng được sửa qua trang quản trị.' : 'This item has never been edited here.' }}
+              </p>
+            } @else {
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle">
+                  <thead>
                     <tr>
-                      <td style="white-space:nowrap">{{ when(h.changedAt) }}</td>
-                      <td>{{ h.changedBy || '—' }}</td>
-                      <td class="clip adm-mono">{{ preview(h.value) }}</td>
-                      <td>
-                        <button class="btn btn-ghost btn-sm" (click)="useVersion(h)">
-                          {{ vi() ? 'Dùng lại' : 'Restore' }}
-                        </button>
-                      </td>
+                      <th>{{ vi() ? 'Lúc' : 'When' }}</th>
+                      <th>{{ vi() ? 'Người sửa' : 'By' }}</th>
+                      <th>{{ vi() ? 'Bản trước đó' : 'Previous value' }}</th>
+                      <th class="adm-act-col"></th>
                     </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-            <p class="adm-muted mt-2">
-              {{ vi()
-                ? '"Dùng lại" chỉ nạp bản cũ vào ô soạn thảo — phải bấm Lưu mới áp dụng, và lần lưu đó cũng được ghi vào lịch sử.'
-                : '"Restore" only loads the old value into the editor — press Save to apply; that save is itself recorded in the history.' }}
-            </p>
+                  </thead>
+                  <tbody>
+                    @for (h of history(); track h.changedAt) {
+                      <tr>
+                        <td class="text-nowrap">{{ when(h.changedAt) }}</td>
+                        <td>{{ h.changedBy || '—' }}</td>
+                        <td class="adm-clip adm-mono">{{ preview(h.value) }}</td>
+                        <td class="adm-act-col">
+                          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="useVersion(h)">
+                            {{ vi() ? 'Dùng lại' : 'Restore' }}
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+              <p class="text-secondary fs-7">
+                {{ vi()
+                  ? '"Dùng lại" chỉ nạp bản cũ vào ô soạn thảo — phải bấm Lưu mới áp dụng, và lần lưu đó cũng được ghi vào lịch sử.'
+                  : '"Restore" only loads the old value into the editor — press Save to apply; that save is itself recorded in the history.' }}
+              </p>
+              <hr />
+            }
+          }
+
+          @if (bilingual()) {
+            <label class="form-label fs-7 text-secondary" for="adm-content-vi">Tiếng Việt</label>
+            <textarea
+              id="adm-content-vi"
+              class="form-control mb-3"
+              [ngModel]="draftVi()"
+              (ngModelChange)="draftVi.set($event)"
+              rows="5"
+            ></textarea>
+            <label class="form-label fs-7 text-secondary" for="adm-content-en">English</label>
+            <textarea
+              id="adm-content-en"
+              class="form-control"
+              [ngModel]="draftEn()"
+              (ngModelChange)="draftEn.set($event)"
+              rows="5"
+            ></textarea>
+          } @else {
+            <label class="form-label fs-7 text-secondary" for="adm-content-json">
+              JSON —
+              {{ vi() ? 'giữ đúng cấu trúc, sai định dạng sẽ không lưu được' : 'keep the structure valid' }}
+            </label>
+            <textarea
+              id="adm-content-json"
+              class="form-control adm-mono"
+              [ngModel]="draftJson()"
+              (ngModelChange)="draftJson.set($event)"
+              rows="18"
+            ></textarea>
           }
         </div>
-      }
 
-      @if (bilingual()) {
-        <label class="adm-muted" style="display:block; margin-top:14px; font-size:.82rem">Tiếng Việt</label>
-        <textarea class="adm-textarea" [ngModel]="draftVi()" (ngModelChange)="draftVi.set($event)" rows="5"></textarea>
-        <label class="adm-muted" style="display:block; margin-top:12px; font-size:.82rem">English</label>
-        <textarea class="adm-textarea" [ngModel]="draftEn()" (ngModelChange)="draftEn.set($event)" rows="5"></textarea>
-      } @else {
-        <label class="adm-muted" style="display:block; margin-top:14px; font-size:.82rem">
-          JSON —
-          {{ vi() ? 'giữ đúng cấu trúc, sai định dạng sẽ không lưu được' : 'keep the structure valid' }}
-        </label>
-        <textarea class="adm-textarea code" [ngModel]="draftJson()" (ngModelChange)="draftJson.set($event)" rows="18"></textarea>
-      }
-
-      <div style="margin-top:14px; display:flex; gap:12px; align-items:center; flex-wrap:wrap">
-        <button class="btn btn-primary" (click)="save()" [disabled]="saving()">
-          <app-icon name="check" /> {{ vi() ? 'Lưu' : 'Save' }}
-        </button>
-        <span class="adm-muted">{{ status() }}</span>
+        <div class="card-footer d-flex align-items-center gap-3 flex-wrap">
+          <button type="button" class="btn btn-primary" (click)="save()" [disabled]="saving()">
+            <app-icon name="check" /> {{ vi() ? 'Lưu' : 'Save' }}
+          </button>
+          <span class="text-secondary fs-7">{{ status() }}</span>
+        </div>
       </div>
     }
   </div>

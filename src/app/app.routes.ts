@@ -9,6 +9,9 @@ const title = (page: string) => page + ' — ' + BRAND;
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./features/home/home').then((m) => m.Home), title: 'AVP Group - Cổng thông tin nội bộ' },
   { path: 'onboarding', loadComponent: () => import('./features/onboarding/onboarding').then((m) => m.Onboarding), title: title('Hội nhập') },
+  // Bai kiem tra sau buoi hoi nhap IT. Duong dan tieng Viet vi link nay duoc
+  // doc len trong buoi training va dan trong email moi nhan vien moi.
+  { path: 'onboarding/kiem-tra', loadComponent: () => import('./features/onboarding/quiz').then((m) => m.Quiz), title: title('Kiểm tra hội nhập IT') },
   { path: 'portal', loadComponent: () => import('./features/portal/portal').then((m) => m.Portal), title: title('Công cụ') },
   { path: 'directory', loadComponent: () => import('./features/directory/directory').then((m) => m.Directory), title: title('Liên hệ') },
   { path: 'policies', loadComponent: () => import('./features/policies/policies').then((m) => m.Policies), title: title('Chính sách') },
@@ -20,6 +23,9 @@ export const routes: Routes = [
   { path: 'news/:id/edit', loadComponent: () => import('./features/news/news-editor').then((m) => m.NewsEditor), title: title('Sửa tin') },
   { path: 'news/:id', loadComponent: () => import('./features/news/news-detail').then((m) => m.NewsDetail), title: title('Chi tiết tin') },
   { path: 'gallery', loadComponent: () => import('./features/gallery/gallery').then((m) => m.Gallery), title: title('Hình ảnh') },
+  // PHAI khai TRUOC 'gallery/:slug', neu khong 'manage' bi coi la ten album.
+  // Backend cung giu 'manage' trong RESERVED de khong album nao chiem ten do.
+  { path: 'gallery/manage', loadComponent: () => import('./features/gallery/manage').then((m) => m.GalleryManage), title: title('Quản lý thư viện ảnh') },
   { path: 'gallery/:slug', loadComponent: () => import('./features/gallery/gallery').then((m) => m.Gallery), title: title('Hình ảnh') },
   { path: 'feed', loadComponent: () => import('./features/feed/feed').then((m) => m.Feed), title: title('Đời sống') },
   { path: 'chat', loadComponent: () => import('./features/chat/chat').then((m) => m.Chat), title: title('Trò chuyện') },

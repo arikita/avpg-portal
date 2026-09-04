@@ -14,7 +14,7 @@ import time
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import Body, Depends, FastAPI, Header, HTTPException
+from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 import psycopg
 
@@ -25,8 +25,10 @@ log = logging.getLogger("avp.main")
 
 from .ad import can_admin_content, get_user, is_editor, is_news_author, list_directory
 from .admin import router as admin_router
+from .gallery import GALLERY_DIR, manage_router as gallery_manage_router, router as gallery_router
 from .news import router as news_router, notif_router, push_router
 from .profile import avatar_router, router as profile_router
+from .quiz import router as quiz_router
 from .rail import router as rail_router
 from .telemetry import install as telemetry_install, router as telemetry_router
 from .wall import feed_router, router as wall_router
@@ -60,7 +62,12 @@ app.include_router(feed_router)
 app.include_router(chat_router)
 app.include_router(ws_router)
 app.include_router(telemetry_router)
+# gallery_manage_router PHAI dang ky TRUOC gallery_router: FastAPI khop route
+# theo thu tu, de sau thi /api/gallery/manage roi vao route /{slug}.
+app.include_router(gallery_manage_router)
+app.include_router(gallery_router)
 app.include_router(admin_router)
+app.include_router(quiz_router)
 # Gan middleware do thoi gian + bat exception toan cuc. Dat SAU cung de
 # no boc het cac router o tren. Tat bang env TELEMETRY_ENABLED=0.
 telemetry_install(app)
@@ -105,7 +112,7 @@ def health() -> JSONResponse:
 
 
 @app.get("/api/me")
-def me(username: str = Depends(current_user)) -> dict:
+def me(request: Request, username: str = Depends(current_user)) -> dict:
     info = get_user(username)
     base = {"username": username, "fullName": username} if info is None else \
         {k: v for k, v in info.items() if k != "dn"}
@@ -119,6 +126,19 @@ def me(username: str = Depends(current_user)) -> dict:
     base["telemetry"] = bool(_telemetry_on)
     base["canPostNews"] = is_news_author(username)
     base["canModerateNews"] = is_editor(username)
+    # Vao bang SSO Kerberos hay bang form dang nhap?
+    #
+    # Nut "Dang xuat" tren portal CHI that su ket thuc phien voi nguoi dang
+    # nhap bang form: Apache xoa cookie avpsess la xong. May join domain thi
+    # bam xong se vao lai ngay bang ve Kerberos — ranh gioi that cua ho la
+    # phien Windows, khong phai portal. Giao dien phai noi thang dieu do thay
+    # vi de mot cai nut bam khong co tac dung.
+    #
+    # Cach nhan biet: Apache re nhanh xac thuc bang DUNG dieu kien nay
+    # (`<If "%{HTTP:Cookie} =~ /avpsess=/">` trong avp-portal.conf), va no
+    # chuyen tiep nguyen header Cookie sang day. Cookie la HttpOnly nen chi
+    # doc duoc o server — day la ly do co truong nay thay vi de client tu doan.
+    base["sso"] = "avpsess" not in request.cookies
     # Anh dai dien: de navbar ve duoc nut ho so ngay, khong phai doi ban do
     # avatar. Ho so chua co thi tra chuoi rong (navbar lui ve chu cai dau).
     try:
@@ -149,179 +169,6 @@ def hero_images(username: str = Depends(current_user)) -> dict:
     except FileNotFoundError:
         files = []
     return {"images": [f"/media/hero/{f}" for f in files]}
-
-
-# -------------------------------------------------------------- thu vien --
-# ANH GOC NAM O FILE SERVER, KHONG COPY VE. Share cua hcm-datasvr duoc mount
-# read-only tai /mnt/avp-share bang Kerberos (keytab cua chinh portal, khong
-# luu mat khau) - xem /usr/local/sbin/avp-share-mount.sh.
-#
-#   thumb (480px)  : tao san bang tools/pull_gallery.py, nam o
-#                    /var/www/avp-portal-media/gallery/<slug>/thumb/, Apache
-#                    serve qua /media (da bat GSSAPI => phai dang nhap).
-#                    Anh moi HR bo vao share ma chua co thumb thi tao tai cho.
-#   full (1600px)  : KHONG luu san. Ai bam xem lon thi doc anh goc tu share,
-#                    thu nho roi cache o /var/cache/avp-portal-gallery/.
-#
-# Danh sach anh lay tu chinh thu muc tren share => HR them anh la portal co
-# ngay, khong can chay lai script hay build lai.
-GALLERY_DIR = os.environ.get("GALLERY_DIR", "/var/www/avp-portal-media/gallery")
-GALLERY_SRC_ROOT = os.environ.get("GALLERY_SRC_ROOT", "/mnt/avp-share")
-GALLERY_CACHE = os.environ.get("GALLERY_CACHE", "/var/cache/avp-portal-gallery")
-GALLERY_TTL = int(os.environ.get("GALLERY_TTL", "900"))
-FULL_MAX, FULL_Q = 1600, 80
-THUMB_MAX, THUMB_Q = 480, 75
-_IMG_EXT = (".jpg", ".jpeg", ".png", ".webp")
-
-_SLUG = re.compile(r"[a-z0-9][a-z0-9-]{0,63}")
-_STEM = re.compile(r"[a-z0-9][a-z0-9._-]{0,120}")
-_index_cache: dict[str, tuple[float, list[tuple[str, str]]]] = {}
-
-
-def _album_meta(slug: str) -> dict | None:
-    try:
-        with open(os.path.join(GALLERY_DIR, slug, "album.json"), encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, ValueError) as exc:
-        log.warning("gallery: khong doc duoc album.json cua %s (%s: %s)",
-                    slug, type(exc).__name__, exc)
-        return None
-
-
-def _stem_of(name: str) -> str:
-    return os.path.splitext(name)[0].lower().replace(" ", "-")
-
-
-def _thumbs(slug: str) -> set[str]:
-    """Ten cac anh da co thumb san tren dia."""
-    try:
-        return {f[:-4] for f in os.listdir(os.path.join(GALLERY_DIR, slug, "thumb"))
-                if f.endswith(".jpg")}
-    except OSError as exc:
-        log.warning("gallery: khong liet ke duoc thumb cua %s (%s: %s)",
-                    slug, type(exc).__name__, exc)
-        return set()
-
-
-def _index(slug: str, meta: dict) -> list[tuple[str, str]]:
-    """[(ten rut gon, ten file goc)] doc thang tu share, cache GALLERY_TTL giay.
-
-    Doc that bai (share chua mount / file server sap) thi lui ve danh sach
-    thumb co san tren dia: luoi anh van hien binh thuong, chi rieng xem lon
-    anh chua cache la bao loi.
-    """
-    hit = _index_cache.get(slug)
-    if hit and time.time() - hit[0] < GALLERY_TTL:
-        return hit[1]
-    src = meta.get("src") or ""
-    rows: list[tuple[str, str]] = []
-    if src:
-        d = os.path.join(GALLERY_SRC_ROOT, src)
-        try:
-            rows = sorted((_stem_of(n), n) for n in os.listdir(d)
-                          if n.lower().endswith(_IMG_EXT)
-                          and os.path.isfile(os.path.join(d, n)))
-        except OSError as exc:
-            log.warning("gallery: khong doc duoc share nguon %s (%s: %s) - lui ve thumb co san",
-                        d, type(exc).__name__, exc)
-            rows = []
-    if not rows:
-        rows = sorted((t, "") for t in _thumbs(slug))
-    _index_cache[slug] = (time.time(), rows)
-    return rows
-
-
-def _album_card(slug: str, meta: dict, count: int | None = None) -> dict:
-    cover = meta.get("cover") or ""
-    return {
-        "slug": slug,
-        "title": meta.get("title") or {"vi": slug, "en": slug},
-        "desc": meta.get("desc") or {"vi": "", "en": ""},
-        "date": meta.get("date") or "",
-        "count": count if count is not None else (meta.get("count") or 0),
-        "cover": f"/media/gallery/{slug}/thumb/{cover}.jpg" if cover else "",
-    }
-
-
-@app.get("/api/gallery")
-def gallery(username: str = Depends(current_user)) -> dict:
-    """Danh sach album anh, moi nhat truoc."""
-    try:
-        slugs = sorted(d for d in os.listdir(GALLERY_DIR) if _SLUG.fullmatch(d))
-    except FileNotFoundError:
-        return {"albums": []}
-    albums = [_album_card(s, m, len(_index(s, m))) for s in slugs if (m := _album_meta(s))]
-    albums.sort(key=lambda a: (a["date"], a["slug"]), reverse=True)
-    return {"albums": albums}
-
-
-@app.get("/api/gallery/{slug}")
-def gallery_album(slug: str, username: str = Depends(current_user)) -> dict:
-    """Toan bo anh cua mot album (danh sach lay tu share)."""
-    if not _SLUG.fullmatch(slug):          # chan ../ di lac ra ngoai thu muc
-        raise HTTPException(status_code=404, detail="khong co album nay")
-    meta = _album_meta(slug)
-    if meta is None:
-        raise HTTPException(status_code=404, detail="khong co album nay")
-    have_thumb = _thumbs(slug)
-    rows = _index(slug, meta)
-    dims = {p["file"]: (p.get("w", 0), p.get("h", 0)) for p in meta.get("photos", [])}
-    photos = []
-    for stem, _orig in rows:
-        w, h = dims.get(stem, (0, 0))
-        photos.append({
-            # thumb co san thi de Apache serve thang cho nhanh; anh moi thi
-            # nho API tao (lan dau cham, sau do da co cache).
-            "thumb": (f"/media/gallery/{slug}/thumb/{stem}.jpg" if stem in have_thumb
-                      else f"/api/gallery/{slug}/img/{stem}.jpg?s=t"),
-            "full": f"/api/gallery/{slug}/img/{stem}.jpg",
-            "w": w, "h": h,
-        })
-    return {**_album_card(slug, meta, len(photos)), "photos": photos}
-
-
-def _render(src_path: str, out_path: str, box: int, quality: int) -> None:
-    """Thu nho anh goc tu share roi ghi vao cache (ghi tam roi doi ten cho
-    khong bao gio serve phai file dang viet do)."""
-    from PIL import Image, ImageOps          # nap muon: chi gallery moi can
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    tmp = f"{out_path}.{os.getpid()}.tmp"
-    with Image.open(src_path) as im:
-        im = ImageOps.exif_transpose(im).convert("RGB")
-        im.thumbnail((box, box), Image.LANCZOS)
-        im.save(tmp, "JPEG", quality=quality, optimize=True, progressive=True)
-    os.replace(tmp, out_path)
-
-
-@app.get("/api/gallery/{slug}/img/{name}")
-def gallery_img(slug: str, name: str, s: str = "f",
-                username: str = Depends(current_user)) -> FileResponse:
-    """Anh da thu nho: lay tu cache, chua co thi doc anh goc tu share tao ra."""
-    stem = name[:-4] if name.lower().endswith(".jpg") else name
-    if not _SLUG.fullmatch(slug) or not _STEM.fullmatch(stem) or ".." in stem:
-        raise HTTPException(status_code=404, detail="khong co anh nay")
-    meta = _album_meta(slug)
-    if meta is None:
-        raise HTTPException(status_code=404, detail="khong co album nay")
-    thumb = s == "t"
-    box, quality, sub = (THUMB_MAX, THUMB_Q, "t") if thumb else (FULL_MAX, FULL_Q, "f")
-    out = os.path.join(GALLERY_CACHE, slug, sub, f"{stem}.jpg")
-    if not os.path.exists(out):
-        orig = next((o for st, o in _index(slug, meta) if st == stem and o), None)
-        if orig is None:
-            # Phan biet ro: khong co anh that, hay share dang khong doc duoc.
-            src_dir = os.path.join(GALLERY_SRC_ROOT, meta.get("src") or "")
-            if not os.path.isdir(src_dir):
-                raise HTTPException(status_code=503,
-                                    detail="file server dang khong truy cap duoc")
-            raise HTTPException(status_code=404, detail="khong co anh nay")
-        try:
-            _render(os.path.join(GALLERY_SRC_ROOT, meta["src"], orig), out, box, quality)
-        except OSError as exc:
-            raise HTTPException(status_code=503,
-                                detail=f"khong doc duoc anh goc: {type(exc).__name__}") from exc
-    return FileResponse(out, media_type="image/jpeg",
-                        headers={"Cache-Control": "private, max-age=604800"})
 
 
 # --------------------------------------------------------------- noi dung --

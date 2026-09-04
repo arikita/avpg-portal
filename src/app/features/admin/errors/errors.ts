@@ -83,6 +83,21 @@ export class AdminErrors {
   /** newBySeverity() la Record<string, number>: TypeScript coi moi khoa la co
    *  san, con server chi tra ve muc do NAO DANG CO loi. Doc qua ham nay de o
    *  khong co loi hien 0 chu khong hien trong. */
+  /**
+   * Lop huy hieu cho mot muc do. Mau KHONG di mot minh — chu ("critical",
+   * "error"...) luon nam trong huy hieu, vi hai trong bon mau khong dat 3:1 va
+   * nguoi mu mau do-luc khong tach duoc do voi cam.
+   *
+   * Nen dac = nang hon nen nhat: critical do dac, error do nhat. Do la thang
+   * bac doc duoc ma khong can tra bang mau.
+   */
+  sevBadge(k: string): string {
+    if (k === 'critical') return 'text-bg-danger';
+    if (k === 'error') return 'text-danger-emphasis bg-danger-subtle border border-danger-subtle';
+    if (k === 'warning') return 'text-warning-emphasis bg-warning-subtle border border-warning-subtle';
+    return 'text-info-emphasis bg-info-subtle border border-info-subtle';
+  }
+
   sev(k: string): number {
     return this.newBySeverity()[k] ?? 0;
   }

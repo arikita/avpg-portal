@@ -78,9 +78,17 @@ def get_user(username: str) -> dict | None:
 # ----------------------------------------------------------------- danh ba --
 DIR_ATTRS = ["displayName", "sAMAccountName", "mail", "telephoneNumber",
              "department", "title"]
-# Loc: la nguoi that, dang bat (bit 2 cua userAccountControl = disabled), co ten
+# Bit 2 cua userAccountControl = ACCOUNTDISABLE. Tai khoan da tat KHONG duoc
+# tinh la co quyen gi ca (yeu cau cua user 25/08/2026). Trong thuc te ho cung
+# khong lay noi ve Kerberos nen khong vao duoc portal — nhung de cai loc o day
+# thi moi phep DEM va moi bang bao cao mai noi cung mot con so.
+# CO Y khong loc trong `get_user`: ten tac gia cua bai cu van phai hien ra sau
+# khi nguoi do nghi viec.
+CHUA_TAT = "(!(userAccountControl:1.2.840.113556.1.4.803:=2))"
+
+# Loc: la nguoi that, dang bat, co ten
 DIR_FILTER = ("(&(objectCategory=person)(objectClass=user)"
-              "(!(userAccountControl:1.2.840.113556.1.4.803:=2))"
+              f"{CHUA_TAT}"
               "(displayName=*)(telephoneNumber=*))")
 # Bo tai khoan dich vu / may chu ra khoi danh ba
 DIR_EXCLUDE_OU = ("ou=servers",)
@@ -211,6 +219,21 @@ EDITOR_GROUP_DN = os.environ.get(
 _editor_cache: dict[str, tuple[float, bool]] = {}
 
 
+def dept_of(username: str) -> str:
+    """Phong ban cua mot nguoi theo AD, da chuan hoa de so sanh duoc.
+
+    Dung cho luat quyen cua tin tuc: HR sua duoc bai cua HR, Marketing sua
+    duoc bai cua Marketing, khong cheo sang nhau. So sanh sau khi `strip()` +
+    `lower()` de chiu duoc cach viet lech trong AD (that su co ca
+    "Human Resources" lan " Human resources ").
+
+    Tra '' khi khong biet — va '' KHONG BAO GIO khop voi '' cua bai khac:
+    cho goi phai xu ly rieng, xem `_same_dept` trong news.py.
+    """
+    info = get_user(username)
+    return ((info or {}).get("department") or "").strip().lower()
+
+
 def is_editor(username: str) -> bool:
     """User co thuoc group duoc sua noi dung khong.
 
@@ -223,7 +246,7 @@ def is_editor(username: str) -> bool:
     hit = _editor_cache.get(username)
     if hit and time.time() - hit[0] < TTL:
         return hit[1]
-    flt = (f"(&(sAMAccountName={username})"
+    flt = (f"(&(sAMAccountName={username}){CHUA_TAT}"
            f"(memberOf:1.2.840.113556.1.4.1941:={EDITOR_GROUP_DN}))")
     ok = bool(_search(flt, ["sAMAccountName"]))
     _editor_cache[username] = (time.time(), ok)
@@ -257,7 +280,7 @@ _author_cache: dict[str, tuple[float, bool]] = {}
 
 def _in_group(username: str, group_dn: str) -> bool:
     """User co thuoc group_dn khong (ke ca gian tiep qua group long nhau)."""
-    flt = (f"(&(sAMAccountName={username})"
+    flt = (f"(&(sAMAccountName={username}){CHUA_TAT}"
            f"(memberOf:1.2.840.113556.1.4.1941:={group_dn}))")
     return bool(_search(flt, ["sAMAccountName"]))
 
@@ -272,3 +295,60 @@ def is_news_author(username: str) -> bool:
     ok = is_editor(username) or any(_in_group(username, dn) for dn in NEWS_AUTHOR_GROUP_DNS)
     _author_cache[username] = (time.time(), ok)
     return ok
+
+
+# ===================================================== QUYEN TREN BAI TIN ===
+# Luat (25/08/2026, theo yeu cau cua user):
+#   * Phong Information System (IT) : TOAN QUYEN tren moi bai.
+#   * Tac gia                        : toan quyen tren bai CUA MINH.
+#   * Nguoi trong nhom dang tin      : toan quyen tren bai CUA PHONG MINH,
+#     (HR / Marketing / IS)            KHONG dung duoc vao bai cua phong khac.
+#   * Con lai                        : chi doc.
+#
+# Ham nay o ad.py chu khong o news.py vi CA BA du kien (`is_editor`,
+# `is_news_author`, `dept_of`) deu o day — va vi news.py keo theo nh3 +
+# python-multipart, hai goi chi co trong venv tren .136 nen test se bi SKIP im
+# lang tren may dev. Mot luat quyen khong duoc kiem la mot luat quyen se hong.
+
+def _post_dept(dept: str, author: str) -> str:
+    """Phong so huu bai. Bai dang truoc 25/08/2026 chua co cot nay -> tra AD.
+
+    Lui ve nhu vay de KHONG phai chay mot lan nap du lieu tay: hang nao thieu
+    thi tu tra, va tra xong lan sau da nam trong cache cua get_user.
+    """
+    return (dept or "").strip().lower() or dept_of(author)
+
+
+def can_manage_post(username: str, author: str, dept: str) -> bool:
+    """Nguoi nay co toan quyen tren bai tin do khong (sua / xoa / ghim)."""
+    if is_editor(username):                 # IT: toan quyen moi noi
+        return True
+    if author == username:                  # tac gia giu quyen tren bai minh viet
+        return True
+    if not is_news_author(username):        # khong thuoc nhom dang tin
+        return False
+    mine = dept_of(username)
+    # `''` KHONG duoc khop `''`: hai nguoi cung "khong ro phong ban" ma cho sua
+    # bai cua nhau la mo toang quyen cho moi tai khoan AD thieu truong
+    # department.
+    return bool(mine) and mine == _post_dept(dept, author)
+
+
+# ================================================== QUYEN TREN BAI DOI SONG ==
+# Luat (25/08/2026): bai tren tuong / bang tin Doi song thuoc ve NGUOI VIET.
+#   * Tac gia : toan quyen — sua, xoa bai, xoa MOI binh luan tren bai cua minh.
+#   * IT      : toan quyen o moi noi.
+#   * Con lai : chi nguoi viet binh luan duoc tu xoa binh luan cua chinh minh.
+#
+# Truoc 25/08 CHU TUONG cung xoa duoc bai va binh luan cua nguoi khac dang len
+# tuong minh. Da bo theo yeu cau — danh doi duoc ghi trong CLAUDE.md.
+
+def can_manage_wall_post(viewer: str, author: str) -> bool:
+    """Sua / xoa mot bai tren Doi song."""
+    return viewer == author or is_editor(viewer)
+
+
+def can_delete_wall_comment(viewer: str, comment_author: str, post_author: str) -> bool:
+    """Xoa mot binh luan: nguoi viet no, TAC GIA BAI, hoac IT."""
+    return viewer in (comment_author, post_author) or is_editor(viewer)
+

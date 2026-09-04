@@ -1,166 +1,88 @@
-/* Style TOAN CUC (ViewEncapsulation.None) — cung ky thuat voi rich-body.scss.
+/* Style TOAN CUC (ViewEncapsulation.None) — lop MONG dat tren AdminLTE.
  *
- * Vi sao khong dung style co lap tung component: bang dieu khien co 7 tab la 7
- * component con, tat ca dung chung the (o so lieu, bang, bieu do). Style co lap
- * se phai chep 7 lan va lech nhau ngay lan sua thu hai.
+ * Phan lon giao dien /admin bay gio den tu template AdminLTE v4 (card, table,
+ * badge, small-box, form-control...). File nay chi giu nhung thu AdminLTE
+ * khong co: bang mau bieu do tu ve, noi that cua 4 loai bieu do, va vai cho
+ * phai chinh lai cho khop portal (bieu tuong SVG cua app-icon, avatar).
  *
- * LUAT: MOI selector trong file nay PHAI bat dau bang `.adm` — khong co ngoai
- * le. Mot dong `table { }` o day se sua giao dien toan portal.
+ * LUAT: MOI selector trong file nay PHAI bat dau bang `.lte` hoac `.adm` —
+ * khong co ngoai le. Mot dong `table { }` o day se sua giao dien toan portal.
+ * (`.lte` la lop boc cua trang quan tri, `.adm-*` la cac lop rieng ben trong.)
+ *
+ * CSS cua chinh AdminLTE KHONG o day: no nam o public/vendor/adminlte-<ver>.css,
+ * sinh boi tools/build_adminlte_css.mjs va nap luoi khi vao /admin.
  */
 
-.adm {
-  /* -- Bang mau bieu do -----------------------------------------------------
-   * Duoc dat o day (khong phai trong tung SVG) de doi theme la doi mot cho.
-   * `--viz-1` la hue TUAN TU (sequential) duy nhat cho moi bieu do do "nhieu
-   * hay it": nhieu hue chi lam nguoi doc phai tra bang mau. Mau trang thai
-   * (loi) LUON di kem chu + bieu tuong, khong bao gio dung mau don doc — hai
-   * trong so chung khong dat 3:1 tren nen sang.
-   */
+/* --------------------------------------------------------- khung ngoai -- */
+/* `.lte` dong vai <body> cua AdminLTE: phai cao het man hinh thi `.app-sidebar`
+ * (position: sticky, max-height: 100vh) moi bam dung, va `.app-main` moi cuon
+ * ben trong thay vi keo dai ca trang. */
+.lte {
+  min-height: 100vh;
+}
+
+/* Trang thai truoc khi khung dung: chua co CSS AdminLTE hoac chua biet quyen. */
+.lte .adm-boot {
+  padding: 80px 24px;
+  text-align: center;
+  color: var(--text-2);
+}
+
+.lte .adm-denied {
+  max-width: 720px;
+  margin: 48px auto;
+  padding: 0 16px;
+}
+
+/* app-icon tra ve <svg> khong co kich thuoc co dinh; trong navbar/sidebar cua
+ * AdminLTE no se an theo font-size va to nho khong deu. Ghim lai. */
+.lte app-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.lte .sidebar-wrapper .nav-icon svg { width: 17px; height: 17px; }
+.lte .btn app-icon svg,
+.lte .badge app-icon svg { width: 14px; height: 14px; }
+
+/* Nut trong navbar duoc viet bang <button> (khong phai <a href="#">) de bam
+ * phim Tab van toi duoc — nhung phai go sach nen/vien mac dinh cua .btn. */
+.lte .navbar .nav-link.btn {
+  --bs-btn-padding-x: .5rem;
+  --bs-btn-padding-y: .25rem;
+  text-decoration: none;
+  border: 0;
+}
+
+/* Avatar tren navbar admin nay do app-account-menu ve. */
+
+/* Mui ten "Ve portal": app-icon khong co bieu tuong quay trai. */
+.lte .adm-flip svg { transform: scaleX(-1); }
+
+/* ------------------------------------------------------- bang mau viz -- */
+/* Dat mot cho de doi theme la doi mot cho. `--viz-1` la hue TUAN TU duy nhat
+ * cho moi bieu do do "nhieu hay it": nhieu hue chi lam nguoi doc phai tra bang
+ * mau. Neo vao bien cua Bootstrap de bieu do doi mau cung khung, khong phai
+ * cung phan con lai cua portal (o /admin hai he mau nay khong con trung nhau). */
+.lte {
   --viz-1: #5b5bf5;
   --viz-1-soft: color-mix(in srgb, #5b5bf5 10%, transparent);
   --viz-2: #10c8b6;
-  --viz-grid: var(--border);
-  --viz-axis: var(--text-3);
-  --viz-surface: var(--surface);
+  --viz-grid: var(--bs-border-color);
+  --viz-axis: var(--bs-secondary-color);
+  --viz-surface: var(--bs-body-bg);
 }
 
-:root[data-theme='dark'] .adm {
+.lte[data-bs-theme='dark'] {
   /* Buoc rieng cho nen toi, khong phai dao mau tu dong. */
   --viz-1: #8b89ff;
   --viz-1-soft: color-mix(in srgb, #8b89ff 14%, transparent);
   --viz-2: #2ee6cf;
 }
 
-/* --------------------------------------------------------------- khung -- */
-.adm-shell {
-  display: grid;
-  grid-template-columns: 232px 1fr;
-  gap: 26px;
-  align-items: start;
-}
-
-/* BAT BUOC — day la GOC cua loi "khung khong hien thi het".
- *
- * Mac dinh mot o trong grid co `min-width: auto`, nghia la NO KHONG CO ANH CO
- * NHO HON NOI DUNG cua no. Mot cai bang rong 976px trong cot `1fr` se banh cot
- * do ra 976px du chi con 878px cho, va phan thua day CA TRANG sang cuon ngang —
- * trong khi `.adm-tablewrap{overflow-x:auto}` khong he duoc dung toi vi no chua
- * bao gio bi ep nho lai.
- *
- * `min-width: 0` cho phep o co lai; luc do bang moi that su cuon BEN TRONG
- * khung cua no. Do bang so 24/08/2026: bo dong nay thi tab Loi tran 100px o
- * 1440px va 256px o 1024px. */
-.adm-shell > * { min-width: 0; }
-
-.adm-rail {
-  position: sticky;
-  top: calc(var(--nav-h) + 16px);
-  display: grid;
-  gap: 3px;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
-}
-
-.adm-rail a {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  width: 100%;
-  padding: 10px 12px;
-  border: 0;
-  border-radius: 11px;
-  background: none;
-  color: var(--text-2);
-  font: inherit;
-  font-weight: 600;
-  font-size: 0.93rem;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.adm-rail a:hover { background: var(--surface-2); color: var(--text); }
-
-.adm-rail a.on {
-  background: color-mix(in srgb, var(--brand) 13%, transparent);
-  color: var(--brand);
-}
-
-.adm-rail a svg { width: 17px; height: 17px; flex: 0 0 auto; }
-.adm-rail .adm-count {
-  margin-left: auto;
-  font-size: 0.75rem;
-  font-weight: 800;
-  padding: 1px 7px;
-  border-radius: var(--pill);
-  background: var(--surface-3);
-  color: var(--text-3);
-}
-.adm-rail .adm-count.hot { background: var(--danger); color: #fff; }
-
-.adm-rail-sep {
-  margin: 7px 4px 4px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-3);
-}
-
-/* ------------------------------------------------------------ tieu de -- */
-.adm-head { display: flex; align-items: end; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
-.adm-head h1 { font-size: 1.5rem; margin: 0; }
-.adm-head p { color: var(--text-2); font-size: 0.93rem; margin-top: 5px; max-width: 660px; }
-.adm-head .adm-head-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
-
-/* --------------------------------------------------------------- the --- */
-.adm-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(196px, 1fr)); gap: 14px; }
-
-.adm-card {
-  padding: 16px 18px;
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
-}
-
-.adm-card.pad-0 { padding: 0; }
-.adm-card h3 { font-size: 1rem; margin: 0; }
-.adm-card-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 15px 18px;
-  border-bottom: 1px solid var(--border);
-}
-.adm-card-head h3 { flex: 1; min-width: 0; }
-.adm-card-body { padding: 16px 18px; }
-
-/* O so lieu: nhan / gia tri / muc thay doi / duong xu huong nho.
- * Chu so dung font ti le (khong tabular) — o co lon ma tabular thi so bi loang. */
-.adm-stat .k { font-size: 0.82rem; font-weight: 600; color: var(--text-3); display: flex; align-items: center; gap: 7px; }
-.adm-stat .k svg { width: 15px; height: 15px; }
-.adm-stat .v { font-size: 1.85rem; font-weight: 800; line-height: 1.15; margin-top: 7px; color: var(--text); }
-.adm-stat .v small { font-size: 0.95rem; font-weight: 600; color: var(--text-3); margin-left: 4px; }
-.adm-stat .d { margin-top: 5px; font-size: 0.82rem; font-weight: 600; color: var(--text-3); display: flex; align-items: center; gap: 5px; }
-.adm-stat .d.up { color: var(--success); }
-.adm-stat .d.down { color: var(--danger); }
-.adm-stat .d svg { width: 14px; height: 14px; }
-
-/* So dan dat ca trang — DUY NHAT mot cai moi man hinh. */
-.adm-hero { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.adm-hero .n { font-size: clamp(2.6rem, 6vw, 3.4rem); font-weight: 800; line-height: 1; color: var(--text); }
-.adm-hero .t { color: var(--text-2); font-size: 0.98rem; font-weight: 600; }
-
 /* ------------------------------------------------------------ bieu do -- */
 /* Duong xu huong. SVG chi ve NET; chu va cham la HTML nen luon dung co that,
  * du bieu do nam o cot hep hay khung rong (xem ghi chu trong charts.ts). */
-.adm-trend {
+.lte .adm-trend {
   position: relative;
   display: grid;
   grid-template-columns: 42px 1fr;
@@ -169,8 +91,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.adm-trend .ax-y { grid-area: ay; position: relative; }
-.adm-trend .ax-y span {
+.lte .adm-trend .ax-y { grid-area: ay; position: relative; }
+.lte .adm-trend .ax-y span {
   position: absolute;
   right: 9px;
   transform: translateY(50%);
@@ -179,11 +101,15 @@
   white-space: nowrap;
 }
 
-.adm-trend .plot { grid-area: plot; position: relative; cursor: crosshair; }
-.adm-trend .plot svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.lte .adm-trend .plot { grid-area: plot; position: relative; cursor: crosshair; }
+.lte .adm-trend .plot svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
 /* Luoi ke bang the HTML: net toc 1px THAT, khong bi SVG co gian lam day mong. */
-.adm-trend .grid {
+.lte .adm-trend .grid {
+  /* `display`/`gap`: portal co tien ich `.grid{display:grid;gap:20px}` va
+   * charts.ts lai dat ten lop nay cho duong ke ngang. Khoa lai o day. */
+  display: block;
+  gap: 0;
   position: absolute;
   left: 0;
   right: 0;
@@ -191,7 +117,7 @@
   background: var(--viz-grid);
 }
 
-.adm-trend .cross {
+.lte .adm-trend .cross {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -201,7 +127,7 @@
 }
 
 /* Cham >= 8px, vien 2px mau nen de khong lan vao duong khi de nhau. */
-.adm-trend .dot {
+.lte .adm-trend .dot {
   position: absolute;
   width: 9px;
   height: 9px;
@@ -212,17 +138,17 @@
 }
 
 /* Nhan diem CUOI — nhan truc tiep duy nhat tren bieu do. */
-.adm-trend .end {
+.lte .adm-trend .end {
   position: absolute;
   transform: translate(-100%, -180%);
   font-size: 0.74rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--bs-body-color);
   white-space: nowrap;
 }
 
-.adm-trend .ax-x { grid-area: ax; position: relative; }
-.adm-trend .ax-x span {
+.lte .adm-trend .ax-x { grid-area: ax; position: relative; }
+.lte .adm-trend .ax-x span {
   position: absolute;
   top: 4px;
   transform: translateX(-50%);
@@ -230,11 +156,11 @@
   color: var(--viz-axis);
   white-space: nowrap;
 }
-.adm-trend .ax-x span.first { transform: none; }
-.adm-trend .ax-x span.last { transform: translateX(-100%); }
+.lte .adm-trend .ax-x span.first { transform: none; }
+.lte .adm-trend .ax-x span.last { transform: translateX(-100%); }
 
 /* Chu giai theo con tro. Nam BEN TRONG .plot nen % bam dung cot ve. */
-.adm-tip {
+.lte .adm-tip {
   position: absolute;
   top: 0;
   z-index: 4;
@@ -242,212 +168,106 @@
   transform: translate(-50%, -108%);
   padding: 7px 10px;
   border-radius: 10px;
-  border: 1px solid var(--border-2);
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  border: 1px solid var(--bs-border-color);
+  background: var(--bs-body-bg);
+  box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
   font-size: 0.82rem;
   white-space: nowrap;
-  color: var(--text);
+  color: var(--bs-body-color);
 }
-.adm-tip .t { color: var(--text-3); font-size: 0.76rem; }
-.adm-tip b { font-variant-numeric: tabular-nums; }
+.lte .adm-tip .t { color: var(--bs-secondary-color); font-size: 0.76rem; }
+.lte .adm-tip b { font-variant-numeric: tabular-nums; }
 
-.adm-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 0.83rem; color: var(--text-2); }
-.adm-legend span { display: inline-flex; align-items: center; gap: 7px; }
-.adm-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.lte .adm-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 0.83rem;
+  color: var(--bs-secondary-color);
+}
+.lte .adm-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.lte .adm-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 
-/* ------------------------------------------------------------- bang --- */
-.adm-tablewrap { overflow-x: auto; }
-.adm-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-.adm-table th {
-  text-align: left;
-  padding: 10px 14px;
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--text-3);
-  border-bottom: 1px solid var(--border);
+/* ------------------------------------------------- xep hang ngang ------ */
+/* Thanh <= 24px, dau du lieu bo tron 4px, chan thanh vuong (dinh o goc 0).
+ * Ranh giua hai thanh la KHOANG TRONG mau nen, khong phai duong vien: vien la
+ * muc khong mang du lieu. */
+.lte .adm-bars { display: grid; gap: 8px; }
+.lte .adm-bar-row { display: grid; grid-template-columns: minmax(90px, 190px) 1fr auto; gap: 12px; align-items: center; }
+.lte .adm-bar-row .k {
+  font-size: 0.86rem;
+  color: var(--bs-secondary-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  background: var(--surface-2);
 }
-.adm-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-2); vertical-align: top; }
-.adm-table tbody tr:last-child td { border-bottom: 0; }
-.adm-table tbody tr.click { cursor: pointer; }
-.adm-table tbody tr.click:hover td { background: var(--surface-2); }
-.adm-table tbody tr.on td { background: color-mix(in srgb, var(--brand) 8%, transparent); }
-.adm-table .num { text-align: right; font-variant-numeric: tabular-nums; color: var(--text); font-weight: 600; }
-.adm-table .strong { color: var(--text); font-weight: 700; }
-.adm-table .clip { max-width: 460px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lte .adm-bar-row .track { height: 20px; border-radius: 0 4px 4px 0; background: var(--bs-secondary-bg); }
+.lte .adm-bar-row .fill { height: 100%; border-radius: 0 4px 4px 0; background: var(--viz-1); }
+.lte .adm-bar-row .v {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--bs-body-color);
+  font-variant-numeric: tabular-nums;
+  min-width: 46px;
+  text-align: right;
+}
 
-/* Cot tieu de can san cho, khong de bi bop den muc gay 5 dong. */
-.adm-table .ttl { min-width: 230px; }
+/* ------------------------------------------------------ cot theo gio -- */
+/* Duong chan: khong co no thi cac cot nhu treo lo lung giua khung. */
+.lte .adm-cols {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 120px;
+  border-bottom: 1px solid var(--viz-grid);
+}
+.lte .adm-cols .c { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; min-width: 0; }
+.lte .adm-cols .col { flex: 1; display: flex; align-items: flex-end; }
+.lte .adm-cols .fill { width: 100%; border-radius: 4px 4px 0 0; background: var(--viz-1); }
+.lte .adm-cols .t {
+  font-size: 0.64rem;
+  color: var(--bs-secondary-color);
+  text-align: center;
+  margin-top: 5px;
+  font-variant-numeric: tabular-nums;
+}
 
-/* Cot thao tac PHAI LUON THAY DUOC. Neu bang van tran o man hinh hep thi cot
- * nay dan vao le phai chu khong bi cat mat — mat nut Xoa la loi user bao
- * 24/08/2026, va do la cai nut khong duoc phep "bien mat am tham". */
-.adm-table th.act,
-.adm-table td.act {
+/* --------------------------------------------------------------- bang -- */
+/* Cot thao tac PHAI LUON THAY DUOC. Bang nam trong .table-responsive nen khi
+ * man hep no cuon ngang — cot nay dan vao le phai chu khong troi ra ngoai tam
+ * mat. Mat nut Xoa la loi user bao 24/08/2026, va do la kieu hong te nhat:
+ * nut khong bao loi, no chi bien mat. */
+.lte .adm-act-col {
   position: sticky;
   right: 0;
+  z-index: 2;
   white-space: nowrap;
   text-align: right;
-  background: var(--surface);
-  box-shadow: -9px 0 12px -9px rgba(20, 26, 46, 0.16);
+  /* Bootstrap to nen hang bang bien nay; lay lai dung no de o dinh khong bi
+   * "trong suot" luc hang doi mau (hover / soc xen ke). */
+  background: var(--bs-table-bg, var(--bs-body-bg));
+  background-image: linear-gradient(var(--bs-table-accent-bg, transparent), var(--bs-table-accent-bg, transparent));
+  box-shadow: -9px 0 12px -9px rgba(0, 0, 0, .25);
 }
-.adm-table th.act { background: var(--surface-2); }
-.adm-table tbody tr:hover td.act { background: var(--surface-2); }
-:root[data-theme='dark'] .adm-table th.act,
-:root[data-theme='dark'] .adm-table td.act { box-shadow: -9px 0 12px -9px rgba(0, 0, 0, 0.55); }
-/* Ba nut can ~130px. Khong ghim min-width thi trinh duyet bop cot nay xuong
- * 103px de nhuong cho cot tieu de, va nut thu ba (Xoa) tran ra ngoai khung. */
-.adm-table th.act,
-.adm-table td.act { min-width: 138px; padding-left: 8px; }
-.adm-table td.act .btn { padding: 6px 9px; }
-.adm-act { display: flex; gap: 6px; justify-content: flex-end; }
+/* Ba nut can ~138px. Khong ghim min-width thi trinh duyet bop cot nay lai de
+ * nhuong cho cot tieu de, va nut thu ba tran ra ngoai khung. */
+.lte th.adm-act-col,
+.lte td.adm-act-col { min-width: 138px; }
 
-/* Ba so lieu tuong tac gom vao MOT o: bieu tuong + so, khong xuong dong. */
-.adm-stats { display: flex; gap: 12px; justify-content: flex-end; white-space: nowrap; }
-.adm-stats span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  color: var(--text);
-}
-.adm-stats svg { width: 14px; height: 14px; color: var(--text-3); }
-
-/* --------------------------------------------------------- trang thai -- */
-/* Mau trang thai LUON kem chu — hai trong bon mau khong dat 3:1 tren nen sang,
- * va nguoi mu mau do-luc khong phan biet duoc "error" voi "warning" neu chi co
- * cham mau. Cham mau chi de liec nhanh, chu moi la thu mang nghia. */
-.adm-sev { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.82rem; white-space: nowrap; }
-.adm-sev::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--text-3)); flex: 0 0 auto; }
-.adm-sev.critical { --c: #d03b3b; color: #d03b3b; }
-.adm-sev.error { --c: #ec833a; color: #c96617; }
-.adm-sev.warning { --c: #f7a63b; color: #a9701a; }
-.adm-sev.info { --c: var(--info); color: var(--info); }
-:root[data-theme='dark'] .adm-sev.error { color: #f0a26e; }
-:root[data-theme='dark'] .adm-sev.warning { color: #f7c274; }
-
-.adm-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 9px;
-  border-radius: var(--pill);
-  font-size: 0.76rem;
-  font-weight: 700;
-  border: 1px solid var(--border-2);
-  color: var(--text-2);
-  background: var(--surface-2);
+.lte .adm-clip {
+  max-width: 460px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
-.adm-pill.ok { color: var(--success); border-color: color-mix(in srgb, var(--success) 40%, transparent); background: color-mix(in srgb, var(--success) 10%, transparent); }
-.adm-pill.bad { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); background: color-mix(in srgb, var(--danger) 10%, transparent); }
-.adm-pill.warn { color: #a9701a; border-color: color-mix(in srgb, var(--warning) 45%, transparent); background: color-mix(in srgb, var(--warning) 12%, transparent); }
-:root[data-theme='dark'] .adm-pill.warn { color: #f7c274; }
-.adm-pill.brand { color: var(--brand); border-color: color-mix(in srgb, var(--brand) 40%, transparent); background: color-mix(in srgb, var(--brand) 10%, transparent); }
-.adm-pill svg { width: 13px; height: 13px; }
+/* Cot tieu de can san cho, khong de bi bop den muc gay 5 dong. */
+.lte .adm-ttl { min-width: 230px; }
+.lte .adm-num { text-align: right; font-variant-numeric: tabular-nums; }
 
-/* ------------------------------------------------- viec can lam / bao -- */
-.adm-todo { display: grid; gap: 9px; }
-.adm-todo button {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  width: 100%;
-  text-align: left;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text);
-  font: inherit;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-.adm-todo button:hover { border-color: var(--brand); }
-.adm-todo button svg { width: 17px; height: 17px; flex: 0 0 auto; }
-.adm-todo button.critical { border-color: color-mix(in srgb, #d03b3b 45%, transparent); background: color-mix(in srgb, #d03b3b 8%, transparent); }
-.adm-todo button.critical svg { color: #d03b3b; }
-.adm-todo button.warning svg { color: #c07a12; }
-.adm-todo button.info svg { color: var(--info); }
-.adm-todo .n { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
-
-.adm-note {
-  display: flex;
-  gap: 11px;
-  padding: 13px 15px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-2);
-  font-size: 0.89rem;
-  line-height: 1.5;
-}
-.adm-note svg { width: 17px; height: 17px; flex: 0 0 auto; margin-top: 2px; color: var(--text-3); }
-.adm-note.warn { border-color: color-mix(in srgb, var(--warning) 40%, transparent); background: color-mix(in srgb, var(--warning) 8%, transparent); }
-.adm-note.warn svg { color: #c07a12; }
-.adm-note strong { color: var(--text); }
-
-/* ------------------------------------------------------------- form --- */
-.adm-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-bottom: 16px; }
-.adm-bar label { display: grid; gap: 4px; font-size: 0.78rem; font-weight: 600; color: var(--text-3); }
-.adm-bar select,
-.adm-bar input {
-  padding: 8px 11px;
-  border-radius: 10px;
-  border: 1px solid var(--border-2);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 0.88rem;
-  min-width: 140px;
-}
-.adm-bar select:focus,
-.adm-bar input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--ring); }
-.adm-bar .grow { flex: 1; min-width: 200px; }
-.adm-bar .grow input { width: 100%; }
-
-.adm-textarea {
-  width: 100%;
-  padding: 11px 13px;
-  border-radius: 12px;
-  border: 1px solid var(--border-2);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 0.92rem;
-  line-height: 1.55;
-  resize: vertical;
-}
-.adm-textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--ring); }
-.adm-textarea.code { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 0.83rem; }
-
-.adm-split { display: grid; grid-template-columns: minmax(220px, 290px) 1fr; gap: 20px; align-items: start; }
-.adm-list { max-height: 66vh; overflow: auto; padding: 8px; }
-.adm-list .g { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); padding: 10px 8px 4px; }
-.adm-list button {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 7px 10px;
-  border: 0;
-  border-radius: 9px;
-  background: none;
-  color: var(--text-2);
-  font: inherit;
-  font-size: 0.88rem;
-  cursor: pointer;
-  word-break: break-word;
-}
-.adm-list button:hover { background: var(--surface-2); color: var(--text); }
-.adm-list button.on { background: color-mix(in srgb, var(--brand) 13%, transparent); color: var(--brand); font-weight: 700; }
-
-.adm-mono { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 0.8rem; }
-.adm-pre {
+/* --------------------------------------------------------------- van -- */
+.lte .adm-mono { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 0.8rem; }
+.lte .adm-pre {
   white-space: pre-wrap;
   word-break: break-word;
   font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
@@ -457,65 +277,121 @@
   overflow: auto;
   padding: 11px 13px;
   border-radius: 10px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text-2);
+  background: var(--bs-secondary-bg);
+  border: 1px solid var(--bs-border-color);
+  color: var(--bs-secondary-color);
 }
 
-.adm-empty { padding: 34px 16px; text-align: center; color: var(--text-3); font-size: 0.92rem; }
-.adm-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
-.adm-muted { color: var(--text-3); font-size: 0.84rem; }
+/* Danh sach khoa noi dung ben trai tab Noi dung — dai, phai cuon rieng chu
+ * khong keo ca trang dai ra. */
+.lte .adm-picker { max-height: 66vh; overflow-y: auto; }
 
-/* -------------------------------------------------------------- nho --- */
-@media (max-width: 1000px) {
-  .adm-shell { grid-template-columns: 1fr; }
-  .adm-rail {
-    position: static;
-    grid-auto-flow: column;
-    grid-auto-columns: max-content;
-    overflow-x: auto;
-    gap: 6px;
-  }
-  .adm-rail .adm-rail-sep { display: none; }
-  .adm-grid-2,
-  .adm-split { grid-template-columns: 1fr; }
-  .adm-list { max-height: 300px; }
+@media (max-width: 991.98px) {
+  .lte .adm-picker { max-height: 320px; }
 }
 
-/* ------------------------------------------------- xep hang ngang ------ */
-/* Thanh <= 24px, dau du lieu bo tron 4px, chan thanh vuong (dinh o goc 0).
- * Ranh giua hai thanh la KHOANG TRONG mau nen, khong phai duong vien: vien la
- * muc khong mang du lieu. */
-.adm-bars { display: grid; gap: 8px; }
-.adm-bar-row { display: grid; grid-template-columns: minmax(90px, 190px) 1fr auto; gap: 12px; align-items: center; }
-.adm-bar-row .k {
-  font-size: 0.86rem;
-  color: var(--text-2);
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* ----------------------------------------------------------- small-box -- */
+/* AdminLTE ve bieu tuong mo o goc phai o so lieu bang font-icon 70px. app-icon
+ * tra ve <svg> nen phai ghi de kich thuoc — neu khong no an theo luat 18px o
+ * dau file va bien thanh mot cham ti hon lech goc. */
+.lte .small-box app-icon.small-box-icon svg { width: 70px; height: 70px; }
+
+/* Chan o so lieu chi de ghi chu (khong bam duoc) nen bo hieu ung ro chuot. */
+.lte .small-box > .small-box-footer.adm-static { cursor: default; }
+.lte .small-box > .small-box-footer.adm-static:hover { background-color: rgba(0, 0, 0, .07); }
+
+/* Trang thai rong CUA BIEU DO (charts.ts phat ra lop nay khi khong co du lieu).
+ * Cac cho khac dung .text-center.text-secondary cua Bootstrap; rieng bieu do
+ * ve HTML tu chuoi nen phai co lop san. */
+.lte .adm-empty {
+  padding: 34px 16px;
+  text-align: center;
+  color: var(--bs-secondary-color);
+  font-size: .92rem;
+}
+
+/* ===================================================================== *
+ *  GO ANH HUONG CUA STYLE TOAN CUC PORTAL
+ * ===================================================================== *
+ * Portal dinh nghia san `.row` `.btn` `.card` `.navbar` cho giao dien cua no
+ * (src/styles.scss). Bootstrap — nam trong AdminLTE — dung DUNG nhung ten lop
+ * do. Selector cua AdminLTE cu the hon (`.lte .row` vs `.row`) nen no thang o
+ * moi thuoc tinh NO CO KHAI BAO; nhung thuoc tinh nao Bootstrap khong noi den
+ * thi ban cua portal VAN AP DUNG. Do la mot lop lai am tham, khong bao loi.
+ *
+ * Do that 25/08/2026: `.row{gap:12px}` cua portal lam bon o `col-lg-3` khong
+ * con vua mot hang (moi cot bi day them 12px) va hai the `col-lg-6` xep chong
+ * len nhau thay vi nam canh nhau. Grid cua Bootstrap dung margin am + padding,
+ * KHONG dung `gap`, nen khong co gi ghi de no.
+ *
+ * Sau moi lan sua src/styles.scss, chay `node tools/audit_admin_css_leak.mjs`
+ * — no liet ke moi thuoc tinh con lot luoi kieu nay.
+ */
+.lte .row {
+  align-items: initial;   /* portal: center — lam cac cot cao khong bang nhau */
+  gap: 0;                 /* portal: 12px — pha vo luoi 12 cot */
+}
+
+.lte .btn { gap: 0; }
+.lte .btn:active { transform: none; }   /* portal: nhun xuong 1px khi bam */
+.lte .btn-primary {
+  background-image: none;               /* portal: var(--grad-brand-2) */
+  box-shadow: none;
+}
+.lte .btn-primary:hover { transform: none; box-shadow: none; }
+
+.lte .card { padding: 0; }              /* portal: 24px — AdminLTE de card-body lo */
+
+.lte .navbar {
+  position: static;                     /* portal: sticky */
+  top: auto;                            /* portal: 0 */
+  height: auto;                         /* portal: var(--nav-h) */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+
+/* Nhan cua o so lieu khong duoc chay xuong duoi bieu tuong mo o goc phai.
+ * AdminLTE dat `z-index: 5` cho h3/p nhung KHONG dat `position` nen z-index vo
+ * hieu; nhan dai tieng Viet ("Người mở portal hôm nay") vi the bi bieu tuong
+ * 70px de len. Chua chac lam: chua cho san. */
+.lte .small-box > .inner { padding-right: 92px; }
+.lte .small-box > .inner h3,
+.lte .small-box > .inner p { position: relative; }
+
+/* app-icon la MOT O FLEX khi nam trong `.alert.d-flex` hay `.card-footer .d-flex`.
+ * O flex mac dinh duoc phep co lai (`flex-shrink: 1`), va portal co
+ * `img, svg { max-width: 100% }` nen svg co that. Do duoc 25/08/2026: bieu tuong
+ * canh mot doan chu dai tut tu 18px xuong 6,7px — van "hien", chi la khong con
+ * nhin ra hinh gi. */
+.lte app-icon { flex: 0 0 auto; }
+
+/* Portal dat `.btn{display:inline-flex; align-items:center; justify-content:center;
+ * white-space:nowrap}`. Bootstrap de `.btn` la inline-block nen hai thuoc tinh
+ * canh le tro thanh vo nghia — dat lai ve mac dinh cho khoi ai doc nham. Rieng
+ * `white-space: nowrap` thi GIU, va khai bao o day de no la lua chon cua trang
+ * nay chu khong phai thu di lac tu portal sang: nhan nut trong bang quan tri
+ * ngat dong giua chung thi cot thao tac phinh cao len. */
+.lte .btn {
+  align-items: normal;
+  justify-content: normal;
   white-space: nowrap;
 }
-.adm-bar-row .track { height: 20px; border-radius: 0 4px 4px 0; background: var(--surface-3); }
-.adm-bar-row .fill { height: 100%; border-radius: 0 4px 4px 0; background: var(--viz-1); }
-.adm-bar-row .v {
-  font-size: 0.86rem;
-  font-weight: 700;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  min-width: 46px;
-  text-align: right;
-}
 
-/* ------------------------------------------------------ cot theo gio -- */
-/* Duong chan: khong co no thi cac cot nhu treo lo lung giua khung. */
-.adm-cols { display: flex; align-items: flex-end; gap: 2px; height: 120px; border-bottom: 1px solid var(--viz-grid); }
-.adm-cols .c { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; min-width: 0; }
-.adm-cols .col { flex: 1; display: flex; align-items: flex-end; }
-.adm-cols .fill { width: 100%; border-radius: 4px 4px 0 0; background: var(--viz-1); }
-.adm-cols .t {
-  font-size: 0.64rem;
-  color: var(--text-3);
-  text-align: center;
-  margin-top: 5px;
-  font-variant-numeric: tabular-nums;
-}
+/* --- selector THE TRAN cua portal ---------------------------------------
+ * `p{color:var(--text-2)}` va `h1..h4{letter-spacing:-.02em}` trong
+ * styles.scss la selector the tran. Chung khong "thua" AdminLTE, vi AdminLTE
+ * KHONG khai bao mau cho <p>: Bootstrap de <p> THUA KE mau tu the cha. Ma gia
+ * tri thua ke bao gio cung thua mot khai bao truc tiep, du khai bao do yeu den
+ * dau — nen `.text-bg-success{color:#fff}` dat tren the cha khong voi toi
+ * duoc <p> ben trong.
+ *
+ * Do that 25/08/2026: nhan cua o so lieu ("Đã đăng", "Người mở portal hôm nay")
+ * ra mau #59617a tren nen xanh #198754 — tuong phan ~2:1, nhin nhu chu mo chu
+ * khong nhu loi. Tra <p> ve dung mo hinh cua Bootstrap. */
+.lte p { color: inherit; }
+
+/* Chu cai san hon cua portal lam tieu de AdminLTE chat lai, lech voi phan con
+ * lai cua template. Da lay template thi lay ca kieu chu cua no. */
+.lte h1, .lte h2, .lte h3, .lte h4, .lte h5, .lte h6 { letter-spacing: normal; }
+

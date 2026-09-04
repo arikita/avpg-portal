@@ -1,59 +1,98 @@
-<div class="adm-head">
-  <div>
-    <h1>{{ vi() ? 'Tin tức' : 'News' }}</h1>
-    <p>
-      {{ vi()
-        ? 'Toàn bộ bài viết ở mọi trạng thái, kể cả bản nháp và bài hẹn giờ của người khác.'
-        : 'Every post in every state, including other people’s drafts and scheduled posts.' }}
-    </p>
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <p class="text-secondary mb-0 me-auto">
+    {{ vi()
+      ? 'Toàn bộ bài viết ở mọi trạng thái, kể cả bản nháp và bài hẹn giờ của người khác.'
+      : 'Every post in every state, including other people’s drafts and scheduled posts.' }}
+  </p>
+  @if (canPost()) {
+    <a class="btn btn-sm btn-primary" routerLink="/news/new">
+      <app-icon name="edit" /> {{ vi() ? 'Viết tin mới' : 'New post' }}
+    </a>
+  }
+  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="load()">
+    <app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}
+  </button>
+</div>
+
+<div class="row">
+  <div class="col-lg-3 col-6">
+    <div class="small-box text-bg-success">
+      <div class="inner">
+        <h3>{{ count('published') }}</h3>
+        <p>{{ vi() ? 'Đã đăng' : 'Published' }}</p>
+      </div>
+      <app-icon name="newspaper" class="small-box-icon" />
+    </div>
   </div>
-  <div class="adm-head-actions">
-    @if (canPost()) {
-      <a class="btn btn-primary btn-sm" routerLink="/news/new"><app-icon name="edit" /> {{ vi() ? 'Viết tin mới' : 'New post' }}</a>
-    }
-    <button class="btn btn-ghost btn-sm" (click)="load()"><app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}</button>
+  <div class="col-lg-3 col-6">
+    <div class="small-box text-bg-secondary">
+      <div class="inner">
+        <h3>{{ count('draft') }}</h3>
+        <p>{{ vi() ? 'Bản nháp' : 'Drafts' }}</p>
+      </div>
+      <app-icon name="edit" class="small-box-icon" />
+    </div>
+  </div>
+  <div class="col-lg-3 col-6">
+    <div class="small-box text-bg-warning">
+      <div class="inner">
+        <h3>{{ count('scheduled') }}</h3>
+        <p>{{ vi() ? 'Hẹn giờ' : 'Scheduled' }}</p>
+      </div>
+      <app-icon name="clock" class="small-box-icon" />
+    </div>
+  </div>
+  <div class="col-lg-3 col-6">
+    <div class="small-box text-bg-secondary">
+      <div class="inner">
+        <h3>{{ count('hidden') }}</h3>
+        <p>{{ vi() ? 'Đang ẩn' : 'Hidden' }}</p>
+      </div>
+      <app-icon name="eye" class="small-box-icon" />
+    </div>
   </div>
 </div>
 
-<div class="adm-cards">
-  <div class="adm-card adm-stat">
-    <div class="k">{{ vi() ? 'Đã đăng' : 'Published' }}</div>
-    <div class="v">{{ count('published') }}</div>
-  </div>
-  <div class="adm-card adm-stat">
-    <div class="k">{{ vi() ? 'Bản nháp' : 'Drafts' }}</div>
-    <div class="v">{{ count('draft') }}</div>
-  </div>
-  <div class="adm-card adm-stat">
-    <div class="k">{{ vi() ? 'Hẹn giờ' : 'Scheduled' }}</div>
-    <div class="v">{{ count('scheduled') }}</div>
-  </div>
-  <div class="adm-card adm-stat">
-    <div class="k">{{ vi() ? 'Đang ẩn' : 'Hidden' }}</div>
-    <div class="v">{{ count('hidden') }}</div>
-  </div>
-</div>
-
-<div class="adm-bar mt-3">
-  <label>
-    {{ vi() ? 'Trạng thái' : 'Status' }}
-    <select [ngModel]="fStatus()" (ngModelChange)="fStatus.set($event); load()">
+<div class="row g-2 align-items-end mb-3">
+  <div class="col-md-3">
+    <label class="form-label fs-7 text-secondary mb-1" for="adm-news-status">
+      {{ vi() ? 'Trạng thái' : 'Status' }}
+    </label>
+    <select
+      id="adm-news-status"
+      class="form-select"
+      [ngModel]="fStatus()"
+      (ngModelChange)="fStatus.set($event); load()"
+    >
       <option value="">{{ vi() ? 'Tất cả' : 'All' }}</option>
       <option value="published">{{ vi() ? 'Đã đăng' : 'Published' }}</option>
       <option value="draft">{{ vi() ? 'Nháp' : 'Draft' }}</option>
       <option value="scheduled">{{ vi() ? 'Hẹn giờ' : 'Scheduled' }}</option>
       <option value="hidden">{{ vi() ? 'Đang ẩn' : 'Hidden' }}</option>
     </select>
-  </label>
-  <label class="grow">
-    {{ vi() ? 'Tìm theo tiêu đề hoặc tác giả' : 'Search title or author' }}
-    <input type="search" [ngModel]="q()" (ngModelChange)="q.set($event)" (keyup.enter)="load()" />
-  </label>
-  <button class="btn btn-ghost btn-sm" style="margin-bottom:1px" (click)="load()">{{ vi() ? 'Tìm' : 'Search' }}</button>
+  </div>
+  <div class="col-md-7">
+    <label class="form-label fs-7 text-secondary mb-1" for="adm-news-q">
+      {{ vi() ? 'Tìm theo tiêu đề hoặc tác giả' : 'Search title or author' }}
+    </label>
+    <input
+      id="adm-news-q"
+      type="search"
+      class="form-control"
+      [ngModel]="q()"
+      (ngModelChange)="q.set($event)"
+      (keyup.enter)="load()"
+    />
+  </div>
+  <div class="col-md-2">
+    <button type="button" class="btn btn-outline-secondary w-100" (click)="load()">
+      <app-icon name="search" /> {{ vi() ? 'Tìm' : 'Search' }}
+    </button>
+  </div>
 </div>
 
 @if (!canModerate()) {
-  <div class="adm-note">
+  <div class="alert alert-secondary d-flex gap-2" role="alert">
     <app-icon name="info" />
     <div>
       {{ vi()
@@ -63,81 +102,110 @@
   </div>
 }
 
-@if (status()) { <div class="adm-note mt-2"><app-icon name="info" /><div>{{ status() }}</div></div> }
+@if (status()) {
+  <div class="alert alert-info d-flex gap-2" role="alert">
+    <app-icon name="info" /><div>{{ status() }}</div>
+  </div>
+}
 
-<div class="adm-card pad-0 mt-3">
+<div class="card mb-4">
   @if (loading()) {
-    <div class="adm-empty">{{ vi() ? 'Đang tải…' : 'Loading…' }}</div>
+    <div class="card-body text-center text-secondary py-5">{{ vi() ? 'Đang tải…' : 'Loading…' }}</div>
   } @else if (!rows().length) {
-    <div class="adm-empty">{{ vi() ? 'Không có bài nào khớp bộ lọc.' : 'No posts match the filter.' }}</div>
+    <div class="card-body text-center text-secondary py-5">
+      {{ vi() ? 'Không có bài nào khớp bộ lọc.' : 'No posts match the filter.' }}
+    </div>
   } @else {
-    <div class="adm-tablewrap">
-      <table class="adm-table">
+    <div class="card-body p-0">
+      <div class="table-responsive">
         <!-- 5 cot, khong phai 8. Ban dau tach rieng Xem/Binh luan/Cam xuc va
              Tac gia/Thoi diem => bang tran khoi khung 885px, tieu de gay 5 dong
              va cot thao tac BI CAT MAT NUT XOA (user bao 24/08/2026). -->
-        <thead>
-          <tr>
-            <th>{{ vi() ? 'Tiêu đề' : 'Title' }}</th>
-            <th>{{ vi() ? 'Trạng thái' : 'Status' }}</th>
-            <th>{{ vi() ? 'Tác giả · thời điểm' : 'Author · when' }}</th>
-            <th style="text-align:right">{{ vi() ? 'Tương tác' : 'Engagement' }}</th>
-            <th class="act"></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (r of rows(); track r.id) {
+        <table class="table table-hover align-middle mb-0">
+          <thead>
             <tr>
-              <td class="ttl">
-                <a [routerLink]="['/news', r.id]" class="strong">{{ r.title }}</a>
-                <div class="adm-muted" style="margin-top:3px">
-                  {{ r.category }}
-                  @if (r.pinned) { · <span class="adm-pill brand"><app-icon name="star" /> {{ vi() ? 'Ghim' : 'Pinned' }}</span> }
-                  @if (r.polls) { · {{ r.polls }} poll }
-                  @if (!r.hasCover) { · <span class="adm-muted">{{ vi() ? 'chưa có ảnh bìa' : 'no cover' }}</span> }
-                </div>
-              </td>
-              <td>
-                <span class="adm-pill" [class.ok]="r.status === 'published'" [class.warn]="r.status === 'scheduled'">
-                  {{ statusLabel(r.status) }}
-                </span>
-                @if (overdue(r)) {
-                  <div class="adm-sev warning" style="margin-top:4px">{{ vi() ? 'quá hạn phát hành' : 'past due' }}</div>
-                }
-              </td>
-              <td>
-                <div class="strong">{{ r.authorName || r.author }}</div>
-                <div class="adm-muted" style="white-space:nowrap">
-                  {{ when(r.publishedAt || r.scheduledAt || r.createdAt) }}
-                </div>
-              </td>
-              <td>
-                <div class="adm-stats">
-                  <span [attr.title]="vi() ? 'Lượt xem' : 'Views'"><app-icon name="eye" />{{ r.views }}</span>
-                  <span [attr.title]="vi() ? 'Bình luận' : 'Comments'"><app-icon name="message" />{{ r.comments }}</span>
-                  <span [attr.title]="vi() ? 'Cảm xúc' : 'Reactions'"><app-icon name="heart" />{{ r.reactions }}</span>
-                </div>
-              </td>
-              <td class="act">
-                <div class="adm-act">
-                  <a class="btn btn-ghost btn-sm" [routerLink]="['/news', r.id, 'edit']"
-                     [attr.title]="vi() ? 'Sửa bài' : 'Edit'"><app-icon name="edit" /></a>
-                  @if (canModerate()) {
-                    <button class="btn btn-ghost btn-sm" [disabled]="busy() === r.id" (click)="pin(r)"
-                            [attr.title]="r.pinned ? (vi() ? 'Bỏ ghim' : 'Unpin') : (vi() ? 'Ghim' : 'Pin')">
-                      <app-icon name="star" />
-                    </button>
-                    <button class="btn btn-ghost btn-sm" [disabled]="busy() === r.id" (click)="remove(r)"
-                            [attr.title]="vi() ? 'Xoá' : 'Delete'">
-                      <app-icon name="trash" />
-                    </button>
-                  }
-                </div>
-              </td>
+              <th>{{ vi() ? 'Tiêu đề' : 'Title' }}</th>
+              <th>{{ vi() ? 'Trạng thái' : 'Status' }}</th>
+              <th>{{ vi() ? 'Tác giả · thời điểm' : 'Author · when' }}</th>
+              <th class="text-end">{{ vi() ? 'Tương tác' : 'Engagement' }}</th>
+              <th class="adm-act-col"></th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (r of rows(); track r.id) {
+              <tr>
+                <td class="adm-ttl">
+                  <a [routerLink]="['/news', r.id]" class="fw-semibold">{{ r.title }}</a>
+                  <div class="text-secondary fs-7 mt-1">
+                    {{ r.category }}
+                    @if (r.pinned) {
+                      · <span class="badge text-bg-primary"><app-icon name="star" /> {{ vi() ? 'Ghim' : 'Pinned' }}</span>
+                    }
+                    @if (r.polls) { · {{ r.polls }} poll }
+                    @if (!r.hasCover) { · {{ vi() ? 'chưa có ảnh bìa' : 'no cover' }} }
+                  </div>
+                </td>
+                <td>
+                  <span
+                    class="badge"
+                    [class.text-bg-success]="r.status === 'published'"
+                    [class.text-bg-warning]="r.status === 'scheduled'"
+                    [class.text-bg-secondary]="r.status !== 'published' && r.status !== 'scheduled'"
+                  >{{ statusLabel(r.status) }}</span>
+                  @if (overdue(r)) {
+                    <div class="text-warning-emphasis fs-7 fw-semibold mt-1">
+                      {{ vi() ? 'quá hạn phát hành' : 'past due' }}
+                    </div>
+                  }
+                </td>
+                <td>
+                  <div class="fw-semibold">{{ r.authorName || r.author }}</div>
+                  <div class="text-secondary fs-7 text-nowrap">
+                    {{ when(r.publishedAt || r.scheduledAt || r.createdAt) }}
+                  </div>
+                </td>
+                <td class="text-end text-nowrap">
+                  <!-- Ba so gom vao MOT o: bieu tuong + so, khong xuong dong. -->
+                  <span class="me-2" [attr.title]="vi() ? 'Lượt xem' : 'Views'">
+                    <app-icon name="eye" /> {{ r.views }}
+                  </span>
+                  <span class="me-2" [attr.title]="vi() ? 'Bình luận' : 'Comments'">
+                    <app-icon name="message" /> {{ r.comments }}
+                  </span>
+                  <span [attr.title]="vi() ? 'Cảm xúc' : 'Reactions'">
+                    <app-icon name="heart" /> {{ r.reactions }}
+                  </span>
+                </td>
+                <td class="adm-act-col">
+                  <div class="btn-group btn-group-sm">
+                    <a
+                      class="btn btn-outline-secondary"
+                      [routerLink]="['/news', r.id, 'edit']"
+                      [attr.title]="vi() ? 'Sửa bài' : 'Edit'"
+                    ><app-icon name="edit" /></a>
+                    @if (r.canManage) {
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        [disabled]="busy() === r.id"
+                        (click)="pin(r)"
+                        [attr.title]="r.pinned ? (vi() ? 'Bỏ ghim' : 'Unpin') : (vi() ? 'Ghim' : 'Pin')"
+                      ><app-icon name="star" /></button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-danger"
+                        [disabled]="busy() === r.id"
+                        (click)="remove(r)"
+                        [attr.title]="vi() ? 'Xoá' : 'Delete'"
+                      ><app-icon name="trash" /></button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
   }
 </div>

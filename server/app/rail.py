@@ -44,54 +44,15 @@ def _conn():
 
 
 # ------------------------------------------------------------------ anh --
-def _album_slug() -> str:
-    """Album moi nhat (thu muc co album.json, ten thu muc = slug)."""
-    try:
-        slugs = sorted(d for d in os.listdir(GALLERY_DIR)
-                       if os.path.isfile(os.path.join(GALLERY_DIR, d, "album.json")))
-    except OSError:
-        return ""
-    return slugs[-1] if slugs else ""
-
-
-def _thumb_stems(slug: str) -> list[str]:
-    """Ten anh DA co thumb tren dia — khong dung toi share NAS nen luon nhanh."""
-    hit = _photo_cache.get(slug)
-    if hit and time.time() - hit[0] < PHOTO_TTL:
-        return hit[2]
-    try:
-        stems = sorted(f[:-4] for f in os.listdir(os.path.join(GALLERY_DIR, slug, "thumb"))
-                       if f.endswith(".jpg"))
-    except OSError:
-        stems = []
-    _photo_cache[slug] = (time.time(), slug, stems)
-    return stems
-
-
-def _album_title(slug: str) -> dict:
-    import json
-    try:
-        with open(os.path.join(GALLERY_DIR, slug, "album.json"), encoding="utf-8") as f:
-            meta = json.load(f)
-    except (OSError, ValueError):
-        return {"vi": slug, "en": slug}
-    return meta.get("title") or {"vi": slug, "en": slug}
+# Viec chon album/anh nam o gallery.py: MOT cho quyet dinh album nao la cong
+# khai, dung cho ca /api/gallery lan o mosaic nay. Truoc 25/08/2026 rail tu lay
+# "album cuoi cung theo thu tu chu cai" va KHONG xet trang thai — album nhap
+# cua Marketing lot thang ra /feed.
+from .gallery import rail_photos as _photos_impl
 
 
 def _photos() -> dict:
-    """Vai anh NGAU NHIEN trong album moi nhat — moi lan mo trang mot bo khac."""
-    slug = _album_slug()
-    if not slug:
-        return {"slug": "", "title": {"vi": "", "en": ""}, "count": 0, "photos": []}
-    stems = _thumb_stems(slug)
-    pick = random.sample(stems, min(PHOTO_COUNT, len(stems))) if stems else []
-    return {
-        "slug": slug,
-        "title": _album_title(slug),
-        "count": len(stems),
-        "photos": [{"thumb": f"/media/gallery/{slug}/thumb/{s}.jpg",
-                    "full": f"/api/gallery/{slug}/img/{s}.jpg"} for s in pick],
-    }
+    return _photos_impl(PHOTO_COUNT)
 
 
 # --------------------------------------------------------------- online --

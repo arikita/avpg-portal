@@ -1,42 +1,59 @@
 <!-- BAO MAT: message / stack / breadcrumb la chuoi do TRINH DUYET NGUOI DUNG
      gui len. Toan bo file nay chi duoc dung interpolation {{ }}; CAM TUYET DOI
      [innerHTML] o bat ky truong nao cua bang loi. -->
-<div class="adm-head">
-  <div>
-    <h1>{{ vi() ? 'Lỗi ứng dụng' : 'Application errors' }}</h1>
-    <p>
-      {{ vi()
-        ? 'Gộp theo loại lỗi, không phải theo từng lần xảy ra. Giờ hiển thị theo +07 để đối chiếu được với Zabbix và Graylog.'
-        : 'Grouped by error type, not per occurrence. Times in +07 so they line up with Zabbix and Graylog.' }}
-    </p>
-  </div>
-  <div class="adm-head-actions">
-    <button class="btn btn-ghost btn-sm" (click)="load()"><app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}</button>
-  </div>
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <p class="text-secondary mb-0 me-auto">
+    {{ vi()
+      ? 'Gộp theo loại lỗi, không phải theo từng lần xảy ra. Giờ hiển thị theo +07 để đối chiếu được với Zabbix và Graylog.'
+      : 'Grouped by error type, not per occurrence. Times in +07 so they line up with Zabbix and Graylog.' }}
+  </p>
+  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="load()">
+    <app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}
+  </button>
 </div>
 
-<div class="adm-cards">
-  <div class="adm-card adm-stat">
-    <div class="k"><span class="adm-sev critical">critical</span></div>
-    <div class="v">{{ sev('critical') }}</div>
+<div class="row">
+  <div class="col-lg-3 col-6">
+    <div class="small-box" [class.text-bg-danger]="sev('critical') > 0" [class.text-bg-secondary]="!sev('critical')">
+      <div class="inner">
+        <h3>{{ sev('critical') }}</h3>
+        <p>critical</p>
+      </div>
+      <app-icon name="alert-triangle" class="small-box-icon" />
+    </div>
   </div>
-  <div class="adm-card adm-stat">
-    <div class="k"><span class="adm-sev error">error</span></div>
-    <div class="v">{{ sev('error') }}</div>
+  <div class="col-lg-3 col-6">
+    <div class="small-box" [class.text-bg-warning]="sev('error') > 0" [class.text-bg-secondary]="!sev('error')">
+      <div class="inner">
+        <h3>{{ sev('error') }}</h3>
+        <p>error</p>
+      </div>
+      <app-icon name="x" class="small-box-icon" />
+    </div>
   </div>
-  <div class="adm-card adm-stat">
-    <div class="k"><span class="adm-sev warning">warning</span></div>
-    <div class="v">{{ sev('warning') }}</div>
+  <div class="col-lg-3 col-6">
+    <div class="small-box text-bg-secondary">
+      <div class="inner">
+        <h3>{{ sev('warning') }}</h3>
+        <p>warning</p>
+      </div>
+      <app-icon name="bell" class="small-box-icon" />
+    </div>
   </div>
-  <div class="adm-card adm-stat">
-    <div class="k"><span class="adm-sev info">info</span></div>
-    <div class="v">{{ sev('info') }}</div>
+  <div class="col-lg-3 col-6">
+    <div class="small-box text-bg-secondary">
+      <div class="inner">
+        <h3>{{ sev('info') }}</h3>
+        <p>info</p>
+      </div>
+      <app-icon name="info" class="small-box-icon" />
+    </div>
   </div>
 </div>
 
 <!-- BAI HOC: bang nay TRONG cung co the nghia la duong ong telemetry da chet,
      chu khong phai khong co loi. Chi tin khi Zabbix van nhan duoc heartbeat. -->
-<div class="adm-note mt-3">
+<div class="alert alert-info d-flex gap-2" role="alert">
   <app-icon name="info" />
   <div>
     {{ vi()
@@ -45,109 +62,141 @@
   </div>
 </div>
 
-<div class="adm-bar mt-3">
-  <label>
-    {{ vi() ? 'Mức độ' : 'Severity' }}
-    <select [ngModel]="fSeverity()" (ngModelChange)="fSeverity.set($event); load()">
+<div class="row g-2 mb-3">
+  <div class="col-md-4">
+    <label class="form-label fs-7 text-secondary mb-1" for="adm-err-sev">{{ vi() ? 'Mức độ' : 'Severity' }}</label>
+    <select id="adm-err-sev" class="form-select" [ngModel]="fSeverity()" (ngModelChange)="fSeverity.set($event); load()">
       <option value="">{{ vi() ? 'Tất cả' : 'All' }}</option>
       <option value="critical">critical</option>
       <option value="error">error</option>
       <option value="warning">warning</option>
       <option value="info">info</option>
     </select>
-  </label>
-  <label>
-    {{ vi() ? 'Trạng thái' : 'Status' }}
-    <select [ngModel]="fStatus()" (ngModelChange)="fStatus.set($event); load()">
+  </div>
+  <div class="col-md-4">
+    <label class="form-label fs-7 text-secondary mb-1" for="adm-err-status">{{ vi() ? 'Trạng thái' : 'Status' }}</label>
+    <select id="adm-err-status" class="form-select" [ngModel]="fStatus()" (ngModelChange)="fStatus.set($event); load()">
       <option value="">{{ vi() ? 'Tất cả' : 'All' }}</option>
       <option value="new">new</option>
       <option value="ack">ack</option>
       <option value="resolved">resolved</option>
     </select>
-  </label>
-  <label>
-    {{ vi() ? 'Khoảng thời gian' : 'Time range' }}
-    <select [ngModel]="fHours()" (ngModelChange)="fHours.set(+$event); load()">
+  </div>
+  <div class="col-md-4">
+    <label class="form-label fs-7 text-secondary mb-1" for="adm-err-hours">
+      {{ vi() ? 'Khoảng thời gian' : 'Time range' }}
+    </label>
+    <select id="adm-err-hours" class="form-select" [ngModel]="fHours()" (ngModelChange)="fHours.set(+$event); load()">
       <option [value]="1">{{ vi() ? '1 giờ' : '1 hour' }}</option>
       <option [value]="24">{{ vi() ? '24 giờ' : '24 hours' }}</option>
       <option [value]="168">{{ vi() ? '7 ngày' : '7 days' }}</option>
       <option [value]="720">{{ vi() ? '30 ngày' : '30 days' }}</option>
     </select>
-  </label>
+  </div>
 </div>
 
-@if (status()) { <div class="adm-note warn"><app-icon name="alert-triangle" /><div>{{ status() }}</div></div> }
+@if (status()) {
+  <div class="alert alert-warning d-flex gap-2" role="alert">
+    <app-icon name="alert-triangle" /><div>{{ status() }}</div>
+  </div>
+}
 
-<div class="adm-card pad-0 mt-2">
+<div class="card mb-4">
   @if (loading()) {
-    <div class="adm-empty">{{ vi() ? 'Đang tải…' : 'Loading…' }}</div>
+    <div class="card-body text-center text-secondary py-5">{{ vi() ? 'Đang tải…' : 'Loading…' }}</div>
   } @else if (!rows().length) {
-    <div class="adm-empty">{{ vi() ? 'Không có lỗi nào trong khoảng đã chọn.' : 'No errors in the selected range.' }}</div>
+    <div class="card-body text-center text-secondary py-5">
+      {{ vi() ? 'Không có lỗi nào trong khoảng đã chọn.' : 'No errors in the selected range.' }}
+    </div>
   } @else {
-    <div class="adm-tablewrap">
-      <table class="adm-table">
+    <div class="card-body p-0">
+      <div class="table-responsive">
         <!-- 6 cot, khong phai 8. Tach rieng Loai/Thong diep va So lan/Nguoi dinh
              lam bang rong 976px trong khi cot noi dung chi co 878px => tran ra
              va day CA TRANG sang cuon ngang (do duoc 24/08/2026). -->
-        <thead>
-          <tr>
-            <th>{{ vi() ? 'Mức' : 'Sev' }}</th>
-            <th>{{ vi() ? 'Lỗi' : 'Error' }}</th>
-            <th>{{ vi() ? 'Đường dẫn' : 'Route' }}</th>
-            <th style="text-align:right">{{ vi() ? 'Ảnh hưởng' : 'Impact' }}</th>
-            <th>{{ vi() ? 'Lần cuối' : 'Last seen' }}</th>
-            <th>{{ vi() ? 'Trạng thái' : 'Status' }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (r of rows(); track r.id) {
-            <tr class="click" [class.on]="selected()?.id === r.id" (click)="open(r)">
-              <td><span class="adm-sev" [class]="'adm-sev ' + r.severity">{{ r.severity }}</span></td>
-              <td class="ttl">
-                <div class="strong">{{ r.kind }}</div>
-                <div class="adm-muted clip">{{ r.message }}</div>
-              </td>
-              <td class="adm-mono">{{ r.route }}</td>
-              <td class="num" style="white-space:nowrap">
-                {{ r.count }} {{ vi() ? 'lần' : 'x' }}
-                <div class="adm-muted">{{ r.usersHit }} {{ vi() ? 'người' : 'users' }}</div>
-              </td>
-              <td style="white-space:nowrap">{{ when(r.lastSeen) }}</td>
-              <td><span class="adm-pill" [class.ok]="r.status === 'resolved'">{{ r.status }}</span></td>
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>{{ vi() ? 'Mức' : 'Sev' }}</th>
+              <th>{{ vi() ? 'Lỗi' : 'Error' }}</th>
+              <th>{{ vi() ? 'Đường dẫn' : 'Route' }}</th>
+              <th class="text-end">{{ vi() ? 'Ảnh hưởng' : 'Impact' }}</th>
+              <th>{{ vi() ? 'Lần cuối' : 'Last seen' }}</th>
+              <th>{{ vi() ? 'Trạng thái' : 'Status' }}</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (r of rows(); track r.id) {
+              <tr
+                role="button"
+                [class.table-active]="selected()?.id === r.id"
+                (click)="open(r)"
+              >
+                <td><span class="badge" [class]="'badge ' + sevBadge(r.severity)">{{ r.severity }}</span></td>
+                <td class="adm-ttl">
+                  <div class="fw-semibold">{{ r.kind }}</div>
+                  <div class="text-secondary fs-7 adm-clip">{{ r.message }}</div>
+                </td>
+                <td class="adm-mono">{{ r.route }}</td>
+                <td class="adm-num text-nowrap">
+                  {{ r.count }} {{ vi() ? 'lần' : 'x' }}
+                  <div class="text-secondary fs-7 fw-normal">{{ r.usersHit }} {{ vi() ? 'người' : 'users' }}</div>
+                </td>
+                <td class="text-nowrap text-secondary">{{ when(r.lastSeen) }}</td>
+                <td>
+                  <span
+                    class="badge"
+                    [class.text-bg-success]="r.status === 'resolved'"
+                    [class.text-bg-secondary]="r.status !== 'resolved'"
+                  >{{ r.status }}</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
   }
 </div>
 
 @if (selected(); as s) {
-  <div class="adm-card mt-3">
-    <div style="display:flex; justify-content:space-between; gap:12px; align-items:start; flex-wrap:wrap">
-      <div style="min-width:0">
-        <div class="tag">{{ s.severity }} · {{ s.source }} · {{ s.kind }}</div>
-        <h2 class="mt-1" style="font-size:1.08rem">{{ s.message }}</h2>
-        <p class="adm-muted mt-1">
-          {{ vi() ? 'Lần đầu' : 'First' }} {{ when(s.firstSeen) }} ·
-          {{ vi() ? 'lần cuối' : 'last' }} {{ when(s.lastSeen) }} ·
-          {{ s.count }} {{ vi() ? 'lần' : 'times' }} ·
-          {{ s.usersHit }} {{ vi() ? 'người' : 'users' }}
-          @if (s.buildId) { · build {{ s.buildId }} }
-          @if (s.httpStatus) { · HTTP {{ s.httpStatus }} }
-        </p>
-        <p class="adm-muted adm-mono">fingerprint {{ s.fingerprint }}</p>
-      </div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap">
-        <button class="btn btn-ghost btn-sm" (click)="mark('ack')">{{ vi() ? 'Đã xem' : 'Ack' }}</button>
-        <button class="btn btn-primary btn-sm" (click)="mark('resolved')">{{ vi() ? 'Đã xử lý' : 'Resolve' }}</button>
-        <button class="btn btn-ghost btn-sm" (click)="close()">{{ vi() ? 'Đóng' : 'Close' }}</button>
+  <div class="card card-danger card-outline mb-4">
+    <div class="card-header">
+      <h2 class="card-title">{{ s.kind }}</h2>
+      <div class="card-tools">
+        <div class="btn-group btn-group-sm">
+          <button type="button" class="btn btn-outline-secondary" (click)="mark('ack')">
+            {{ vi() ? 'Đã xem' : 'Ack' }}
+          </button>
+          <button type="button" class="btn btn-primary" (click)="mark('resolved')">
+            {{ vi() ? 'Đã xử lý' : 'Resolve' }}
+          </button>
+          <button type="button" class="btn btn-outline-secondary" (click)="close()">
+            {{ vi() ? 'Đóng' : 'Close' }}
+          </button>
+        </div>
       </div>
     </div>
 
-    @for (sm of samples(); track $index) {
-      <div class="mt-3" style="border-top:1px solid var(--border); padding-top:12px">
-        <div class="adm-muted">
+    <div class="card-body">
+      <div class="mb-2">
+        <span class="badge" [class]="'badge ' + sevBadge(s.severity)">{{ s.severity }}</span>
+        <span class="badge text-bg-secondary ms-1">{{ s.source }}</span>
+      </div>
+      <p class="fs-5 mb-2">{{ s.message }}</p>
+      <p class="text-secondary fs-7 mb-1">
+        {{ vi() ? 'Lần đầu' : 'First' }} {{ when(s.firstSeen) }} ·
+        {{ vi() ? 'lần cuối' : 'last' }} {{ when(s.lastSeen) }} ·
+        {{ s.count }} {{ vi() ? 'lần' : 'times' }} ·
+        {{ s.usersHit }} {{ vi() ? 'người' : 'users' }}
+        @if (s.buildId) { · build {{ s.buildId }} }
+        @if (s.httpStatus) { · HTTP {{ s.httpStatus }} }
+      </p>
+      <p class="text-secondary adm-mono mb-0">fingerprint {{ s.fingerprint }}</p>
+
+      @for (sm of samples(); track $index) {
+        <hr />
+        <div class="text-secondary fs-7">
           {{ when(sm.createdAt) }} · {{ sm.username || '—' }} · {{ sm.url }}
           @if (sm.requestId) { · requestId {{ sm.requestId }} }
         </div>
@@ -155,14 +204,14 @@
           <pre class="adm-pre mt-1">{{ sm.stack }}</pre>
         }
         @if (crumbsOf(sm).length) {
-          <div class="adm-muted adm-mono" style="margin-top:7px">
+          <div class="text-secondary adm-mono mt-2">
             @for (c of crumbsOf(sm); track $index) {
               <div>[{{ c.type }}] {{ c.text }}</div>
             }
           </div>
         }
-        <div class="adm-muted" style="margin-top:5px; font-size:.74rem">{{ sm.userAgent }}</div>
-      </div>
-    }
+        <div class="text-secondary mt-1" style="font-size: .74rem">{{ sm.userAgent }}</div>
+      }
+    </div>
   </div>
 }

@@ -3,8 +3,16 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Playwright vua la kiem thu e2e, vua la synthetic monitoring.
  *
- * Xac thuc di duong BASIC: Apache da bat `GssapiBasicAuth On` co nhanh LDAP du
- * phong, nen chi can httpCredentials — khoi phai dung ve Kerberos trong runner.
+ * Xac thuc di duong BASIC: Apache co nhanh `AuthType Basic` -> LDAP, nen chi
+ * can httpCredentials — khoi phai dung ve Kerberos trong runner.
+ *
+ * BO CHAY DUOC CHI TU 10.10.100.128 (hcm-clasvr). Tu 25/08/2026 nhanh Basic bi
+ * gioi han IP: trinh duyet nguoi dung nao con nho mat khau Basic cu se tu gui
+ * lai header do, roi vao nhanh Basic va an POPUP CU cua trinh duyet — dung cai
+ * ma trang /dang-nhap sinh ra de thay the. Chay bo nay tu may khac se ra 401
+ * kem trang dang nhap chu khong xac thuc duoc; doi IP thi sua allowlist trong
+ * server/apache/avp-portal.conf.
+ *
  * Mat khau doc tu bien moi truong, TUYET DOI khong commit:
  *
  *   PORTAL_USER=... PORTAL_PASS=... npx playwright test

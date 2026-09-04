@@ -1,142 +1,146 @@
 <a class="skip-link" href="#main">{{ lang() === 'vi' ? 'Bỏ qua tới nội dung' : 'Skip to content' }}</a>
 
-<header class="navbar">
-  <div class="container inner">
-    <a
-      class="brand"
-      routerLink="/"
-      routerLinkActive="active"
-      [routerLinkActiveOptions]="{ exact: true }"
-      (click)="closeMenu()"
-      [attr.aria-label]="lang() === 'vi' ? 'AVP Portal — về trang chủ' : 'AVP Portal — home'"
-      [attr.title]="lang() === 'vi' ? 'Trang chủ' : 'Home'"
-    >
-      <img class="logo" src="img/brand/logo-mark.png" alt="AVP Group" width="38" height="38" />
-      <span>{{ site.short }}<span class="brand-sub"> Portal</span></span>
-    </a>
-
-    <nav class="nav-links" aria-label="Primary">
-      @for (item of nav; track item.id) {
-        <a
-          [routerLink]="item.path"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: item.path === '/' }"
-          >{{ item.label | tr: lang() }}@if (item.id === 'news' && unseenNews()) { <span class="nav-badge">{{ unseenNews() }}</span> }</a
-        >
-      }
-    </nav>
-
-    <div class="nav-actions">
-      @if (canEdit()) {
-        <a
-          class="icon-btn"
-          routerLink="/admin"
-          routerLinkActive="active"
-          [attr.aria-label]="lang() === 'vi' ? 'Bảng điều khiển quản trị' : 'Admin panel'"
-          [attr.title]="lang() === 'vi' ? 'Bảng điều khiển quản trị' : 'Admin panel'"
-          ><app-icon name="lock"
-        /></a>
-      }
-      <app-notifications />
-      <div class="lang-toggle" role="group" aria-label="Language">
-        <button [class.on]="lang() === 'vi'" (click)="setLang('vi')" aria-label="Tiếng Việt">VI</button>
-        <button [class.on]="lang() === 'en'" (click)="setLang('en')" aria-label="English">EN</button>
-      </div>
-      <button
-        class="icon-btn"
-        (click)="toggleTheme()"
-        [attr.aria-label]="theme() === 'dark' ? 'Chuyển sáng' : 'Chuyển tối'"
-      >
-        <app-icon [name]="theme() === 'dark' ? 'sun' : 'moon'" />
-      </button>
-      <button
-        class="icon-btn menu-btn"
-        (click)="toggleMenu()"
-        aria-label="Menu"
-        [attr.aria-expanded]="menuOpen()"
-      >
-        <app-icon [name]="menuOpen() ? 'x' : 'menu'" />
-      </button>
-
-      <!-- Ho so ca nhan: nut avatar chu KHONG them muc vao thanh menu (navbar
-           da chat, them muc thu 9 la tran) — dung quy uoc cua cac nen tang khac. -->
+@if (!isAdmin()) {
+  <!-- /admin dung khung AdminLTE rieng — xem ghi chu isAdmin trong app.ts. -->
+  <header class="navbar">
+    <div class="container inner">
       <a
-        class="me-btn"
-        routerLink="/profile"
+        class="brand"
+        routerLink="/"
         routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
         (click)="closeMenu()"
-        [attr.aria-label]="lang() === 'vi' ? 'Hồ sơ của tôi' : 'My profile'"
-        [attr.title]="lang() === 'vi' ? 'Hồ sơ của tôi' : 'My profile'"
+        [attr.aria-label]="lang() === 'vi' ? 'AVP Portal — về trang chủ' : 'AVP Portal — home'"
+        [attr.title]="lang() === 'vi' ? 'Trang chủ' : 'Home'"
       >
-        @if (myAvatar()) {
-          <img [src]="myAvatar()" alt="" />
-        } @else {
-          <span>{{ myInitials() }}</span>
-        }
+        <img class="logo" src="img/brand/logo-mark.png" alt="AVP Group" width="38" height="38" />
+        <span>{{ site.short }}<span class="brand-sub"> Portal</span></span>
       </a>
+
+      <nav class="nav-links" aria-label="Primary">
+        @for (item of nav; track item.id) {
+          <a
+            [routerLink]="item.path"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+            >{{ item.label | tr: lang() }}@if (item.id === 'news' && unseenNews()) { <span class="nav-badge">{{ unseenNews() }}</span> }</a
+          >
+        }
+      </nav>
+
+      <div class="nav-actions">
+        @if (canEdit()) {
+          <a
+            class="icon-btn"
+            routerLink="/admin"
+            routerLinkActive="active"
+            [attr.aria-label]="lang() === 'vi' ? 'Bảng điều khiển quản trị' : 'Admin panel'"
+            [attr.title]="lang() === 'vi' ? 'Bảng điều khiển quản trị' : 'Admin panel'"
+            ><app-icon name="lock"
+          /></a>
+        }
+        <app-notifications />
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button [class.on]="lang() === 'vi'" (click)="setLang('vi')" aria-label="Tiếng Việt">VI</button>
+          <button [class.on]="lang() === 'en'" (click)="setLang('en')" aria-label="English">EN</button>
+        </div>
+        <button
+          class="icon-btn"
+          (click)="toggleTheme()"
+          [attr.aria-label]="theme() === 'dark' ? 'Chuyển sáng' : 'Chuyển tối'"
+        >
+          <app-icon [name]="theme() === 'dark' ? 'sun' : 'moon'" />
+        </button>
+        <button
+          class="icon-btn menu-btn"
+          (click)="toggleMenu()"
+          aria-label="Menu"
+          [attr.aria-expanded]="menuOpen()"
+        >
+          <app-icon [name]="menuOpen() ? 'x' : 'menu'" />
+        </button>
+
+        <!-- Tai khoan: nut avatar mo menu (Ho so / Dang xuat) chu KHONG them
+             muc vao thanh menu (navbar da chat, them muc thu 9 la tran) —
+             dung quy uoc cua cac nen tang khac. -->
+        <app-account-menu />
+      </div>
     </div>
-  </div>
-</header>
+  </header>
+}
 
-<!-- Menu dien thoai giu DU ca muc phu (Chinh sach, FAQ): o day khong thieu cho
-     nhu navbar, bo di thi tren dien thoai chi con duong vao qua chan trang. -->
-<nav class="mobile-nav" [class.open]="menuOpen()" aria-label="Mobile">
-  @for (item of navAll; track item.id) {
-    <a
-      [routerLink]="item.path"
-      routerLinkActive="active"
-      [routerLinkActiveOptions]="{ exact: item.path === '/' }"
-      (click)="closeMenu()"
-    >
-      <app-icon [name]="item.icon" />
-      {{ item.label | tr: lang() }}@if (item.id === 'news' && unseenNews()) { <span class="nav-badge">{{ unseenNews() }}</span> }
-    </a>
-  }
-</nav>
+@if (!isAdmin()) {
+  <!-- /admin dung khung AdminLTE rieng — xem ghi chu isAdmin trong app.ts. -->
+  <!-- Menu dien thoai giu DU ca muc phu (Chinh sach, FAQ): o day khong thieu cho
+       nhu navbar, bo di thi tren dien thoai chi con duong vao qua chan trang. -->
+  <nav class="mobile-nav" [class.open]="menuOpen()" aria-label="Mobile">
+    @for (item of navAll; track item.id) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+        (click)="closeMenu()"
+      >
+        <app-icon [name]="item.icon" />
+        {{ item.label | tr: lang() }}@if (item.id === 'news' && unseenNews()) { <span class="nav-badge">{{ unseenNews() }}</span> }
+      </a>
+    }
+  </nav>
+}
 
-<main id="main">
+<main id="main" [class.admin-shell]="isAdmin()">
   <router-outlet />
 </main>
 
-<footer class="footer">
-  <div class="container inner">
-    <div style="max-width: 320px">
-      <div class="brand"><img class="logo" src="img/brand/logo-mark.png" alt="AVP Group" width="38" height="38" /><span>{{ site.company }}</span></div>
-      <p class="slogan">{{ site.slogan }}</p>
-      <p class="muted mt-2">{{ site.tagline | tr: lang() }}</p>
+@if (!isAdmin()) {
+  <!-- /admin dung khung AdminLTE rieng — xem ghi chu isAdmin trong app.ts. -->
+  <footer class="footer">
+    <div class="container inner">
+      <div style="max-width: 320px">
+        <div class="brand"><img class="logo" src="img/brand/logo-mark.png" alt="AVP Group" width="38" height="38" /><span>{{ site.company }}</span></div>
+        <p class="slogan">{{ site.slogan }}</p>
+        <p class="muted mt-2">{{ site.tagline | tr: lang() }}</p>
+      </div>
+      <div>
+        <div class="tag mb-2">{{ lang() === 'vi' ? 'Tài nguyên' : 'Resources' }}</div>
+        <!-- navAll: gom ca Chinh sach + FAQ da rut khoi navbar 14/08 -->
+        @for (item of navAll; track item.id) {
+          <a class="fl" [routerLink]="item.path">{{ item.label | tr: lang() }}</a>
+        }
+      </div>
+      <div>
+        <div class="tag mb-2">{{ lang() === 'vi' ? 'Hỗ trợ' : 'Support' }}</div>
+        <a class="fl" [href]="'mailto:' + site.itEmail">{{ site.itEmail }}</a>
+        <!-- Di THANG toi cong Spiceworks (tab moi), khong vong qua trang /help nua. -->
+        <a class="fl" [href]="helpdeskUrl()" target="_blank" rel="noopener noreferrer">{{ lang() === 'vi' ? 'Gửi yêu cầu hỗ trợ' : 'Open a ticket' }}</a>
+        <a class="fl" routerLink="/directory">{{ lang() === 'vi' ? 'Liên hệ nội bộ' : 'Internal contacts' }}</a>
+      </div>
     </div>
-    <div>
-      <div class="tag mb-2">{{ lang() === 'vi' ? 'Tài nguyên' : 'Resources' }}</div>
-      <!-- navAll: gom ca Chinh sach + FAQ da rut khoi navbar 14/08 -->
-      @for (item of navAll; track item.id) {
-        <a class="fl" [routerLink]="item.path">{{ item.label | tr: lang() }}</a>
-      }
+    <div class="container" style="padding-bottom: 26px">
+      <hr class="divider" />
+      <p class="muted-3" style="font-size: .85rem">
+        © {{ site.year }} {{ site.companyFull | tr: lang() }} — {{ lang() === 'vi' ? 'Trang nội bộ.' : 'Internal use only.' }}
+      </p>
     </div>
-    <div>
-      <div class="tag mb-2">{{ lang() === 'vi' ? 'Hỗ trợ' : 'Support' }}</div>
-      <a class="fl" [href]="'mailto:' + site.itEmail">{{ site.itEmail }}</a>
-      <!-- Di THANG toi cong Spiceworks (tab moi), khong vong qua trang /help nua. -->
-      <a class="fl" [href]="helpdeskUrl()" target="_blank" rel="noopener noreferrer">{{ lang() === 'vi' ? 'Gửi yêu cầu hỗ trợ' : 'Open a ticket' }}</a>
-      <a class="fl" routerLink="/directory">{{ lang() === 'vi' ? 'Liên hệ nội bộ' : 'Internal contacts' }}</a>
-    </div>
-  </div>
-  <div class="container" style="padding-bottom: 26px">
-    <hr class="divider" />
-    <p class="muted-3" style="font-size: .85rem">
-      © {{ site.year }} {{ site.companyFull | tr: lang() }} — {{ lang() === 'vi' ? 'Trang nội bộ.' : 'Internal use only.' }}
-    </p>
-  </div>
-</footer>
+  </footer>
+}
 
 <app-chat-dock />
-<app-bug-report />
 
-<button
-  class="to-top"
-  [class.show]="showToTop()"
-  (click)="scrollTop()"
-  [attr.aria-label]="lang() === 'vi' ? 'Lên đầu trang' : 'Back to top'"
-  [attr.title]="lang() === 'vi' ? 'Lên đầu trang' : 'Back to top'"
->
-  <app-icon name="arrow-up" />
-</button>
+@if (isITDept()) {
+  <!-- Chi phong Information System — xem ghi chu isITDept trong app.ts. -->
+  <app-bug-report />
+}
+
+@if (!isAdmin()) {
+  <!-- /admin dung khung AdminLTE rieng — xem ghi chu isAdmin trong app.ts. -->
+  <button
+    class="to-top"
+    [class.show]="showToTop()"
+    (click)="scrollTop()"
+    [attr.aria-label]="lang() === 'vi' ? 'Lên đầu trang' : 'Back to top'"
+    [attr.title]="lang() === 'vi' ? 'Lên đầu trang' : 'Back to top'"
+  >
+    <app-icon name="arrow-up" />
+  </button>
+}

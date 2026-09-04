@@ -1,83 +1,105 @@
-<div class="adm-head">
-  <div>
-    <h1>{{ vi() ? 'Người dùng & quyền' : 'People & permissions' }}</h1>
-    <p>
-      {{ vi()
-        ? 'Ai có quyền gì, ai đang trực tuyến, ai thật sự dùng portal 30 ngày qua.'
-        : 'Who has which permission, who is online, who actually used the portal in the last 30 days.' }}
-    </p>
-  </div>
-  <div class="adm-head-actions">
-    <button class="btn btn-ghost btn-sm" (click)="load()"><app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}</button>
-  </div>
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <p class="text-secondary mb-0 me-auto">
+    {{ vi()
+      ? 'Ai có quyền gì, ai đang trực tuyến, ai thật sự dùng portal 30 ngày qua.'
+      : 'Who has which permission, who is online, who actually used the portal in the last 30 days.' }}
+  </p>
+  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="load()">
+    <app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}
+  </button>
 </div>
 
 @if (loading() && !data()) {
-  <p class="adm-muted">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p>
+  <p class="text-secondary">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p>
 } @else if (!data()) {
-  <div class="adm-note warn"><app-icon name="alert-triangle" /><div>{{ vi() ? 'Không đọc được dữ liệu người dùng.' : 'Could not load user data.' }}</div></div>
+  <div class="alert alert-warning d-flex gap-2" role="alert">
+    <app-icon name="alert-triangle" />
+    <div>{{ vi() ? 'Không đọc được dữ liệu người dùng.' : 'Could not load user data.' }}</div>
+  </div>
 } @else {
-  <div class="adm-cards">
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="key" /> {{ vi() ? 'Quản trị viên' : 'Admins' }}</div>
-      <div class="v">{{ data()!.admins.length }}</div>
-      <div class="d">{{ vi() ? 'vào được trang này' : 'can open this panel' }}</div>
+  <div class="row">
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-primary">
+        <div class="inner">
+          <h3>{{ data()!.admins.length }}</h3>
+          <p>{{ vi() ? 'Quản trị viên' : 'Admins' }}</p>
+        </div>
+        <app-icon name="key" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? 'vào được trang này' : 'can open this panel' }}</span>
+      </div>
     </div>
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="wifi" /> {{ vi() ? 'Đang trực tuyến' : 'Online' }}</div>
-      <div class="v">{{ data()!.online.length }}</div>
-      <div class="d">{{ vi() ? '2 phút gần nhất' : 'last 2 minutes' }}</div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-success">
+        <div class="inner">
+          <h3>{{ data()!.online.length }}</h3>
+          <p>{{ vi() ? 'Đang trực tuyến' : 'Online' }}</p>
+        </div>
+        <app-icon name="wifi" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? '2 phút gần nhất' : 'last 2 minutes' }}</span>
+      </div>
     </div>
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="bell" /> {{ vi() ? 'Bật thông báo đẩy' : 'Push enabled' }}</div>
-      <div class="v">{{ data()!.pushUsers }}</div>
-      <div class="d">{{ vi() ? 'người đã cho phép' : 'people allowed it' }}</div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-info">
+        <div class="inner">
+          <h3>{{ data()!.pushUsers }}</h3>
+          <p>{{ vi() ? 'Bật thông báo đẩy' : 'Push enabled' }}</p>
+        </div>
+        <app-icon name="bell" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? 'người đã cho phép' : 'people allowed it' }}</span>
+      </div>
     </div>
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="camera" /> {{ vi() ? 'Có ảnh đại diện' : 'With avatar' }}</div>
-      <div class="v">{{ data()!.profilesWithAvatar }}</div>
-      <div class="d">{{ vi() ? 'hồ sơ đã tải ảnh lên' : 'profiles with a photo' }}</div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-secondary">
+        <div class="inner">
+          <h3>{{ data()!.profilesWithAvatar }}</h3>
+          <p>{{ vi() ? 'Có ảnh đại diện' : 'With avatar' }}</p>
+        </div>
+        <app-icon name="camera" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? 'hồ sơ đã tải ảnh lên' : 'profiles with a photo' }}</span>
+      </div>
     </div>
   </div>
 
-  <!-- Quyen -->
-  <div class="adm-card pad-0 mt-3">
-    <div class="adm-card-head">
-      <h3>{{ vi() ? 'Ai vào được trang quản trị' : 'Who can open the admin panel' }}</h3>
+  <!-- --------------------------------------------------------- quyen -- -->
+  <div class="card card-primary card-outline mb-4">
+    <div class="card-header">
+      <h2 class="card-title">{{ vi() ? 'Ai vào được trang quản trị' : 'Who can open the admin panel' }}</h2>
     </div>
-    <div class="adm-tablewrap">
-      <table class="adm-table">
-        <thead>
-          <tr>
-            <th>{{ vi() ? 'Tài khoản' : 'Account' }}</th>
-            <th>{{ vi() ? 'Họ tên' : 'Name' }}</th>
-            <th>{{ vi() ? 'Phòng ban' : 'Department' }}</th>
-            <th>{{ vi() ? 'Kiểm duyệt tin' : 'News moderation' }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (a of data()!.admins; track a.username) {
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
             <tr>
-              <td class="strong">{{ a.username }}</td>
-              <td>
-                <a [routerLink]="['/profile', a.username]">{{ a.fullName }}</a>
-                @if (a.title) { <div class="adm-muted">{{ a.title }}</div> }
-              </td>
-              <td>{{ a.department || '—' }}</td>
-              <td>
-                @if (a.moderator) {
-                  <span class="adm-pill ok"><app-icon name="check" /> {{ vi() ? 'Có' : 'Yes' }}</span>
-                } @else {
-                  <span class="adm-pill">{{ vi() ? 'Không' : 'No' }}</span>
-                }
-              </td>
+              <th>{{ vi() ? 'Tài khoản' : 'Account' }}</th>
+              <th>{{ vi() ? 'Họ tên' : 'Name' }}</th>
+              <th>{{ vi() ? 'Phòng ban' : 'Department' }}</th>
+              <th>{{ vi() ? 'Kiểm duyệt tin' : 'News moderation' }}</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (a of data()!.admins; track a.username) {
+              <tr>
+                <td class="fw-semibold">{{ a.username }}</td>
+                <td>
+                  <a [routerLink]="['/profile', a.username]">{{ a.fullName }}</a>
+                  @if (a.title) { <div class="text-secondary fs-7">{{ a.title }}</div> }
+                </td>
+                <td>{{ a.department || '—' }}</td>
+                <td>
+                  @if (a.moderator) {
+                    <span class="badge text-bg-success"><app-icon name="check" /> {{ vi() ? 'Có' : 'Yes' }}</span>
+                  } @else {
+                    <span class="badge text-bg-secondary">{{ vi() ? 'Không' : 'No' }}</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
-    <div class="adm-card-body">
-      <div class="adm-note">
+    <div class="card-footer">
+      <div class="d-flex gap-2 text-secondary fs-7">
         <app-icon name="shield" />
         <div>
           {{ vi()
@@ -88,65 +110,77 @@
     </div>
   </div>
 
-  <div class="adm-grid-2 mt-3">
-    <div class="adm-card pad-0">
-      <div class="adm-card-head">
-        <h3>{{ vi() ? 'Đang trực tuyến' : 'Online now' }}</h3>
-        <span class="adm-muted">{{ data()!.online.length }}</span>
-      </div>
-      <div class="adm-card-body">
-        @if (!data()!.online.length) {
-          <div class="adm-empty">{{ vi() ? 'Không có ai đang mở portal.' : 'Nobody has the portal open.' }}</div>
-        } @else {
-          <div style="display:flex; gap:7px; flex-wrap:wrap">
-            @for (u of data()!.online; track u) {
-              <a class="adm-pill" [routerLink]="['/profile', u]">{{ u }}</a>
-            }
-          </div>
-        }
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="card-title">{{ vi() ? 'Đang trực tuyến' : 'Online now' }}</h2>
+          <div class="card-tools"><span class="badge text-bg-secondary">{{ data()!.online.length }}</span></div>
+        </div>
+        <div class="card-body">
+          @if (!data()!.online.length) {
+            <div class="text-center text-secondary py-4">
+              {{ vi() ? 'Không có ai đang mở portal.' : 'Nobody has the portal open.' }}
+            </div>
+          } @else {
+            <div class="d-flex flex-wrap gap-2">
+              @for (u of data()!.online; track u) {
+                <a class="badge text-bg-light border text-decoration-none" [routerLink]="['/profile', u]">{{ u }}</a>
+              }
+            </div>
+          }
+        </div>
       </div>
     </div>
 
-    <div class="adm-card pad-0">
-      <div class="adm-card-head">
-        <h3>{{ vi() ? 'Đăng tin nhiều nhất' : 'Top news authors' }}</h3>
-        <span class="adm-muted">{{ vi() ? 'số bài' : 'posts' }}</span>
-      </div>
-      <div class="adm-card-body">
-        <adm-bars [data]="contributorBars()" [empty]="vi() ? 'Chưa có bài nào.' : 'No posts yet.'" />
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="card-title">{{ vi() ? 'Đăng tin nhiều nhất' : 'Top news authors' }}</h2>
+          <div class="card-tools text-secondary fs-7">{{ vi() ? 'số bài' : 'posts' }}</div>
+        </div>
+        <div class="card-body">
+          <adm-bars [data]="contributorBars()" [empty]="vi() ? 'Chưa có bài nào.' : 'No posts yet.'" />
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="adm-card pad-0 mt-3">
-    <div class="adm-card-head">
-      <h3>{{ vi() ? 'Hoạt động gần đây' : 'Recent activity' }}</h3>
-      <span class="adm-muted">{{ vi() ? '30 ngày qua, mới nhất trước' : 'last 30 days, newest first' }}</span>
+  <div class="card mb-4">
+    <div class="card-header">
+      <h2 class="card-title">{{ vi() ? 'Hoạt động gần đây' : 'Recent activity' }}</h2>
+      <div class="card-tools text-secondary fs-7">
+        {{ vi() ? '30 ngày qua, mới nhất trước' : 'last 30 days, newest first' }}
+      </div>
     </div>
     @if (!data()!.active.length) {
-      <div class="adm-empty">{{ vi() ? 'Chưa ghi nhận lượt truy cập nào.' : 'No visits recorded yet.' }}</div>
+      <div class="card-body text-center text-secondary py-5">
+        {{ vi() ? 'Chưa ghi nhận lượt truy cập nào.' : 'No visits recorded yet.' }}
+      </div>
     } @else {
-      <div class="adm-tablewrap">
-        <table class="adm-table">
-          <thead>
-            <tr>
-              <th>{{ vi() ? 'Tài khoản' : 'Account' }}</th>
-              <th style="text-align:right">{{ vi() ? 'Lượt xem' : 'Views' }}</th>
-              <th style="text-align:right">{{ vi() ? 'Số ngày vào' : 'Days seen' }}</th>
-              <th>{{ vi() ? 'Lần cuối' : 'Last seen' }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (a of data()!.active; track a.username) {
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
               <tr>
-                <td class="strong"><a [routerLink]="['/profile', a.username]">{{ a.username }}</a></td>
-                <td class="num">{{ a.views.toLocaleString('vi-VN') }}</td>
-                <td class="num">{{ a.days }}</td>
-                <td>{{ ago(a.last, vi()) }}</td>
+                <th>{{ vi() ? 'Tài khoản' : 'Account' }}</th>
+                <th class="text-end">{{ vi() ? 'Lượt xem' : 'Views' }}</th>
+                <th class="text-end">{{ vi() ? 'Số ngày vào' : 'Days seen' }}</th>
+                <th>{{ vi() ? 'Lần cuối' : 'Last seen' }}</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (a of data()!.active; track a.username) {
+                <tr>
+                  <td class="fw-semibold"><a [routerLink]="['/profile', a.username]">{{ a.username }}</a></td>
+                  <td class="adm-num">{{ a.views.toLocaleString('vi-VN') }}</td>
+                  <td class="adm-num">{{ a.days }}</td>
+                  <td class="text-secondary">{{ ago(a.last, vi()) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
     }
   </div>

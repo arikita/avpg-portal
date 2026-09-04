@@ -1,14 +1,17 @@
 <section class="hero gal-hero">
   <div class="container">
     @if (album(); as a) {
-      <a class="back" routerLink="/gallery"><app-icon name="arrow-right" /> {{ lang() === 'vi' ? 'Tất cả album' : 'All albums' }}</a>
+      <a class="back" routerLink="/gallery"><app-icon name="arrow-right" /> {{ vi() ? 'Tất cả album' : 'All albums' }}</a>
       <h1 class="mt-2">{{ a.title | tr: lang() }}</h1>
-      <p class="lead mt-2">{{ a.desc | tr: lang() }}</p>
-      <p class="muted-3 mt-1">{{ a.count }} {{ lang() === 'vi' ? 'ảnh' : 'photos' }}@if (a.date) { · {{ a.date }} }</p>
+      @if (a.desc | tr: lang()) { <p class="lead mt-2">{{ a.desc | tr: lang() }}</p> }
+      <p class="muted-3 mt-1">
+        {{ a.count }} {{ vi() ? 'ảnh' : 'photos' }}@if (a.date) { · {{ a.date }} }
+        @if (a.status !== 'public') { · <span class="gal-draft">{{ a.status === 'draft' ? (vi() ? 'bản nháp' : 'draft') : (vi() ? 'đang ẩn' : 'hidden') }}</span> }
+      </p>
     } @else {
-      <span class="eyebrow"><app-icon name="images" /> {{ lang() === 'vi' ? 'Thư viện ảnh' : 'Gallery' }}</span>
-      <h1 class="mt-3">{{ lang() === 'vi' ? 'Khoảnh khắc An Việt Phát' : 'AVP moments' }}</h1>
-      <p class="lead mt-2">{{ lang() === 'vi' ? 'Hình ảnh các hoạt động, sự kiện của tập đoàn.' : 'Photos from company events and activities.' }}</p>
+      <span class="eyebrow"><app-icon name="images" /> {{ vi() ? 'Thư viện ảnh' : 'Gallery' }}</span>
+      <h1 class="mt-3">{{ vi() ? 'Khoảnh khắc An Việt Phát' : 'AVP moments' }}</h1>
+      <p class="lead mt-2">{{ vi() ? 'Hình ảnh các hoạt động, sự kiện của tập đoàn.' : 'Photos from company events and activities.' }}</p>
     }
   </div>
 </section>
@@ -16,59 +19,225 @@
 <section class="section-sm">
   <div class="container">
     @if (loading()) {
-      <div class="gal-grid">
-        @for (i of [1,2,3,4,5,6,7,8]; track i) { <div class="ph-skel"></div> }
+      <div class="gal-row">
+        @for (i of [1,2,3,4,5,6,7,8,9,10]; track i) {
+          <div class="ph-skel" [style.flex-grow]="1" [style.flex-basis.px]="rowH() * 1.5" [style.height.px]="rowH()"></div>
+        }
       </div>
     } @else if (error()) {
       <div class="empty"><app-icon name="alert-triangle" /><p>{{ error() }}</p></div>
-    } @else if (album()) {
+    }
+
+    <!-- =============================================== MOT ALBUM ======= -->
+    @else if (album()) {
       @if (!photos().length) {
-        <div class="empty"><app-icon name="images" /><p>{{ lang() === 'vi' ? 'Album chưa có ảnh.' : 'This album is empty.' }}</p></div>
+        <div class="empty"><app-icon name="images" /><p>{{ vi() ? 'Album chưa có ảnh.' : 'This album is empty.' }}</p></div>
       } @else {
-        <div class="gal-grid">
-          @for (p of visible(); track p.thumb) {
-            <button type="button" class="ph" (click)="open($index)">
-              <img [src]="p.thumb" alt="" loading="lazy" decoding="async" />
-            </button>
-          }
+        <!-- Ba kieu bo cuc, moi kieu MOT viec: xem thong thuong / nhip doc /
+             quet nhanh tim anh minh. Xem ghi chu Layout trong gallery.ts. -->
+        <div class="gal-tools">
+          <div class="gal-seg" role="group" [attr.aria-label]="vi() ? 'Kiểu hiển thị' : 'Layout'">
+            @for (l of layouts; track l) {
+              <button
+                type="button"
+                [class.on]="layout() === l"
+                (click)="setLayout(l)"
+                [attr.aria-pressed]="layout() === l"
+              >
+                <app-icon [name]="layoutIcon(l)" /> <span>{{ layoutText(l) }}</span>
+              </button>
+            }
+          </div>
+          <button class="btn btn-ghost btn-sm gal-play" (click)="startSlides()">
+            <app-icon name="video" /> {{ vi() ? 'Trình chiếu' : 'Slideshow' }}
+          </button>
         </div>
-        @if (photos().length > shown()) {
-          <div class="more-wrap">
-            <button class="btn btn-ghost" (click)="more()">
-              {{ lang() === 'vi' ? 'Xem thêm' : 'Show more' }} ({{ photos().length - shown() }})
-            </button>
+
+        @for (g of groups(); track g.day + '/' + g.photos[0].id) {
+          @if (hasDays()) {
+            <h2 class="gal-day">{{ dayLabel(g.day) }} <span>{{ g.photos.length }}</span></h2>
+          }
+          @switch (layout()) {
+            <!-- DONG: moi anh giu dung ti le that, cac anh cung hang cao bang
+                 nhau. flex-grow/basis theo ti le — xem ghi chu gallery.ts. -->
+            @case ('justified') {
+              <div class="gal-row">
+                @for (p of g.photos; track p.id) {
+                  <button
+                    type="button"
+                    class="ph"
+                    (click)="open(indexOf(p))"
+                    [style.flex-grow]="ratio(p)"
+                    [style.flex-basis.px]="ratio(p) * rowH()"
+                    [style.height.px]="rowH()"
+                    [attr.aria-label]="vi() ? 'Xem ảnh lớn' : 'View photo'"
+                  >
+                    <img [src]="p.thumb" alt="" loading="lazy" decoding="async" />
+                    @if (p.star) { <span class="ph-star"><app-icon name="star" /></span> }
+                  </button>
+                }
+                <!-- Chen day: khong co thi hang cuoi bi keo gian ra qua kho. -->
+                <i class="gal-fill"></i>
+              </div>
+            }
+
+            <!-- COT: nhip doc kieu bao anh. Anh cao thap khac nhau nen mat
+                 khong bi keo thanh mot duong ngang deu tam tap. -->
+            @case ('cot') {
+              <div class="gal-cols">
+                @for (p of g.photos; track p.id) {
+                  <button
+                    type="button"
+                    class="ph ph-col"
+                    (click)="open(indexOf(p))"
+                    [style.aspect-ratio]="ratio(p)"
+                    [attr.aria-label]="vi() ? 'Xem ảnh lớn' : 'View photo'"
+                  >
+                    <img [src]="p.thumb" alt="" loading="lazy" decoding="async" />
+                    @if (p.star) { <span class="ph-star"><app-icon name="star" /></span> }
+                  </button>
+                }
+              </div>
+            }
+
+            <!-- DIEM NHAN: cu 7 tam co mot tam to gap doi. Kieu DUY NHAT tao
+                 duoc nhip ke ca khi ca album chup cung mot ti le. -->
+            @case ('diemnhan') {
+              <div class="gal-mos">
+                @for (p of g.photos; track p.id) {
+                  <button
+                    type="button"
+                    class="ph"
+                    (click)="open(indexOf(p))"
+                    [attr.aria-label]="vi() ? 'Xem ảnh lớn' : 'View photo'"
+                  >
+                    <img [src]="p.thumb" alt="" loading="lazy" decoding="async" />
+                    @if (p.star) { <span class="ph-star"><app-icon name="star" /></span> }
+                  </button>
+                }
+              </div>
+            }
+
+            <!-- O VUONG: day dac nhat, de quet nhanh tim anh cua minh. Co cat
+                 bot anh — day la danh doi CO CHU DICH cua kieu nay. -->
+            @case ('vuong') {
+              <div class="gal-sq">
+                @for (p of g.photos; track p.id) {
+                  <button
+                    type="button"
+                    class="ph"
+                    (click)="open(indexOf(p))"
+                    [attr.aria-label]="vi() ? 'Xem ảnh lớn' : 'View photo'"
+                  >
+                    <img [src]="p.thumb" alt="" loading="lazy" decoding="async" />
+                    @if (p.star) { <span class="ph-star"><app-icon name="star" /></span> }
+                  </button>
+                }
+              </div>
+            }
+          }
+        }
+
+        @if (hasMore()) {
+          <div #sentinel class="gal-more">
+            <span class="spin"></span>
+            {{ photos().length - shown() }} {{ vi() ? 'ảnh nữa…' : 'more photos…' }}
           </div>
         }
       }
-    } @else {
+    }
+
+    <!-- ============================================ DANH SACH ALBUM ==== -->
+    @else {
       @if (!albums().length) {
-        <div class="empty"><app-icon name="images" /><p>{{ lang() === 'vi' ? 'Chưa có album nào.' : 'No albums yet.' }}</p></div>
+        <div class="empty"><app-icon name="images" /><p>{{ vi() ? 'Chưa có album nào.' : 'No albums yet.' }}</p></div>
       } @else {
-        <div class="alb-grid">
-          @for (a of albums(); track a.slug) {
-            <a class="alb" [routerLink]="['/gallery', a.slug]">
-              <div class="alb-cover">
-                @if (a.cover) { <img [src]="a.cover" alt="" loading="lazy" /> } @else { <app-icon name="images" /> }
-                <span class="alb-count">{{ a.count }} {{ lang() === 'vi' ? 'ảnh' : 'photos' }}</span>
-              </div>
-              <div class="alb-body">
-                <h3>{{ a.title | tr: lang() }}</h3>
-                <p class="muted">{{ a.desc | tr: lang() }}</p>
-              </div>
-            </a>
-          }
-        </div>
+        @if (labelsInUse().length > 1) {
+          <div class="gal-chips">
+            <button type="button" [class.on]="!label()" (click)="label.set('')">
+              {{ vi() ? 'Tất cả' : 'All' }}
+            </button>
+            @for (l of labelsInUse(); track l) {
+              <button type="button" [class.on]="label() === l" (click)="setLabel(l)">{{ labelText(l) }}</button>
+            }
+          </div>
+        }
+
+        @for (grp of byYear(); track grp.year) {
+          <h2 class="gal-year">{{ grp.year }}</h2>
+          <!-- Luoi 12 cot de BA CO tron duoc voi nhau trong cung mot hang:
+               noi bat chiem 12, thuong 4, gon 2. Co do Marketing chon cho tung
+               album — xem ghi chu SIZES trong gallery.py. -->
+          <div class="alb-grid">
+            @for (a of grp.items; track a.slug) {
+              <a class="alb" [class]="'alb ' + sizeOf(a)" [routerLink]="['/gallery', a.slug]">
+                <!-- Bia ghep tu 4 anh: mot album 1687 tam ma dai dien bang
+                     dung mot anh thi phi. Co "gon" chi lay MOT anh — o nho qua
+                     thi ghep bon tam chi thanh bon vet mau. -->
+                <div class="alb-cover" [class.one]="sizeOf(a) === 'gon' || a.covers.length < 4">
+                  @if (a.covers.length) {
+                    @if (sizeOf(a) === 'gon') {
+                      <img [src]="a.covers[0]" alt="" loading="lazy" />
+                    } @else {
+                      @for (c of a.covers; track c) { <img [src]="c" alt="" loading="lazy" /> }
+                    }
+                  } @else {
+                    <app-icon name="images" />
+                  }
+                  <span class="alb-count">{{ a.count }} {{ vi() ? 'ảnh' : 'photos' }}</span>
+                  @if (a.status !== 'public') {
+                    <span class="alb-draft">{{ a.status === 'draft' ? (vi() ? 'Nháp' : 'Draft') : (vi() ? 'Ẩn' : 'Hidden') }}</span>
+                  }
+                </div>
+                <div class="alb-body">
+                  <h3>{{ a.title | tr: lang() }}</h3>
+                  @if (sizeOf(a) !== 'gon') {
+                    <p class="muted">{{ a.desc | tr: lang() }}</p>
+                  }
+                </div>
+              </a>
+            }
+          </div>
+        }
+
+        @if (canManage()) {
+          <p class="gal-manage">
+            <app-icon name="settings" />
+            {{ vi() ? 'Bạn có quyền quản lý thư viện — thêm và sửa album ở ' : 'You can manage the gallery — add and edit albums in ' }}
+            <a routerLink="/gallery/manage">{{ vi() ? 'trang quản lý' : 'the manage page' }}</a>.
+          </p>
+        }
       }
     }
   </div>
 </section>
 
+<!-- ==================================================== XEM ANH LON ==== -->
 @if (current(); as p) {
-  <div class="lb" (click)="close()">
-    <button class="lb-x" (click)="close()" [attr.aria-label]="lang() === 'vi' ? 'Đóng' : 'Close'"><app-icon name="x" /></button>
+  <div class="lb" [class.playing]="playing()" (click)="close()" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
+    <button class="lb-x" (click)="close()" [attr.aria-label]="vi() ? 'Đóng' : 'Close'"><app-icon name="x" /></button>
     <button class="lb-nav prev" (click)="step(-1); $event.stopPropagation()" aria-label="Prev"><app-icon name="chevron-left" /></button>
     <img class="lb-img" [src]="p.full" alt="" (click)="$event.stopPropagation()" />
     <button class="lb-nav next" (click)="step(1); $event.stopPropagation()" aria-label="Next"><app-icon name="chevron-right" /></button>
-    <div class="lb-count">{{ (viewing() ?? 0) + 1 }} / {{ photos().length }}</div>
+
+    <div class="lb-bar" (click)="$event.stopPropagation()">
+      <button class="lb-play" (click)="toggleSlides()"
+              [attr.aria-label]="playing() ? (vi() ? 'Tạm dừng' : 'Pause') : (vi() ? 'Trình chiếu' : 'Play')">
+        <app-icon [name]="playing() ? 'minus' : 'video'" />
+        {{ playing() ? (vi() ? 'Tạm dừng' : 'Pause') : (vi() ? 'Trình chiếu' : 'Play') }}
+      </button>
+      <span class="lb-count">{{ (viewing() ?? 0) + 1 }} / {{ photos().length }}</span>
+      @if (p.day) { <span class="lb-day">{{ dayLabel(p.day) }}</span> }
+      <!-- Nguoi ta vao thu vien chu yeu de lay anh cua chinh minh. Khong tai
+           duoc thi ho xem mot lan roi thoi. -->
+      @if (p.orig) {
+        <a class="lb-dl" [href]="p.orig" download>
+          <app-icon name="download" /> {{ vi() ? 'Tải ảnh gốc' : 'Download original' }}
+        </a>
+      }
+    </div>
+
+    <!-- Nap truoc anh ke tiep: bam mui ten khong phai doi trang trang. -->
+    @if (nextUrl()) { <img class="lb-pre" [src]="nextUrl()" alt="" aria-hidden="true" /> }
   </div>
 }

@@ -24,6 +24,9 @@ interface Row {
   comments: number;
   reactions: number;
   polls: number;
+  /** Nguoi dang xem co toan quyen tren DUNG bai nay khong (server tinh). */
+  canManage: boolean;
+  authorDept: string;
 }
 
 /**
@@ -56,6 +59,9 @@ export class AdminNews {
   readonly busy = signal(0);
 
   /** Ghim/xoa van la quyen cua nhom IS, khong phai quyen vao trang nay. */
+  /** Co TOAN CUC: chi de hien dong nhac o dau trang. Quyen tren TUNG bai do
+   *  server tra ve trong `r.canManage` — HR sua duoc bai HR, MKT sua bai MKT,
+   *  IT sua tat ca. Xem can_manage_post trong server/app/ad.py. */
   readonly canModerate = computed(() => this.user.me()?.canModerateNews === true);
   readonly canPost = computed(() => this.user.me()?.canPostNews === true);
 

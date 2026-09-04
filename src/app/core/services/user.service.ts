@@ -22,6 +22,10 @@ export interface Me {
   avatar?: string;
   /** Server con thu thap loi khong (TELEMETRY_ENABLED). Thieu = coi nhu co. */
   telemetry?: boolean;
+  /** true = vao bang SSO Kerberos (khong "dang xuat" khoi portal duoc),
+   *  false = vao bang form dang nhap. Thieu = coi nhu SSO (canh bao thua con
+   *  hon hua sai). Xem ghi chu trong account-menu.ts va server/app/main.py. */
+  sso?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

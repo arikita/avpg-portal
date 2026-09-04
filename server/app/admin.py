@@ -2,7 +2,7 @@
 
 Truoc 24/08/2026 co hai trang roi rac: /admin (sua noi dung) va /admin/errors
 (loi ung dung). Nguoi quan tri muon biet "portal dang the nao" phai mo them
-Zabbix, GA4, va psql. File nay gom cac cau tra loi do vao 6 endpoint doc.
+Zabbix, GA4, va psql. File nay gom cac cau tra loi do vao 7 endpoint doc.
 
 LUAT CUNG:
   1. MOI endpoint o day deu di qua _require_admin(). Bang app_page_view ghi kem
@@ -29,7 +29,9 @@ from typing import Any
 import psycopg
 from fastapi import APIRouter, Depends, Header, HTTPException
 
-from .ad import CONTENT_ADMIN_USERS, can_admin_content, get_user, is_editor
+from .ad import (CONTENT_ADMIN_USERS, can_admin_content, can_manage_post,
+                 get_user, is_editor, recent_accounts)
+from .quiz import DRAW as QUIZ_DRAW, PASS as QUIZ_PASS, POOL as QUIZ_POOL
 from .telemetry import ENABLED as TELEMETRY_ENABLED, _build_id
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -431,7 +433,7 @@ def news_list(status: str = "", q: str = "", limit: int = 100,
         rows = _rows(conn, f"""
             SELECT p.id, p.title_vi, p.category, p.status, p.pinned, p.author,
                    p.author_name, p.created_at, p.published_at, p.scheduled_at,
-                   p.cover <> '' AS has_cover,
+                   p.cover <> '' AS has_cover, p.author_dept,
                    (SELECT count(*) FROM news_view v WHERE v.post_id = p.id),
                    (SELECT count(*) FROM news_comment c WHERE c.post_id = p.id AND NOT c.deleted),
                    (SELECT count(*) FROM news_reaction r WHERE r.post_id = p.id),
@@ -445,13 +447,17 @@ def news_list(status: str = "", q: str = "", limit: int = 100,
             conn, "SELECT status, count(*) FROM news_post GROUP BY status")}
 
     keys = ["id", "title", "category", "status", "pinned", "author", "authorName",
-            "createdAt", "publishedAt", "scheduledAt", "hasCover", "views",
-            "comments", "reactions", "polls"]
+            "createdAt", "publishedAt", "scheduledAt", "hasCover", "authorDept",
+            "views", "comments", "reactions", "polls"]
     items = []
     for r in rows:
         d = dict(zip(keys, r))
         for k in ("createdAt", "publishedAt", "scheduledAt"):
             d[k] = d[k].isoformat() if d[k] else ""
+        # Quyen tinh theo TUNG bai: HR sua duoc bai HR, MKT sua duoc bai MKT,
+        # IT sua duoc tat ca. Truoc day bang nay dung mot co chung
+        # `canModerateNews` nen HR/MKT khong thao tac duoc bai cua chinh phong.
+        d["canManage"] = can_manage_post(username, d["author"], d["authorDept"] or "")
         items.append(d)
     return {"items": items, "counts": counts}
 
@@ -590,3 +596,85 @@ def system(username: str = Depends(_require_admin)) -> dict:
             conn, "SELECT name, sum(n) FROM app_metric "
                   "WHERE hour > now() - interval '7 days' GROUP BY name ORDER BY name")]
     return out
+
+
+@router.get("/quiz")
+def quiz(days: int = 180, username: str = Depends(_require_admin)) -> dict:
+    """Ket qua bai kiem tra hoi nhap IT — xem server/app/quiz.py.
+
+    Trang nay tra loi HAI cau hoi khac nhau, dung dan chung:
+      - "AI da nam duoc?"  -> bang `people`, moi nguoi mot dong.
+      - "CAI GI chua vao dau ai?" -> `weakest`, gom theo cau hoi.
+    Cau thu hai moi la cau dat gia: mot cau ma 70% nguoi lam sai KHONG phai
+    loi cua 70% nhan vien, do la mot cho trong trong buoi training.
+
+    `weakest` tra ve CA `asked` lan `wrong` cho tung cau. Kho 50 cau, moi luot
+    boc 10, nen chi dem `wrong` la doc sai hoan toan — mot cau moi them vao
+    hom qua se luon "it loi nhat" don gian vi no hiem khi duoc hoi.
+
+    `weakest` chi tra ve ID cau hoi. Noi dung cau nam o quiz.content.ts phia
+    frontend va CHI o do — chep sang day la co hai ban de lech nhau.
+    """
+    days = min(365, max(1, days))
+    span = f"created_at > now() - interval '{days} days'"
+
+    with _conn() as conn:
+        people = [
+            {"username": u, "fullName": fn or u, "department": dept,
+             "attempts": int(n), "best": int(best), "passed": bool(ok),
+             "lastAt": last.isoformat() if last else "",
+             "seconds": int(secs or 0)}
+            for u, fn, dept, n, best, ok, last, secs in _rows(conn, f"""
+                SELECT username, max(full_name), max(department), count(*),
+                       max(score), bool_or(passed), max(created_at),
+                       min(seconds) FILTER (WHERE passed)
+                  FROM quiz_attempt WHERE {span}
+                 GROUP BY username ORDER BY max(created_at) DESC LIMIT 300""")
+        ]
+
+        graded = _one(conn, f"SELECT count(*) FROM quiz_attempt WHERE {span}")
+
+        # MAU SO la so lan cau do DUOC HOI, khong phai tong so luot lam bai.
+        # Kho co 50 cau ma moi luot chi boc 10, nen "cau X sai 9 lan" tu no
+        # khong noi len gi: 9/12 lan duoc hoi la mot van de, 9/200 thi khong.
+        # Dem tu `drawn` (10 cau cua luot do) roi doi chieu voi `wrong`.
+        weakest = [{"id": q, "asked": int(asked), "wrong": int(n)}
+                   for q, asked, n in _rows(conn, f"""
+            SELECT d,
+                   count(*),
+                   count(*) FILTER (WHERE d = ANY(a.wrong))
+              FROM quiz_attempt a, unnest(a.drawn) AS d
+             WHERE {span}
+             GROUP BY d
+             ORDER BY count(*) FILTER (WHERE d = ANY(a.wrong))::float
+                      / greatest(count(*), 1) DESC, d
+             LIMIT 60""")]
+
+        # Dong dau tien: bat dau tu bao gio thi con so moi doc duoc.
+        since = _one(conn, f"SELECT min(created_at) FROM quiz_attempt WHERE {span}",
+                     default=None)
+
+    done = {p["username"].lower() for p in people}
+    # Nguoi moi vao ma chua lam bai — dung danh sach nay chu khong phai ca
+    # 850 nhan vien: bai kiem tra nay danh cho NGUOI VUA duoc training, ke ten
+    # ca cong ty ra chi lam bang bao cao thanh mot bien nhieu khong ai doc.
+    try:
+        newcomers = [p for p in recent_accounts(days=90, limit=60)
+                     if p["username"].lower() not in done]
+    except Exception:                                          # noqa: BLE001
+        newcomers = []                                         # AD khong tra loi -> bo o nay
+
+    passed = sum(1 for p in people if p["passed"])
+    return {
+        "days": days,
+        "total": QUIZ_DRAW,
+        "pool": QUIZ_POOL,
+        "pass": QUIZ_PASS,
+        "attempts": int(graded),
+        "people": people,
+        "passedPeople": passed,
+        "firstAt": since.isoformat() if since else "",
+        "weakest": weakest,
+        "newcomers": newcomers[:30],
+    }
+

@@ -20,7 +20,8 @@ from typing import Any
 import psycopg
 from fastapi import APIRouter, Body, Depends, File, Header, HTTPException, UploadFile
 
-from .ad import get_user, is_editor, list_directory
+from .ad import (can_delete_wall_comment, can_manage_wall_post, get_user,
+                 is_editor, list_directory)
 from .images import MAX_IMAGE, drop, read_upload, save_jpeg
 from .news import _queue_push          # dung lai duong Web Push da co
 from .telemetry import bump_metric
@@ -101,8 +102,14 @@ def _post(r, rx: dict, comments: dict, viewer: str, moderator: bool) -> dict:
         "comments": cm["items"],
         # Tong so binh luan THAT — `comments` o tren co the moi la 3 cai dau.
         "commentTotal": cm["total"],
-        "canEdit": author == viewer,
-        "canDelete": author == viewer or owner == viewer or moderator,
+        # Luat 25/08/2026: bai tren Doi song thuoc ve NGUOI VIET. Chi tac gia
+        # co toan quyen (sua, xoa, xoa binh luan tren bai minh); rieng phong
+        # Information System (IT) toan quyen o moi noi.
+        #
+        # Truoc day CHU TUONG (`owner`) cung xoa duoc bai nguoi khac dang len
+        # tuong minh. Da bo theo yeu cau — xem ghi chu trong CLAUDE.md.
+        "canEdit": can_manage_wall_post(viewer, author),
+        "canDelete": can_manage_wall_post(viewer, author),
     }
 
 
@@ -131,8 +138,8 @@ def _reactions(conn, ids: list[int], viewer: str) -> dict:
     return out
 
 
-def _comments(conn, ids: list[int], viewer: str, owner: str, moderator: bool,
-              limit: int | None = COMMENT_PREVIEW) -> dict:
+def _comments(conn, ids: list[int], viewer: str, post_author: dict[int, str],
+              moderator: bool, limit: int | None = COMMENT_PREVIEW) -> dict:
     """{post_id: {"items": [...], "total": n}} — `limit` cai MOI NHAT moi bai.
 
     Lay N cai moi nhat nhung tra ve theo thu tu CU -> MOI, dung thu tu doc tren
@@ -160,7 +167,10 @@ def _comments(conn, ids: list[int], viewer: str, owner: str, moderator: bool,
             "id": cid, "author": author, "authorName": aname or author, "body": body,
             "createdAt": created.isoformat(),
             "editedAt": edited.isoformat() if edited else None,
-            "canDelete": author == viewer or owner == viewer or moderator,
+            # Tac gia BAI don duoc binh luan tren bai cua minh — do la phan
+            # "toan quyen tren bai dang" cua luat moi.
+            "canDelete": can_delete_wall_comment(viewer, author,
+                                                 post_author.get(pid) or ""),
         })
     return out
 
@@ -183,7 +193,7 @@ def wall(owner: str, offset: int = 0, viewer: str = Depends(current_user)) -> di
         rows = rows[:PAGE]
         ids = [r[0] for r in rows]
         rx = _reactions(conn, ids, viewer)
-        cm = _comments(conn, ids, viewer, owner, moderator)
+        cm = _comments(conn, ids, viewer, {r[0]: r[2] for r in rows}, moderator)
         total = conn.execute("SELECT count(*) FROM wall_post WHERE owner = %s "
                              "AND deleted = false", (owner,)).fetchone()[0]
     return {
@@ -252,11 +262,10 @@ def feed(offset: int = 0, scope: str = "all",
         rows = rows[:PAGE]
         ids = [r[0] for r in rows]
         rx = _reactions(conn, ids, viewer)
-        # Bang tin gom nhieu chu tuong khac nhau => quyen xoa binh luan phai
-        # tinh theo chu cua CHINH bai do, khong dung mot `owner` chung.
-        cm: dict = {}
-        for r in rows:
-            cm.update(_comments(conn, [r[0]], viewer, r[1], moderator))
+        # Bang tin gom bai cua nhieu nguoi => quyen xoa binh luan phai tinh
+        # theo TAC GIA cua chinh bai do. Truyen ca bang mot lan (truoc day goi
+        # _comments mot lan cho MOI bai — 20 truy van cho mot trang).
+        cm = _comments(conn, ids, viewer, {r[0]: r[2] for r in rows}, moderator)
         total = conn.execute(
             "SELECT count(*) FROM wall_post WHERE deleted = false"
             + (" AND owner = ANY(%s)" if scope_used == "dept" else ""),
@@ -279,7 +288,7 @@ def _one(conn, pid: int, viewer: str) -> dict:
         raise HTTPException(status_code=404, detail="khong co bai nay")
     moderator = is_editor(viewer)
     rx = _reactions(conn, [pid], viewer)
-    cm = _comments(conn, [pid], viewer, r[1], moderator)
+    cm = _comments(conn, [pid], viewer, {pid: r[2]}, moderator)
     return _post(r, rx, cm, viewer, moderator)
 
 
@@ -337,7 +346,9 @@ def remove(pid: int, username: str = Depends(current_user)) -> dict:
         if not r:
             raise HTTPException(status_code=404, detail="khong co bai nay")
         owner, author, image = r
-        if username not in (owner, author) and not is_editor(username):
+        # Chi TAC GIA (hoac IT) — chu tuong khong con xoa duoc bai nguoi khac
+        # dang len tuong minh. Xem ghi chu trong _post().
+        if not can_manage_wall_post(username, author):
             raise HTTPException(status_code=403, detail="ban khong xoa duoc bai nay")
         # Xoa han: tuong khong can bia mo nhu binh luan long nhau ben trang tin.
         conn.execute("DELETE FROM wall_post WHERE id = %s", (pid,))
@@ -380,11 +391,11 @@ def all_comments(pid: int, viewer: str = Depends(current_user)) -> dict:
     Trang bang tin/tuong chi kem COMMENT_PREVIEW cai moi nhat moi bai.
     """
     with _conn() as conn:
-        r = conn.execute("SELECT owner FROM wall_post WHERE id = %s AND deleted = false",
+        r = conn.execute("SELECT author FROM wall_post WHERE id = %s AND deleted = false",
                          (pid,)).fetchone()
         if not r:
             raise HTTPException(status_code=404, detail="khong co bai nay")
-        cm = _comments(conn, [pid], viewer, r[0], is_editor(viewer), limit=None)
+        cm = _comments(conn, [pid], viewer, {pid: r[0]}, is_editor(viewer), limit=None)
     d = cm.get(pid) or {"items": [], "total": 0}
     return {"comments": d["items"], "total": d["total"]}
 
@@ -412,13 +423,14 @@ def add_comment(pid: int, payload: dict = Body(...),
 def delete_comment(cid: int, username: str = Depends(current_user)) -> dict:
     with _conn() as conn:
         r = conn.execute(
-            "SELECT c.author, p.owner, p.id FROM wall_comment c "
+            "SELECT c.author, p.author, p.id FROM wall_comment c "
             "JOIN wall_post p ON p.id = c.post_id WHERE c.id = %s AND c.deleted = false",
             (cid,)).fetchone()
         if not r:
             raise HTTPException(status_code=404, detail="khong co binh luan nay")
-        author, owner, pid = r
-        if username not in (author, owner) and not is_editor(username):
+        author, post_author, pid = r
+        # Nguoi viet binh luan, TAC GIA BAI, hoac IT.
+        if not can_delete_wall_comment(username, author, post_author):
             raise HTTPException(status_code=403, detail="ban khong xoa duoc binh luan nay")
         conn.execute("DELETE FROM wall_comment WHERE id = %s", (cid,))
         conn.commit()

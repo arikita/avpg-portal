@@ -1,0 +1,45 @@
+<button
+  type="button"
+  class="acct-btn"
+  (click)="toggle()"
+  [attr.aria-expanded]="open()"
+  aria-haspopup="menu"
+  [attr.aria-label]="vi() ? 'Tài khoản của tôi' : 'My account'"
+  [attr.title]="vi() ? 'Tài khoản của tôi' : 'My account'"
+>
+  @if (avatar()) {
+    <img [src]="avatar()" alt="" />
+  } @else {
+    <span>{{ initials() }}</span>
+  }
+</button>
+
+@if (open()) {
+  <div class="acct-menu" role="menu">
+    <div class="acct-head">
+      <span class="acct-name">{{ fullName() }}</span>
+      <span class="acct-sub">{{ mail() || username() }}</span>
+    </div>
+
+    <a class="acct-item" routerLink="/profile" role="menuitem" (click)="close()">
+      <app-icon name="user" />
+      {{ vi() ? 'Hồ sơ của tôi' : 'My profile' }}
+    </a>
+
+    <button type="button" class="acct-item" role="menuitem" (click)="signOut()">
+      <!-- Bo icon khong co 'log-out', lat nguoc 'log-in' cho dung huong. -->
+      <app-icon name="log-in" class="acct-flip" />
+      {{ vi() ? 'Đăng xuất' : 'Sign out' }}
+    </button>
+
+    @if (sso()) {
+      <!-- Noi that thay vi de nut bam khong tac dung — xem ghi chu dau
+           account-menu.ts. -->
+      <p class="acct-note">
+        {{ vi()
+          ? 'Máy này đăng nhập tự động bằng tài khoản Windows, nên mở lại portal là vào ngay. Muốn đổi người dùng thì đăng xuất Windows.'
+          : 'This machine signs in automatically with your Windows account, so reopening the portal signs you straight back in. To switch user, sign out of Windows.' }}
+      </p>
+    }
+  </div>
+}

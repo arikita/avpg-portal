@@ -1,5 +1,5 @@
 /**
- * Soat toan bo trang quan tri /admin — 7 tab, 4 be rong, 2 giao dien sang/toi.
+ * Soat toan bo trang quan tri /admin — 8 tab, 4 be rong, 2 giao dien sang/toi.
  *
  *   node tools/audit_admin_ui.mjs <thu-muc-dist> [tools/fixtures/admin_api.json]
  *
@@ -64,7 +64,7 @@ async function newPage(width, theme) {
   return { p, errs };
 }
 
-const TABS = ['','content','news','users','analytics','errors','system'];
+const TABS = ['','content','news','users','quiz','analytics','errors','system'];
 
 // ---------------------------------------------------- 1) render + tran khung
 for (const width of [1440, 1280, 1024, 820]) {
@@ -74,21 +74,30 @@ for (const width of [1440, 1280, 1024, 820]) {
     for (const t of TABS) {
       await p.goto(`http://127.0.0.1:${PORT}/admin${t?'/'+t:''}`, { waitUntil:'networkidle' });
       await p.waitForTimeout(700);
-      // BANG duoc phep cuon BEN TRONG khung cua no (do la thiet ke). Cai KHONG
-      // duoc phep la ca TRANG hay khung .adm-shell bi day rong ra.
+      // BANG duoc phep cuon BEN TRONG .table-responsive cua no (do la thiet ke).
+      // Cai KHONG duoc phep la ca TRANG hay khung bi day rong ra.
+      //
+      // Do CA `.app-main`: trong bo cuc AdminLTE `layout-fixed`, `.app-main` co
+      // `overflow: auto` nen no NUOT phan tran thay vi day <html> rong ra. Chi
+      // do documentElement thi mot cai bang qua kho van "dat" trong khi nguoi
+      // dung phai keo ngang that.
       const r = await p.evaluate(() => {
-        const shell = document.querySelector('.adm-shell');
-        const act = document.querySelector('.adm-table td.act .adm-act button:last-child');
+        const wrap = document.querySelector('.app-wrapper');
+        const main = document.querySelector('.app-main');
+        const act = document.querySelector('td.adm-act-col .btn:last-child');
         let nutBiCat = false;
         if (act) {
-          const w = act.closest('.adm-tablewrap').getBoundingClientRect();
+          const w = act.closest('.table-responsive').getBoundingClientRect();
           const a = act.getBoundingClientRect();
           nutBiCat = a.left < w.left - 1 || a.right > w.right + 1;
         }
         return {
-          shell: shell ? shell.scrollWidth - shell.clientWidth : 0,
+          shell: Math.max(
+            wrap ? wrap.scrollWidth - wrap.clientWidth : 0,
+            main ? main.scrollWidth - main.clientWidth : 0,
+          ),
           body: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-          chu: (document.querySelector('main')?.innerText || '').length,
+          chu: (document.querySelector('.app-main')?.innerText || '').length,
           nutBiCat,
         };
       });
@@ -98,7 +107,7 @@ for (const width of [1440, 1280, 1024, 820]) {
       if (r.chu < 200) loiTong.push(`${t||'overview'} chi ${r.chu} ky tu`);
     }
     if (errs.length) loiTong.push(...errs.slice(0,3));
-    say(!tranTong.length && !loiTong.length, `${width}px ${theme}: 7 tab sach — trang khong cuon ngang, nut thao tac con nguyen`,
+    say(!tranTong.length && !loiTong.length, `${width}px ${theme}: ${TABS.length} tab sach — trang khong cuon ngang, nut thao tac con nguyen`,
         [...tranTong, ...loiTong].join(' | '));
     await p.close();
   }
@@ -106,12 +115,12 @@ for (const width of [1440, 1280, 1024, 820]) {
 
 // ------------------------------------------------------------ 2) thao tac
 const { p, errs } = await newPage(1440, 'light');
-const txt = async () => (await p.locator('main').innerText()).replace(/\s+/g,' ');
+const txt = async () => (await p.locator('.app-main').innerText()).replace(/\s+/g,' ');
 
-// dieu huong bang thanh tab ben trai
+// dieu huong bang thanh ben (sidebar cua AdminLTE)
 await p.goto(`http://127.0.0.1:${PORT}/admin`, { waitUntil:'networkidle' });
 await p.waitForTimeout(600);
-await p.locator('.adm-rail a', { hasText:'Hệ thống' }).click();
+await p.locator('.sidebar-menu .nav-link', { hasText:'Hệ thống' }).click();
 await p.waitForTimeout(600);
 say(p.url().endsWith('/admin/system') && (await txt()).includes('Dịch vụ'),
     'thanh tab trái điều hướng và đổi URL', p.url());
@@ -119,19 +128,19 @@ say(p.url().endsWith('/admin/system') && (await txt()).includes('Dịch vụ'),
 // tong quan: bam "viec can lam" nhay dung tab
 await p.goto(`http://127.0.0.1:${PORT}/admin`, { waitUntil:'networkidle' });
 await p.waitForTimeout(700);
-await p.locator('.adm-todo button').first().click();
+await p.locator('.card .list-group-item-action').first().click();
 await p.waitForTimeout(700);
 say(/\/admin\/(errors|news|system)$/.test(p.url()), 'bấm "Việc cần làm" nhảy đúng tab', p.url());
 
 // noi dung: tim kiem + chon muc + mo lich su
 await p.goto(`http://127.0.0.1:${PORT}/admin/content`, { waitUntil:'networkidle' });
 await p.waitForTimeout(700);
-const truoc = await p.locator('.adm-list button').count();
-await p.fill('.adm-bar input[type="search"]', 'hero');
+const truoc = await p.locator('.adm-picker button').count();
+await p.fill('#adm-content-q', 'hero');
 await p.waitForTimeout(500);
-const sau = await p.locator('.adm-list button').count();
+const sau = await p.locator('.adm-picker button').count();
 say(truoc > 0 && sau > 0 && sau < truoc, 'Nội dung: tìm kiếm lọc bớt danh sách', `${truoc} -> ${sau}`);
-await p.locator('.adm-list button').first().click();
+await p.locator('.adm-picker button').first().click();
 await p.waitForTimeout(400);
 say((await txt()).includes('Lịch sử sửa'), 'Nội dung: chọn mục thì hiện ô soạn thảo');
 await p.locator('button', { hasText:'Lịch sử sửa' }).click();
@@ -142,9 +151,9 @@ say(hit.has('/api/content/home/HERO/history') || (await txt()).includes('Bản t
 // tin tuc: loc trang thai + tim
 await p.goto(`http://127.0.0.1:${PORT}/admin/news`, { waitUntil:'networkidle' });
 await p.waitForTimeout(700);
-const dongTruoc = await p.locator('.adm-table tbody tr').count();
+const dongTruoc = await p.locator('.app-main table tbody tr').count();
 say(dongTruoc > 0, 'Tin tức: bảng có dữ liệu', `${dongTruoc} dòng`);
-say(await p.locator('.adm-act button[title*="Xoá"], .adm-act button[title*="Delete"]').first().isVisible(),
+say(await p.locator('td.adm-act-col button[title*="Xoá"], td.adm-act-col button[title*="Delete"]').first().isVisible(),
     'Tin tức: nút Xoá nhìn thấy được');
 
 // luot truy cap: doi khoang + hien/an danh sach nguoi
@@ -153,20 +162,72 @@ await p.waitForTimeout(800);
 say((await txt()).includes('Bảng này ghi kèm tên tài khoản'), 'Lượt truy cập: danh sách theo tên MẶC ĐỊNH ĐÓNG');
 await p.locator('button', { hasText:'Hiện' }).first().click();
 await p.waitForTimeout(500);
-say((await p.locator('.adm-table').count()) > 0, 'Lượt truy cập: bấm Hiện thì mở bảng người dùng');
-await p.locator('.adm-head-actions button', { hasText:'7' }).click();
+say((await p.locator('.app-main table').count()) > 0, 'Lượt truy cập: bấm Hiện thì mở bảng người dùng');
+await p.locator('.btn-group button', { hasText:'7' }).first().click();
 await p.waitForTimeout(800);
 say(hit.has('/api/admin/analytics') && hit.has('/api/admin/ga4'), 'Lượt truy cập: nút 7 ngày gọi lại cả hai nguồn');
 
 // loi: loc + mo chi tiet
 await p.goto(`http://127.0.0.1:${PORT}/admin/errors`, { waitUntil:'networkidle' });
 await p.waitForTimeout(700);
-await p.locator('.adm-table tbody tr').first().click();
+await p.locator('.app-main table tbody tr').first().click();
 await p.waitForTimeout(600);
 say((await txt()).includes('fingerprint'), 'Lỗi: bấm dòng mở được chi tiết + mẫu thô');
-await p.selectOption('.adm-bar select >> nth=0', 'critical');
+await p.selectOption('#adm-err-sev', 'critical');
 await p.waitForTimeout(600);
 say(true, 'Lỗi: đổi bộ lọc mức độ không vỡ trang');
+
+// kiem tra hoi nhap: bang ket qua + "cau hay sai nhat".
+// Cot tren cung cua tab nay la thu DE HONG AM THAM nhat: no doi chieu ID cau
+// hoi tu API voi noi dung cau hoi trong quiz.content.ts. Lech ID mot chu thi
+// bang van ve ra, chi la moi dong hien ra dung cai ID tho — nhin luot van
+// tuong dang chay. Vi vay kiem BANG CHU CUA CAU HOI, khong phai bang so dong.
+await p.goto(`http://127.0.0.1:${PORT}/admin/quiz`, { waitUntil:'networkidle' });
+await p.waitForTimeout(700);
+const tQuiz = await txt();
+say(hit.has('/api/admin/quiz'), 'Kiểm tra hội nhập: có gọi API');
+say(tQuiz.includes('Le Nguyen Kieu Oanh') && tQuiz.includes('Chưa đạt'),
+    'Kiểm tra hội nhập: bảng người có cả người đạt lẫn chưa đạt');
+say(tQuiz.includes('tệp nhạy cảm') || tQuiz.includes('sensitive file'),
+    'Kiểm tra hội nhập: câu hay sai hiện NỘI DUNG câu hỏi, không phải ID',
+    tQuiz.includes('gui-tai-lieu-nhay-cam') ? 'đang hiện ID thô' : '');
+say(tQuiz.includes('Tran Van An'), 'Kiểm tra hội nhập: có danh sách nhân viên mới chưa làm');
+// Ti le sai phai chia cho SO LAN CAU DO DUOC HOI, khong phai tong so luot lam
+// bai. Fixture: cau "tep nhay cam" sai 9 tren 12 lan duoc hoi = 75%. Neu ai do
+// doi mau so ve tong luot (17) thi con so tut xuong 53% — van la mot con so
+// dep de, van hien ra binh thuong, va sai hoan toan.
+say(tQuiz.includes('75%'), 'Kiểm tra hội nhập: tỉ lệ sai chia cho SỐ LẦN ĐƯỢC HỎI',
+    tQuiz.includes('53%') ? 'đang chia cho tổng lượt làm bài' : '');
+say(tQuiz.includes('ít mẫu'), 'Kiểm tra hội nhập: câu hỏi quá ít lần được gắn nhãn "ít mẫu"',
+    'câu chỉ hỏi 2 lần đang hiện 100% như một kết luận thật');
+say(/Bảo mật/.test(tQuiz) && tQuiz.includes('44%'),
+    'Kiểm tra hội nhập: có bảng gom theo chủ đề');
+
+// thanh ben: man rong THU lai, man hep TRUOT ra de len noi dung.
+// AdminLTE lam viec nay bang adminlte.js; portal khong nap JS cua template
+// (chi can hai lop) nen Admin tu dat `sidebar-collapse` / `sidebar-open`.
+// Do la doan code tu viet => phai co cho kiem, khong thi no hong am tham.
+await p.goto(`http://127.0.0.1:${PORT}/admin`, { waitUntil:'networkidle' });
+await p.waitForTimeout(600);
+const rong = () => p.evaluate(() => Math.round(document.querySelector('.app-sidebar').getBoundingClientRect().right));
+const truocThu = await rong();
+await p.locator('.app-header button.nav-link').first().click();
+await p.waitForTimeout(500);
+say(await rong() <= 0 && truocThu > 100, '1440px: nút ☰ thu hẳn thanh bên', `${truocThu} -> ${await rong()}`);
+await p.locator('.app-header button.nav-link').first().click();
+await p.waitForTimeout(500);
+say(await rong() > 100, '1440px: bấm lại thì thanh bên trở ra');
+
+await p.setViewportSize({ width: 820, height: 1000 });
+await p.waitForTimeout(400);
+say(await rong() <= 0, '820px: thanh bên tự nằm ngoài màn hình');
+await p.locator('.app-header button.nav-link').first().click();
+await p.waitForTimeout(500);
+say(await rong() > 100, '820px: nút ☰ trượt thanh bên ra');
+await p.locator('.sidebar-overlay').click({ position: { x: 400, y: 500 } });
+await p.waitForTimeout(500);
+say(await rong() <= 0, '820px: bấm ra ngoài thì thanh bên đóng lại');
+await p.setViewportSize({ width: 1440, height: 1000 });
 
 // khong co quyen
 await p.goto(`http://127.0.0.1:${PORT}/admin`, { waitUntil:'networkidle' });

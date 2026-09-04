@@ -1,0 +1,201 @@
+<!-- ===================================================== MAN GIOI THIEU === -->
+@if (stage() === 'intro') {
+  <section class="hero" style="padding-block: clamp(40px,6vw,72px)">
+    <div class="hero-blobs"><span class="blob b1"></span><span class="blob b2"></span></div>
+    <div class="container">
+      <span class="eyebrow"><app-icon name="list-checks" /> {{ vi() ? 'Sau buổi hội nhập' : 'After your induction' }}</span>
+      <h1 class="mt-3">{{ vi() ? 'Kiểm tra hội nhập IT' : 'IT Induction Check' }}</h1>
+      <p class="lead mt-2">{{ intro | tr: lang() }}</p>
+    </div>
+  </section>
+
+  <section class="section-sm">
+    <div class="container qz-narrow">
+      @if (status(); as st) {
+        @if (st.attempts > 0) {
+          <div class="callout" [class.success]="st.passed" [class.warning]="!st.passed">
+            <span class="ic"><app-icon [name]="st.passed ? 'award' : 'alert-triangle'" /></span>
+            <div>
+              <strong>
+                {{ st.passed
+                    ? (vi() ? 'Bạn đã đạt bài kiểm tra này' : 'You have passed this check')
+                    : (vi() ? 'Bạn chưa đạt' : 'Not passed yet') }}
+              </strong>
+              <p>
+                {{ vi() ? 'Điểm cao nhất' : 'Best score' }}: <strong>{{ st.best }}/{{ st.total }}</strong> ·
+                {{ vi() ? 'số lần làm' : 'attempts' }}: {{ st.attempts }}.
+                {{ st.passed
+                    ? (vi() ? 'Bạn vẫn có thể làm lại để ôn.' : 'You may retake it as a refresher.')
+                    : (vi() ? 'Hãy đọc lại phần mình còn yếu rồi làm lại.' : 'Review the weak spots and try again.') }}
+              </p>
+            </div>
+          </div>
+        }
+      }
+
+      <div class="card card-pad-lg mt-3">
+        <div class="qz-facts">
+          <div>
+            <span class="k">{{ vi() ? 'Số câu' : 'Questions' }}</span>
+            <span class="v">{{ totalQuestions }}</span>
+            <span class="n">{{ vi() ? 'bốc từ ' + poolSize + ' câu' : 'drawn from ' + poolSize }}</span>
+          </div>
+          <div><span class="k">{{ vi() ? 'Đạt từ' : 'Pass mark' }}</span><span class="v">{{ passMark }}/{{ totalQuestions }}</span></div>
+          <div><span class="k">{{ vi() ? 'Thời gian' : 'Time' }}</span><span class="v">~5 {{ vi() ? 'phút' : 'min' }}</span></div>
+          <div><span class="k">{{ vi() ? 'Làm lại' : 'Retakes' }}</span><span class="v">{{ vi() ? 'Không giới hạn' : 'Unlimited' }}</span></div>
+        </div>
+
+        <p class="muted-3 mt-3" style="font-size:.92rem">
+          {{ vi()
+              ? 'Mỗi lượt bốc ngẫu nhiên ' + totalQuestions + ' câu từ ngân hàng ' + poolSize + ' câu, trải đều các chủ đề — làm lại sẽ ra đề khác. Bài làm được ghi lại kèm tên tài khoản của bạn để phòng IT biết ai đã hoàn thành hội nhập, và quan trọng hơn là biết nội dung nào cần giải thích kỹ hơn ở những buổi sau.'
+              : 'Each attempt draws ' + totalQuestions + ' random questions from a bank of ' + poolSize + ', spread across topics — a retake gives you a different set. Your submission is recorded with your account so IT knows who has completed the induction and, more importantly, which topics need explaining better next time.' }}
+        </p>
+
+        <div class="row mt-3" style="gap:12px;flex-wrap:wrap">
+          <button type="button" class="btn btn-primary" (click)="start()">
+            <app-icon name="rocket" />
+            {{ (status()?.attempts ?? 0) > 0 ? (vi() ? 'Làm lại' : 'Retake') : (vi() ? 'Bắt đầu làm bài' : 'Start the check') }}
+          </button>
+          <a class="btn btn-ghost" routerLink="/onboarding">
+            <app-icon name="book" /> {{ vi() ? 'Đọc lại hướng dẫn' : 'Review the guide' }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+}
+
+<!-- ========================================================= DANG LAM === -->
+@if (stage() === 'doing') {
+  <section class="section-sm">
+    <div class="container qz-narrow">
+      <div class="qz-bar">
+        <div class="row between wrap" style="gap:10px">
+          <span class="tag">{{ vi() ? 'Câu' : 'Question' }} {{ at() + 1 }}/{{ totalQuestions }}</span>
+          <span class="muted-3" style="font-size:.85rem">
+            {{ vi() ? 'Đã trả lời' : 'Answered' }} {{ answeredCount() }}/{{ totalQuestions }}
+          </span>
+        </div>
+        <div class="progress-track mt-2"><div class="progress-fill" [style.width.%]="percent()"></div></div>
+      </div>
+
+      @if (current(); as q) {
+        <div class="card card-pad-lg mt-3">
+          <h2 class="qz-q">{{ q.q | tr: lang() }}</h2>
+
+          <div class="qz-opts mt-3" role="radiogroup" [attr.aria-label]="q.q | tr: lang()">
+            @for (o of q.options; track o.id) {
+              <button
+                type="button"
+                role="radio"
+                class="qz-opt"
+                [class.on]="isPicked(q.id, o.id)"
+                [attr.aria-checked]="isPicked(q.id, o.id)"
+                (click)="pick(q.id, o.id)">
+                <span class="dot"><app-icon name="check" /></span>
+                <span>{{ o.text | tr: lang() }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="qz-nav mt-3">
+          <button type="button" class="btn btn-ghost" [disabled]="at() === 0" (click)="go(-1)">
+            <app-icon name="chevron-left" /> {{ vi() ? 'Câu trước' : 'Back' }}
+          </button>
+
+          @if (!isLast()) {
+            <button type="button" class="btn btn-primary" (click)="go(1)">
+              {{ vi() ? 'Câu tiếp theo' : 'Next' }} <app-icon name="arrow-right" />
+            </button>
+          } @else {
+            <button type="button" class="btn btn-primary" [disabled]="!allAnswered() || sending()" (click)="submit()">
+              <app-icon name="send" />
+              {{ sending() ? (vi() ? 'Đang gửi…' : 'Sending…') : (vi() ? 'Nộp bài' : 'Submit') }}
+            </button>
+          }
+        </div>
+
+        <!-- Chua tra lo het thi noi RO cau nao, va bam vao la nhay toi. Mot cau
+             "hay tra loi het cac cau" ma khong chi cho la mot cau do vui. -->
+        @if (isLast() && !allAnswered()) {
+          <div class="callout warning mt-3">
+            <span class="ic"><app-icon name="alert-triangle" /></span>
+            <div>
+              <strong>{{ vi() ? 'Còn câu chưa trả lời' : 'Some questions are unanswered' }}</strong>
+              <p>
+                @for (m of missing(); track m.q.id) {
+                  <button type="button" class="qz-jump" (click)="goTo(m.i)">{{ vi() ? 'Câu' : 'Q' }} {{ m.i + 1 }}</button>
+                }
+              </p>
+            </div>
+          </div>
+        }
+
+        @if (failed()) {
+          <div class="callout danger mt-3">
+            <span class="ic"><app-icon name="alert-triangle" /></span>
+            <div>
+              <strong>{{ vi() ? 'Chưa gửi được bài' : 'Could not submit' }}</strong>
+              <p>{{ vi() ? 'Bài của bạn CHƯA được ghi nhận. Bấm “Nộp bài” lần nữa; nếu vẫn lỗi, báo phòng IT.' : 'Your answers were NOT recorded. Press Submit again; if it keeps failing, tell IT.' }}</p>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </section>
+}
+
+<!-- ========================================================== KET QUA === -->
+@if (stage() === 'result') {
+  @if (result(); as r) {
+    <section class="section-sm">
+      <div class="container qz-narrow">
+        <div class="card card-pad-lg qz-score" [class.ok]="r.passed">
+          <div class="icon-badge" [class.brand]="r.passed">
+            <app-icon [name]="r.passed ? 'award' : 'alert-triangle'" />
+          </div>
+          <div class="num">{{ r.score }}<span>/{{ r.total }}</span></div>
+          <h2>
+            {{ r.passed
+                ? (vi() ? 'Đạt — chúc mừng bạn!' : 'Passed — well done!')
+                : (vi() ? 'Chưa đạt' : 'Not passed') }}
+          </h2>
+          <p class="muted-3">
+            {{ r.passed
+                ? (vi() ? 'Kết quả đã được ghi nhận. Bạn có thể xem lại các câu sai bên dưới.' : 'Your result has been recorded. Review any mistakes below.')
+                : (vi() ? 'Cần đúng ' + r.pass + '/' + r.total + ' để đạt. Đọc lại các mục bên dưới rồi làm lại nhé — làm lại không giới hạn.' : 'You need ' + r.pass + '/' + r.total + ' to pass. Review the sections below and try again — retakes are unlimited.') }}
+          </p>
+        </div>
+
+        @if (wrongQuestions().length) {
+          <h3 class="mt-4">{{ vi() ? 'Những câu cần xem lại' : 'Worth reviewing' }}</h3>
+          <p class="muted-3" style="font-size:.92rem">
+            {{ vi()
+                ? 'Mỗi câu kèm đường dẫn tới đúng mục trong tài liệu. Đọc lại rồi làm lại bài.'
+                : 'Each one links to the exact section in the guide. Read it, then retake the check.' }}
+          </p>
+          <div class="qz-wrong mt-3">
+            @for (q of wrongQuestions(); track q.id) {
+              <div class="card">
+                <p class="q">{{ q.q | tr: lang() }}</p>
+                <a class="chip brand" [routerLink]="q.ref.path" [fragment]="q.ref.frag">
+                  <app-icon name="book" /> {{ q.ref.label | tr: lang() }}
+                </a>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="row mt-4" style="gap:12px;flex-wrap:wrap">
+          <button type="button" class="btn btn-primary" (click)="start()">
+            <app-icon name="redo" /> {{ vi() ? 'Làm lại' : 'Retake' }}
+          </button>
+          <a class="btn btn-ghost" routerLink="/onboarding">
+            <app-icon name="book" /> {{ vi() ? 'Về trang hội nhập' : 'Back to onboarding' }}
+          </a>
+        </div>
+      </div>
+    </section>
+  }
+}

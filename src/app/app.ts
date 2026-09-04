@@ -13,11 +13,11 @@ import { NotificationService } from './core/services/notification.service';
 import { NotificationsBell } from './shared/components/notifications/notifications';
 import { ChatDock } from './shared/components/chat-dock/chat-dock';
 import { BugReport } from './shared/components/bug-report/bug-report';
-import { initials } from './shared/util/avatar.util';
+import { AccountMenu } from './shared/components/account-menu/account-menu';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TrPipe, IconComponent, NotificationsBell, ChatDock, BugReport],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TrPipe, IconComponent, NotificationsBell, ChatDock, BugReport, AccountMenu],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -47,22 +47,43 @@ export class App {
   /** Link Quan tri chi hien voi thanh vien nhom bien tap. */
   private readonly userSvc = inject(UserService);
   readonly canEdit = computed(() => this.userSvc.me()?.canEdit === true);
-  readonly unseenNews = inject(NotificationService).unseenNews;
 
-  /** Nut ho so tren navbar: anh that neu da tai len, khong thi chu cai dau. */
-  readonly myAvatar = this.userSvc.avatar;
-  readonly myInitials = computed(() =>
-    initials(this.userSvc.fullName() || this.userSvc.username() || '?'),
+  /**
+   * Nut "Bao loi" chi hien voi phong Information System (yeu cau 25/08/2026).
+   *
+   * Doc theo `department` cua AD chu KHONG theo nhom bao mat, va co ly do:
+   * day la LOC HIEN THI, khong phai hang rao quyen. Endpoint nhan bao loi van
+   * mo cho moi nguoi — giau nut khong bit gi ca — nen dung mot thuoc tinh mo
+   * ta la du. Muon dung nhom AD thi da co `canModerateNews`, nhung nhom do
+   * mang nghia "kiem duyet tin tuc"; muon hai thu do di chung thi phai co
+   * nguoi quyet dinh, khong phai lap trinh vien tu gop.
+   *
+   * KHONG dung `canEdit`: `huybg` (IT Support) thuoc phong IS nhung khong nam
+   * trong CONTENT_ADMIN_USERS, dung `canEdit` la loai mat anh ay.
+   */
+  readonly isITDept = computed(
+    () => (this.userSvc.me()?.department ?? '').trim().toLowerCase() === 'information system',
   );
+  readonly unseenNews = inject(NotificationService).unseenNews;
 
   /** Nut len dau trang: chi hien khi da keo gan het trang ("keo het trang"). */
   readonly showToTop = signal(false);
   private readonly router = inject(Router);
 
+  /** /admin dung khung rieng cua AdminLTE (sidebar toi + navbar rieng, chiem
+   *  tron man hinh) nen navbar/chan trang/menu dien thoai cua portal phai an
+   *  han — de lai la hai thanh dieu huong chong nhau. Nut "Ve portal" nam
+   *  trong sidebar quan tri, khong phai duong cut. */
+  readonly isAdmin = signal(false);
+
   constructor() {
+    this.isAdmin.set(this.router.url.startsWith('/admin'));
     // Doi trang => chieu cao noi dung thay doi, tinh lai sau khi render.
     this.router.events.subscribe((e) => {
-      if (e instanceof NavigationEnd) setTimeout(() => this.updateToTop(), 0);
+      if (e instanceof NavigationEnd) {
+        this.isAdmin.set(e.urlAfterRedirects.startsWith('/admin'));
+        setTimeout(() => this.updateToTop(), 0);
+      }
     });
   }
 

@@ -1,4 +1,4 @@
-.gal-hero { padding-block: clamp(32px, 5vw, 60px); }
+.gal-hero { padding-block: clamp(28px, 4vw, 48px) clamp(16px, 2vw, 24px); }
 
 .back {
   display: inline-flex;
@@ -13,10 +13,41 @@
 }
 
 /* ------------------------------------------------------------------ album -- */
+/* Luoi 12 cot: ba co tron duoc trong cung mot hang. `auto-fill` khong lam
+ * duoc viec nay vi no chia deu moi o. */
 .alb-grid {
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(12, 1fr);
+  align-items: start;
+}
+
+.alb.noibat { grid-column: span 12; }
+.alb.thuong { grid-column: span 4; }
+.alb.gon    { grid-column: span 2; }
+
+/* NOI BAT: bia nam ngang, chu doc ben canh — the nay la dong tieu de cua ca
+ * trang, khong phai mot the to hon. */
+.alb.noibat {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(240px, 1fr);
+  align-items: stretch;
+
+  /* PHAI rang chieu cao. Bo `aspect-ratio` ma khong dat gi thay the thi luoi
+   * bia 3 hang no theo kich thuoc anh that va the cao vong len ca man hinh
+   * (dinh 25/08/2026). */
+  .alb-cover { aspect-ratio: auto; height: clamp(210px, 23vw, 300px); }
+  .alb-body { display: flex; flex-direction: column; justify-content: center; padding: 26px 28px; }
+  h3 { font-size: 1.5rem; }
+  p { font-size: .98rem; margin-top: 8px; }
+}
+
+/* GON: chi ten, khong mo ta — o nay chi de "con co album nay nua". */
+.alb.gon {
+  .alb-cover { aspect-ratio: 1; }
+  .alb-body { padding: 10px 12px; }
+  h3 { font-size: .86rem; line-height: 1.35; }
+  .alb-count { right: 6px; bottom: 6px; padding: 2px 7px; font-size: .68rem; }
 }
 
 .alb {
@@ -34,15 +65,43 @@
   &:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 }
 
+/* Bia ghep tu 4 anh. Mot album 1687 tam ma dai dien bang dung mot anh thi phi
+ * — nhung duoi 4 anh thi tu rut ve mot o de khong loi ra khoang trong. */
 .alb-cover {
   position: relative;
   aspect-ratio: 16 / 10;
   background: var(--surface-3);
   display: grid;
+  /* 1 anh lon ben trai + 3 anh nho ben phai = dung 4 o. Lay 2 hang thi cot
+   * phai chi co 2 o va anh thu tu bi cat mat. */
+  /* `minmax(0, 1fr)` chu KHONG phai `1fr`: `1fr` = `minmax(auto, 1fr)`, va
+   * `auto` lay chieu cao toi thieu theo ANH — o rong 232px thi hang cung doi
+   * 232px, ba hang thanh 696px trong khung cao 300px roi bi cat mat anh thu
+   * tu (dinh 25/08/2026). */
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 2px;
   place-items: center;
   color: var(--text-3);
+  overflow: hidden;
 
-  img { width: 100%; height: 100%; object-fit: cover; }
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* Anh dau chiem ca cot trai — co nhip, khong phai bon o bang nhau. */
+  img:first-child { grid-row: span 3; }
+  &.one { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  &.one img:first-child { grid-row: auto; }
+}
+
+.alb-draft {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  padding: 3px 10px;
+  border-radius: var(--pill);
+  background: var(--warning);
+  color: #241a04;
+  font-size: .72rem;
+  font-weight: 800;
 }
 
 .alb-count {
@@ -65,21 +124,36 @@
   p { margin: 0; font-size: .88rem; }
 }
 
-/* ------------------------------------------------------------------- luoi -- */
-.gal-grid {
-  display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+/* --------------------------------------------------------- luoi justified -- */
+/* Kieu Google Photos: moi anh GIU DUNG TI LE THAT, cac anh cung hang cao bang
+ * nhau. Luoi o vuong (cai cu) cat cut anh doc — chan dung bi cat mat dau.
+ *
+ * Co che: `flex-grow` = ti le, `flex-basis` = ti le x chieu cao hang (do
+ * component tinh, xem gallery.ts). Flex tu chia lai cho vua be rong. Khong can
+ * JS do dac, khong giat khi doi be rong cua so. */
+.gal-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+/* Khong co the nay thi hang CUOI bi keo gian ra qua kho (2 anh chiem ca man). */
+.gal-fill {
+  flex-grow: 999999;
+  flex-basis: 0;
+  min-width: 0;
 }
 
 .ph {
+  position: relative;
   padding: 0;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-xs);
   overflow: hidden;
   background: var(--surface-3);
-  aspect-ratio: 4 / 3;
   cursor: zoom-in;
+  min-width: 0;
 
   img {
     width: 100%;
@@ -92,12 +166,29 @@
   &:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 }
 
+/* Anh Marketing ghim lam noi bat. */
+.ph-star {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(8, 11, 22, .55);
+  color: #ffd15c;
+  backdrop-filter: blur(3px);
+
+  app-icon svg { width: 13px; height: 13px; }
+}
+
 .ph-skel {
-  aspect-ratio: 4 / 3;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-xs);
   background: linear-gradient(90deg, var(--surface-2), var(--surface-3), var(--surface-2));
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
+  min-width: 0;
 }
 
 @keyframes shimmer {
@@ -105,7 +196,100 @@
   to { background-position: -200% 0; }
 }
 
-.more-wrap { display: flex; justify-content: center; margin-top: 26px; }
+/* ------------------------------------------------------- nhom theo ngay -- */
+/* Mot giai bong da 1687 anh keo dai nhieu ngay; khong chia ra thi khong ai tim
+ * duoc tran cua minh. Tieu de DINH lai khi cuon de luon biet dang o ngay nao. */
+.gal-day:first-of-type { margin-top: 4px; }
+
+.gal-day {
+  position: sticky;
+  top: calc(var(--nav-h) + 4px);
+  z-index: 3;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 22px 0 10px;
+  padding: 6px 12px;
+  width: fit-content;
+  border-radius: var(--pill);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  font-size: .98rem;
+  font-weight: 800;
+
+  span { font-size: .8rem; font-weight: 600; color: var(--text-3); }
+}
+
+.gal-year {
+  margin: 30px 0 14px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-2);
+}
+.gal-year:first-child { margin-top: 0; }
+
+/* ------------------------------------------------------------ loc nhan -- */
+.gal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+
+  button {
+    padding: 7px 15px;
+    border-radius: var(--pill);
+    border: 1px solid var(--border-2);
+    background: var(--surface);
+    color: var(--text-2);
+    font: inherit;
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover { border-color: var(--brand); color: var(--brand); }
+    &.on { background: var(--brand); border-color: var(--brand); color: #fff; }
+  }
+}
+
+/* --------------------------------------------------------- cuon vo han -- */
+/* The moc: hien ra trong tam nhin la nap tiep. Nut "Xem them" cu bat nguoi ta
+ * bam 12 lan cho album 1687 anh. */
+.gal-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px 0 10px;
+  color: var(--text-3);
+  font-size: .9rem;
+}
+
+.spin {
+  width: 15px;
+  height: 15px;
+  border: 2px solid var(--border-2);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.gal-draft { color: var(--warning); font-weight: 700; }
+
+.gal-manage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 34px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: .88rem;
+
+  a { color: var(--brand); font-weight: 600; }
+}
 
 .empty {
   display: grid;
@@ -157,23 +341,198 @@
 
 .lb-x { position: absolute; top: 18px; right: 18px; z-index: 2; }
 
-.lb-count {
+/* Thanh duoi lightbox: so thu tu, ngay chup, va nut TAI ANH GOC.
+ * Nut tai la thu nguoi dung can nhat — ho vao thu vien chu yeu de lay anh cua
+ * chinh minh. Khong tai duoc thi ho xem mot lan roi thoi. */
+.lb-bar {
   position: absolute;
   left: 50%;
   bottom: 18px;
   transform: translateX(-50%);
-  padding: 5px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: min(92vw, 640px);
+}
+
+.lb-count,
+.lb-day {
+  padding: 6px 14px;
   border-radius: var(--pill);
   background: rgba(255, 255, 255, .12);
   color: #fff;
   font-size: .82rem;
   font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(6px);
+}
+
+.lb-dl {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 15px;
+  border-radius: var(--pill);
+  background: #fff;
+  color: #141a2e;
+  font-size: .84rem;
+  font-weight: 700;
+  text-decoration: none;
+
+  &:hover { background: #e9ecf6; }
+  app-icon svg { width: 15px; height: 15px; }
+}
+
+/* Nap truoc anh ke tiep: bam mui ten khong phai doi trang trang. */
+.lb-pre {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 1000px) {
+  .alb.thuong { grid-column: span 6; }
+  .alb.gon { grid-column: span 3; }
+  .alb.noibat { grid-template-columns: 1fr; }
+  .alb.noibat .alb-cover { height: clamp(180px, 42vw, 240px); }
 }
 
 @media (max-width: 720px) {
-  .gal-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+  .alb.thuong { grid-column: span 12; }
+  .alb.gon { grid-column: span 6; }
+  .gal-row { gap: 4px; margin-bottom: 4px; }
+  .gal-day { top: 4px; }
   .lb { grid-template-columns: 1fr; padding: 12px; }
   .lb-nav { position: absolute; bottom: 60px; }
   .lb-nav.prev { left: 20px; }
   .lb-nav.next { right: 20px; }
+}
+
+/* ==================================================== BA KIEU BO CUC ==== */
+/* Moi kieu giai MOT viec khac nhau, khong phai bay ra cho co lua chon —
+ * xem ghi chu `Layout` trong gallery.ts. */
+
+.gal-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.gal-seg {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--pill);
+  background: var(--surface-2);
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
+    border: 0;
+    border-radius: var(--pill);
+    background: none;
+    color: var(--text-3);
+    font: inherit;
+    font-size: .85rem;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:hover { color: var(--text); }
+    &.on { background: var(--surface); color: var(--brand); box-shadow: var(--shadow-sm); }
+    app-icon svg { width: 15px; height: 15px; }
+  }
+}
+
+.gal-play { margin-left: auto; }
+
+/* --- COT: nhip doc kieu bao anh -----------------------------------------
+ * `column-count` chu khong phai grid: chieu cao moi anh khac nhau nen mat
+ * khong bi keo thanh mot duong ngang deu tam tap. Danh doi: thu tu doc theo
+ * COT chu khong theo hang — voi anh thi khong ai doc tuan tu nen chap nhan
+ * duoc, va lightbox van dem theo dung thu tu trong album. */
+.gal-cols {
+  column-count: 4;
+  column-gap: 6px;
+  margin-bottom: 6px;
+}
+
+.ph-col {
+  display: block;
+  width: 100%;
+  margin-bottom: 6px;
+  /* Khong co dong nay thi mot anh bi cat lam doi giua hai cot. */
+  break-inside: avoid;
+}
+
+/* --- O VUONG: day dac nhat, quet nhanh --------------------------------- */
+.gal-sq {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+  margin-bottom: 6px;
+
+  .ph { aspect-ratio: 1; }
+}
+
+@media (max-width: 1100px) { .gal-cols { column-count: 3; } }
+@media (max-width: 760px) {
+  .gal-cols { column-count: 2; }
+  .gal-sq { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
+  .gal-seg button span { display: none; }
+  .gal-seg button { padding: 7px 12px; }
+}
+
+/* ------------------------------------------------------- trinh chieu --- */
+/* Dang chay thi go het thu gay xao nhang — day la luc anh duoc chieu len man
+ * hinh o sanh hoac trong cuoc hop, khong phai luc bam nut. */
+.lb.playing .lb-nav,
+.lb.playing .lb-x { opacity: 0; transition: opacity .4s ease; }
+.lb.playing:hover .lb-nav,
+.lb.playing:hover .lb-x { opacity: 1; }
+
+.lb-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: var(--pill);
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+
+  &:hover { background: rgba(255, 255, 255, .22); }
+  app-icon svg { width: 14px; height: 14px; }
+}
+
+/* --- DIEM NHAN: cu vai tam lai co mot tam to gap doi ---------------------
+ * Day la kieu DUY NHAT tao ra nhip ke ca khi ca album chup cung mot ti le —
+ * album AVP Cup deu 7008x4672 nen Dong va Cot nhin gan nhu nhau.
+ * `dense` de o nho tu lap vao khoang trong ma o to chua lap kin. */
+.gal-mos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-auto-flow: dense;
+  gap: 6px;
+  margin-bottom: 6px;
+
+  .ph { aspect-ratio: 1; }
+  /* 7 khong chia het cho so cot (4/5/6) nen vi tri o to lech dan tung hang —
+   * khong thanh mot cot to thang tap. */
+  .ph:nth-child(7n + 1) { grid-column: span 2; grid-row: span 2; }
+}
+
+@media (max-width: 760px) {
+  .gal-mos { grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); }
 }

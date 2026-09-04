@@ -1,112 +1,168 @@
-<div class="adm-head">
-  <div>
-    <h1>{{ vi() ? 'Lượt truy cập' : 'Traffic' }}</h1>
-    <p>
-      {{ vi()
-        ? 'Hai nguồn số liệu đặt cạnh nhau: bảng tự host trong PostgreSQL (biết ai và phòng ban nào dùng portal) và GA4 (thiết bị, phiên, thời lượng).'
-        : 'Two data sources side by side: the self-hosted PostgreSQL tables (who and which department actually uses the portal) and GA4 (devices, sessions, duration).' }}
-    </p>
-  </div>
-  <div class="adm-head-actions">
-    <button class="btn btn-ghost btn-sm" [class.btn-soft]="days() === 7" (click)="setDays(7)">7 {{ vi() ? 'ngày' : 'd' }}</button>
-    <button class="btn btn-ghost btn-sm" [class.btn-soft]="days() === 30" (click)="setDays(30)">30 {{ vi() ? 'ngày' : 'd' }}</button>
-    <button class="btn btn-ghost btn-sm" [class.btn-soft]="days() === 90" (click)="setDays(90)">90 {{ vi() ? 'ngày' : 'd' }}</button>
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <p class="text-secondary mb-0 me-auto">
+    {{ vi()
+      ? 'Hai nguồn số liệu đặt cạnh nhau: bảng tự host trong PostgreSQL (biết ai và phòng ban nào dùng portal) và GA4 (thiết bị, phiên, thời lượng).'
+      : 'Two data sources side by side: the self-hosted PostgreSQL tables (who and which department actually uses the portal) and GA4 (devices, sessions, duration).' }}
+  </p>
+  <div class="btn-group btn-group-sm" role="group" [attr.aria-label]="vi() ? 'Khoảng thời gian' : 'Time range'">
+    <button
+      type="button"
+      class="btn"
+      [class.btn-primary]="days() === 7"
+      [class.btn-outline-secondary]="days() !== 7"
+      (click)="setDays(7)"
+    >7 {{ vi() ? 'ngày' : 'd' }}</button>
+    <button
+      type="button"
+      class="btn"
+      [class.btn-primary]="days() === 30"
+      [class.btn-outline-secondary]="days() !== 30"
+      (click)="setDays(30)"
+    >30 {{ vi() ? 'ngày' : 'd' }}</button>
+    <button
+      type="button"
+      class="btn"
+      [class.btn-primary]="days() === 90"
+      [class.btn-outline-secondary]="days() !== 90"
+      (click)="setDays(90)"
+    >90 {{ vi() ? 'ngày' : 'd' }}</button>
   </div>
 </div>
 
 <!-- ==================================================== TU HOST ========= -->
-<h2 style="font-size:1.05rem; margin-bottom:12px">
+<h2 class="fs-5 mb-3">
   {{ vi() ? 'Số liệu tự host · trong mạng nội bộ' : 'Self-hosted · stays on the internal network' }}
 </h2>
 
 @if (loading() && !data()) {
-  <p class="adm-muted">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p>
+  <p class="text-secondary">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p>
 } @else if (!data()) {
-  <div class="adm-note warn">
+  <div class="alert alert-warning d-flex gap-2" role="alert">
     <app-icon name="alert-triangle" />
     <div>{{ vi() ? 'Không đọc được số liệu tự host.' : 'Could not load self-hosted data.' }}</div>
   </div>
 } @else {
-  <div class="adm-cards">
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="user" /> {{ vi() ? 'Hoạt động hôm nay' : 'Active today' }}</div>
-      <div class="v">{{ data()!.active.d1 }}</div>
-      <div class="d">{{ vi() ? 'người riêng biệt' : 'unique people' }}</div>
-    </div>
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="users" /> {{ vi() ? 'Hoạt động 7 ngày' : 'Active, 7 days' }}</div>
-      <div class="v">{{ data()!.active.d7 }}</div>
-      <div class="d">{{ vi() ? 'người riêng biệt' : 'unique people' }}</div>
-    </div>
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="calendar" /> {{ vi() ? 'Hoạt động 30 ngày' : 'Active, 30 days' }}</div>
-      <div class="v">{{ data()!.active.d30 }}</div>
-      <div class="d">{{ vi() ? 'người riêng biệt' : 'unique people' }}</div>
-    </div>
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="eye" /> {{ vi() ? 'Lượt xem' : 'Page views' }}</div>
-      <div class="v">{{ fmt(data()!.totals.views) }}</div>
-      <div class="d">{{ data()!.days }} {{ vi() ? 'ngày qua' : 'days' }} · {{ data()!.totals.users }} {{ vi() ? 'người' : 'people' }}</div>
-    </div>
-  </div>
-
-  <div class="adm-grid-2 mt-3">
-    <div class="adm-card pad-0">
-      <div class="adm-card-head"><h3>{{ vi() ? 'Lượt xem trang' : 'Page views' }}</h3></div>
-      <div class="adm-card-body">
-        <adm-trend [data]="viewSeries()" [unit]="vi() ? 'lượt xem' : 'views'" [title]="vi() ? 'Lượt xem theo ngày' : 'Page views per day'" />
+  <div class="row">
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-primary">
+        <div class="inner">
+          <h3>{{ data()!.active.d1 }}</h3>
+          <p>{{ vi() ? 'Hoạt động hôm nay' : 'Active today' }}</p>
+        </div>
+        <app-icon name="user" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? 'người riêng biệt' : 'unique people' }}</span>
       </div>
     </div>
-    <div class="adm-card pad-0">
-      <div class="adm-card-head"><h3>{{ vi() ? 'Người dùng riêng biệt' : 'Unique people' }}</h3></div>
-      <div class="adm-card-body">
-        <adm-trend [data]="userSeries()" [unit]="vi() ? 'người' : 'people'" [title]="vi() ? 'Người dùng theo ngày' : 'Unique people per day'" />
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-info">
+        <div class="inner">
+          <h3>{{ data()!.active.d7 }}</h3>
+          <p>{{ vi() ? 'Hoạt động 7 ngày' : 'Active, 7 days' }}</p>
+        </div>
+        <app-icon name="users" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? 'người riêng biệt' : 'unique people' }}</span>
       </div>
     </div>
-  </div>
-
-  <div class="adm-grid-2 mt-3">
-    <div class="adm-card pad-0">
-      <div class="adm-card-head">
-        <h3>{{ vi() ? 'Trang được xem nhiều nhất' : 'Most viewed pages' }}</h3>
-      </div>
-      <div class="adm-card-body">
-        <adm-bars [data]="routeBars()" [empty]="vi() ? 'Chưa có lượt xem nào.' : 'No page views yet.'" />
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-secondary">
+        <div class="inner">
+          <h3>{{ data()!.active.d30 }}</h3>
+          <p>{{ vi() ? 'Hoạt động 30 ngày' : 'Active, 30 days' }}</p>
+        </div>
+        <app-icon name="calendar" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? 'người riêng biệt' : 'unique people' }}</span>
       </div>
     </div>
-    <div class="adm-card pad-0">
-      <div class="adm-card-head">
-        <h3>{{ vi() ? 'Phòng ban dùng portal' : 'Departments using the portal' }}</h3>
-        <span class="adm-muted">{{ vi() ? 'số người' : 'people' }}</span>
-      </div>
-      <div class="adm-card-body">
-        <adm-bars [data]="deptBars()" [empty]="vi() ? 'Chưa có dữ liệu phòng ban.' : 'No department data yet.'" />
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-success">
+        <div class="inner">
+          <h3>{{ fmt(data()!.totals.views) }}</h3>
+          <p>{{ vi() ? 'Lượt xem' : 'Page views' }}</p>
+        </div>
+        <app-icon name="eye" class="small-box-icon" />
+        <span class="small-box-footer adm-static">
+          {{ data()!.days }} {{ vi() ? 'ngày qua' : 'days' }} ·
+          {{ data()!.totals.users }} {{ vi() ? 'người' : 'people' }}
+        </span>
       </div>
     </div>
   </div>
 
-  <div class="adm-card pad-0 mt-3">
-    <div class="adm-card-head">
-      <h3>{{ vi() ? 'Giờ trong ngày' : 'Hour of day' }}</h3>
-      <span class="adm-muted">{{ vi() ? 'lượt xem, giờ +07' : 'page views, +07' }}</span>
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header"><h3 class="card-title">{{ vi() ? 'Lượt xem trang' : 'Page views' }}</h3></div>
+        <div class="card-body">
+          <adm-trend
+            [data]="viewSeries()"
+            [unit]="vi() ? 'lượt xem' : 'views'"
+            [title]="vi() ? 'Lượt xem theo ngày' : 'Page views per day'"
+          />
+        </div>
+      </div>
     </div>
-    <div class="adm-card-body">
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header"><h3 class="card-title">{{ vi() ? 'Người dùng riêng biệt' : 'Unique people' }}</h3></div>
+        <div class="card-body">
+          <adm-trend
+            [data]="userSeries()"
+            [unit]="vi() ? 'người' : 'people'"
+            [title]="vi() ? 'Người dùng theo ngày' : 'Unique people per day'"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">{{ vi() ? 'Trang được xem nhiều nhất' : 'Most viewed pages' }}</h3>
+        </div>
+        <div class="card-body">
+          <adm-bars [data]="routeBars()" [empty]="vi() ? 'Chưa có lượt xem nào.' : 'No page views yet.'" />
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">{{ vi() ? 'Phòng ban dùng portal' : 'Departments using the portal' }}</h3>
+          <div class="card-tools text-secondary fs-7">{{ vi() ? 'số người' : 'people' }}</div>
+        </div>
+        <div class="card-body">
+          <adm-bars [data]="deptBars()" [empty]="vi() ? 'Chưa có dữ liệu phòng ban.' : 'No department data yet.'" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 class="card-title">{{ vi() ? 'Giờ trong ngày' : 'Hour of day' }}</h3>
+      <div class="card-tools text-secondary fs-7">{{ vi() ? 'lượt xem, giờ +07' : 'page views, +07' }}</div>
+    </div>
+    <div class="card-body">
       <adm-cols [data]="hourCols()" />
     </div>
   </div>
 
   <!-- Danh sach theo TEN NGUOI: mac dinh dong lai. Xem duoc khong co nghia la
        nen mo san — day la du lieu co tinh chat giam sat. -->
-  <div class="adm-card pad-0 mt-3">
-    <div class="adm-card-head">
-      <h3>{{ vi() ? 'Người dùng nhiều nhất' : 'Most active people' }}</h3>
-      <button class="btn btn-ghost btn-sm" (click)="showPeople.set(!showPeople())">
-        <app-icon name="eye" /> {{ showPeople() ? (vi() ? 'Ẩn' : 'Hide') : (vi() ? 'Hiện' : 'Show') }}
-      </button>
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 class="card-title">{{ vi() ? 'Người dùng nhiều nhất' : 'Most active people' }}</h3>
+      <div class="card-tools">
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="showPeople.set(!showPeople())">
+          <app-icon name="eye" /> {{ showPeople() ? (vi() ? 'Ẩn' : 'Hide') : (vi() ? 'Hiện' : 'Show') }}
+        </button>
+      </div>
     </div>
     @if (!showPeople()) {
-      <div class="adm-card-body">
-        <div class="adm-note">
+      <div class="card-body">
+        <div class="alert alert-secondary d-flex gap-2 mb-0" role="alert">
           <app-icon name="shield" />
           <div>
             {{ vi()
@@ -116,149 +172,181 @@
         </div>
       </div>
     } @else {
-      <div class="adm-tablewrap">
-        <table class="adm-table">
-          <thead>
-            <tr>
-              <th>{{ vi() ? 'Tài khoản' : 'Account' }}</th>
-              <th style="text-align:right">{{ vi() ? 'Lượt xem' : 'Views' }}</th>
-              <th style="text-align:right">{{ vi() ? 'Số ngày' : 'Days' }}</th>
-              <th>{{ vi() ? 'Lần cuối' : 'Last seen' }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (p of data()!.people; track p.username) {
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
               <tr>
-                <td class="strong">{{ p.username }}</td>
-                <td class="num">{{ p.views.toLocaleString('vi-VN') }}</td>
-                <td class="num">{{ p.days }}</td>
-                <td>{{ when(p.last) }}</td>
+                <th>{{ vi() ? 'Tài khoản' : 'Account' }}</th>
+                <th class="text-end">{{ vi() ? 'Lượt xem' : 'Views' }}</th>
+                <th class="text-end">{{ vi() ? 'Số ngày' : 'Days' }}</th>
+                <th>{{ vi() ? 'Lần cuối' : 'Last seen' }}</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (p of data()!.people; track p.username) {
+                <tr>
+                  <td class="fw-semibold">{{ p.username }}</td>
+                  <td class="adm-num">{{ p.views.toLocaleString('vi-VN') }}</td>
+                  <td class="adm-num">{{ p.days }}</td>
+                  <td class="text-secondary">{{ when(p.last) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
     }
   </div>
 }
 
 <!-- ======================================================= GA4 ========== -->
-<h2 style="font-size:1.05rem; margin:28px 0 12px">Google Analytics 4</h2>
+<h2 class="fs-5 mt-5 mb-3">Google Analytics 4</h2>
 
 @if (gaLoading() && !ga()) {
-  <p class="adm-muted">{{ vi() ? 'Đang hỏi Google…' : 'Asking Google…' }}</p>
+  <p class="text-secondary">{{ vi() ? 'Đang hỏi Google…' : 'Asking Google…' }}</p>
 } @else if (!ga()) {
-  <div class="adm-note warn">
+  <div class="alert alert-warning d-flex gap-2" role="alert">
     <app-icon name="alert-triangle" />
     <div>{{ vi() ? 'Không gọi được endpoint GA4.' : 'Could not reach the GA4 endpoint.' }}</div>
   </div>
 } @else if (!ga()!.configured || ga()!.ok === false) {
   <!-- Chua co khoa (hoac khoa hong): van hien du huong dan, KHONG bo trong -->
-  <div class="adm-card">
-    <div style="display:flex; gap:12px; align-items:start; flex-wrap:wrap">
-      <div style="flex:1; min-width:260px">
-        <h3>{{ vi() ? 'Chưa lấy được số liệu GA4' : 'GA4 data not available yet' }}</h3>
-        <p class="adm-muted mt-1">
-          {{ vi()
-            ? 'Thẻ đo GA4 đã chạy trên portal và vẫn đang gửi dữ liệu về Google bình thường — phần thiếu chỉ là quyền để portal ĐỌC NGƯỢC số liệu đó về hiển thị ở đây.'
-            : 'The GA4 tag is live on the portal and keeps sending data to Google — what is missing is only the permission for the portal to READ that data back and show it here.' }}
-        </p>
-        <p class="adm-muted mt-1">
-          {{ vi() ? 'Mã đo' : 'Measurement ID' }}: <b>{{ ga()!.measurementId }}</b> ·
-          Property: <b>{{ ga()!.property }}</b>
-          @if (ga()!.detail) { · {{ ga()!.detail }} }
-        </p>
-        @if (ga()!.error) {
-          <div class="adm-pre mt-2">{{ ga()!.error }}</div>
-        }
-      </div>
-      <a class="btn btn-ghost btn-sm" [href]="gaLink()" target="_blank" rel="noopener">
-        <app-icon name="external-link" /> {{ vi() ? 'Mở báo cáo GA4' : 'Open GA4' }}
-      </a>
-    </div>
-
-    @if (ga()!.setup?.length) {
-      <ol class="steps mt-3">
-        @for (s of ga()!.setup!; track $index) {
-          <li class="step">
-            <span class="n"></span>
-            <div class="body"><p>{{ s }}</p></div>
-          </li>
-        }
-      </ol>
-    }
-  </div>
-} @else {
-  <div class="adm-cards">
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="wifi" /> {{ vi() ? 'Đang truy cập (30 phút)' : 'Active now (30 min)' }}</div>
-      <div class="v">{{ ga()!.realtimeUsers }}</div>
-      <div class="d">{{ vi() ? 'theo thời gian thực' : 'realtime' }}</div>
-    </div>
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="users" /> {{ vi() ? 'Người dùng' : 'Users' }}</div>
-      <div class="v">{{ fmt(ga()!.totals!.users) }}</div>
-      <div class="d">{{ ga()!.days }} {{ vi() ? 'ngày qua' : 'days' }}</div>
-    </div>
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="compass" /> {{ vi() ? 'Phiên' : 'Sessions' }}</div>
-      <div class="v">{{ fmt(ga()!.totals!.sessions) }}</div>
-      <div class="d">{{ ga()!.totals!.engagementRate }}% {{ vi() ? 'phiên có tương tác' : 'engaged' }}</div>
-    </div>
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="clock" /> {{ vi() ? 'Thời lượng / người' : 'Time / user' }}</div>
-      <div class="v">{{ engaged() }}</div>
-      <div class="d">{{ fmt(ga()!.totals!.views) }} {{ vi() ? 'lượt xem' : 'views' }}</div>
-    </div>
-  </div>
-
-  <div class="adm-grid-2 mt-3">
-    <div class="adm-card pad-0">
-      <div class="adm-card-head">
-        <h3>{{ vi() ? 'Lượt xem theo GA4' : 'Page views per GA4' }}</h3>
-        <a class="btn btn-ghost btn-sm" [href]="gaLink()" target="_blank" rel="noopener">
-          <app-icon name="external-link" /> GA4
+  <div class="card card-warning card-outline mb-4">
+    <div class="card-header">
+      <h3 class="card-title">{{ vi() ? 'Chưa lấy được số liệu GA4' : 'GA4 data not available yet' }}</h3>
+      <div class="card-tools">
+        <a class="btn btn-sm btn-outline-secondary" [href]="gaLink()" target="_blank" rel="noopener">
+          <app-icon name="external-link" /> {{ vi() ? 'Mở báo cáo GA4' : 'Open GA4' }}
         </a>
       </div>
-      <div class="adm-card-body">
-        <adm-trend [data]="gaSeries()" [unit]="vi() ? 'lượt xem' : 'views'" [title]="'GA4'" />
-      </div>
     </div>
-    <div class="adm-card pad-0">
-      <div class="adm-card-head"><h3>{{ vi() ? 'Thiết bị' : 'Devices' }}</h3></div>
-      <div class="adm-card-body">
-        <adm-bars [data]="deviceBars()" [empty]="vi() ? 'Chưa có dữ liệu.' : 'No data.'" />
-      </div>
-    </div>
-  </div>
-
-  <div class="adm-card pad-0 mt-3">
-    <div class="adm-card-head"><h3>{{ vi() ? 'Trang phổ biến (GA4)' : 'Top pages (GA4)' }}</h3></div>
-    <div class="adm-tablewrap">
-      <table class="adm-table">
-        <thead>
-          <tr>
-            <th>{{ vi() ? 'Tiêu đề' : 'Title' }}</th>
-            <th>{{ vi() ? 'Đường dẫn' : 'Path' }}</th>
-            <th style="text-align:right">{{ vi() ? 'Lượt xem' : 'Views' }}</th>
-            <th style="text-align:right">{{ vi() ? 'Người' : 'Users' }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (p of ga()!.pages!; track p.path + p.title) {
-            <tr>
-              <td class="strong clip">{{ p.title }}</td>
-              <td class="adm-mono clip">{{ p.path }}</td>
-              <td class="num">{{ p.views.toLocaleString('vi-VN') }}</td>
-              <td class="num">{{ p.users.toLocaleString('vi-VN') }}</td>
-            </tr>
+    <div class="card-body">
+      <p class="text-secondary">
+        {{ vi()
+          ? 'Thẻ đo GA4 đã chạy trên portal và vẫn đang gửi dữ liệu về Google bình thường — phần thiếu chỉ là quyền để portal ĐỌC NGƯỢC số liệu đó về hiển thị ở đây.'
+          : 'The GA4 tag is live on the portal and keeps sending data to Google — what is missing is only the permission for the portal to READ that data back and show it here.' }}
+      </p>
+      <p class="text-secondary">
+        {{ vi() ? 'Mã đo' : 'Measurement ID' }}: <b>{{ ga()!.measurementId }}</b> ·
+        Property: <b>{{ ga()!.property }}</b>
+        @if (ga()!.detail) { · {{ ga()!.detail }} }
+      </p>
+      @if (ga()!.error) {
+        <pre class="adm-pre">{{ ga()!.error }}</pre>
+      }
+      @if (ga()!.setup?.length) {
+        <ol class="list-group list-group-numbered mt-3">
+          @for (s of ga()!.setup!; track $index) {
+            <li class="list-group-item">{{ s }}</li>
           }
-        </tbody>
-      </table>
+        </ol>
+      }
+    </div>
+  </div>
+} @else {
+  <div class="row">
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-success">
+        <div class="inner">
+          <h3>{{ ga()!.realtimeUsers }}</h3>
+          <p>{{ vi() ? 'Đang truy cập (30 phút)' : 'Active now (30 min)' }}</p>
+        </div>
+        <app-icon name="wifi" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? 'theo thời gian thực' : 'realtime' }}</span>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-primary">
+        <div class="inner">
+          <h3>{{ fmt(ga()!.totals!.users) }}</h3>
+          <p>{{ vi() ? 'Người dùng' : 'Users' }}</p>
+        </div>
+        <app-icon name="users" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ ga()!.days }} {{ vi() ? 'ngày qua' : 'days' }}</span>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-info">
+        <div class="inner">
+          <h3>{{ fmt(ga()!.totals!.sessions) }}</h3>
+          <p>{{ vi() ? 'Phiên' : 'Sessions' }}</p>
+        </div>
+        <app-icon name="compass" class="small-box-icon" />
+        <span class="small-box-footer adm-static">
+          {{ ga()!.totals!.engagementRate }}% {{ vi() ? 'phiên có tương tác' : 'engaged' }}
+        </span>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-secondary">
+        <div class="inner">
+          <h3>{{ engaged() }}</h3>
+          <p>{{ vi() ? 'Thời lượng / người' : 'Time / user' }}</p>
+        </div>
+        <app-icon name="clock" class="small-box-icon" />
+        <span class="small-box-footer adm-static">
+          {{ fmt(ga()!.totals!.views) }} {{ vi() ? 'lượt xem' : 'views' }}
+        </span>
+      </div>
     </div>
   </div>
 
-  <div class="adm-note mt-3">
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">{{ vi() ? 'Lượt xem theo GA4' : 'Page views per GA4' }}</h3>
+          <div class="card-tools">
+            <a class="btn btn-sm btn-outline-secondary" [href]="gaLink()" target="_blank" rel="noopener">
+              <app-icon name="external-link" /> GA4
+            </a>
+          </div>
+        </div>
+        <div class="card-body">
+          <adm-trend [data]="gaSeries()" [unit]="vi() ? 'lượt xem' : 'views'" [title]="'GA4'" />
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header"><h3 class="card-title">{{ vi() ? 'Thiết bị' : 'Devices' }}</h3></div>
+        <div class="card-body">
+          <adm-bars [data]="deviceBars()" [empty]="vi() ? 'Chưa có dữ liệu.' : 'No data.'" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">{{ vi() ? 'Trang phổ biến (GA4)' : 'Top pages (GA4)' }}</h3></div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>{{ vi() ? 'Tiêu đề' : 'Title' }}</th>
+              <th>{{ vi() ? 'Đường dẫn' : 'Path' }}</th>
+              <th class="text-end">{{ vi() ? 'Lượt xem' : 'Views' }}</th>
+              <th class="text-end">{{ vi() ? 'Người' : 'Users' }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of ga()!.pages!; track p.path + p.title) {
+              <tr>
+                <td class="fw-semibold adm-clip">{{ p.title }}</td>
+                <td class="adm-mono adm-clip">{{ p.path }}</td>
+                <td class="adm-num">{{ p.views.toLocaleString('vi-VN') }}</td>
+                <td class="adm-num">{{ p.users.toLocaleString('vi-VN') }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-info d-flex gap-2" role="alert">
     <app-icon name="info" />
     <div>
       {{ vi()

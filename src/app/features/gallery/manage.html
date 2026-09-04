@@ -1,0 +1,298 @@
+<section class="hero gal-hero">
+  <div class="container">
+    <a class="back" routerLink="/gallery"><app-icon name="arrow-right" /> {{ vi() ? 'Về thư viện ảnh' : 'Back to gallery' }}</a>
+    <h1 class="mt-2">{{ vi() ? 'Quản lý thư viện ảnh' : 'Manage gallery' }}</h1>
+    <p class="lead mt-2">
+      {{ vi()
+        ? 'Thêm album từ thư mục có sẵn trên file server. Ảnh gốc không bị sao chép — portal chỉ tạo ảnh thu nhỏ.'
+        : 'Add albums from folders already on the file server. Originals are never copied — the portal only builds thumbnails.' }}
+    </p>
+  </div>
+</section>
+
+<section class="section-sm">
+  <div class="container">
+    @if (!canManage()) {
+      <div class="empty">
+        <app-icon name="lock" />
+        <p>
+          {{ vi()
+            ? 'Bạn không có quyền quản lý thư viện ảnh. Quyền này thuộc nhóm HR / Marketing / Information System — cùng nhóm được đăng tin.'
+            : 'You cannot manage the gallery. This belongs to the HR / Marketing / Information System group — the same group that can post news.' }}
+        </p>
+      </div>
+    } @else {
+      @if (error()) { <div class="mg-msg bad"><app-icon name="alert-triangle" /> {{ error() }}</div> }
+      @if (note()) { <div class="mg-msg ok"><app-icon name="check" /> {{ note() }}</div> }
+
+      <!-- ======================================================= THEM ==== -->
+      @if (mode() === 'new') {
+        <div class="card">
+          <div class="mg-head">
+            <h3>{{ vi() ? 'Thêm album' : 'New album' }}</h3>
+            <button class="btn btn-ghost btn-sm" (click)="cancel()">{{ vi() ? 'Huỷ' : 'Cancel' }}</button>
+          </div>
+
+          <!-- Bước 1: CHỌN thư mục, không gõ đường dẫn bằng tay -->
+          <p class="mg-step">{{ vi() ? '1. Chọn thư mục ảnh trên file server' : '1. Pick a folder on the file server' }}</p>
+
+          <div class="mg-crumbs">
+            <button (click)="browse('')"><app-icon name="folder" /> {{ vi() ? 'Gốc' : 'Root' }}</button>
+            @for (c of crumbs(); track c.path) {
+              <span>/</span><button (click)="browse(c.path)">{{ c.name }}</button>
+            }
+          </div>
+
+          @if (srcBusy()) {
+            <p class="muted">{{ vi() ? 'Đang đọc file server…' : 'Reading file server…' }}</p>
+          } @else {
+            <div class="mg-dirs">
+              @for (d of srcDirs(); track d.path) {
+                <div class="mg-dir" [class.taken]="!!d.album" [class.on]="fSrc() === d.path">
+                  <button class="nm" (click)="browse(d.path)">
+                    <app-icon name="folder" /> {{ d.name }}
+                  </button>
+                  <span class="n">
+                    @if (d.images > 0) { {{ d.images }} {{ vi() ? 'ảnh' : 'photos' }} }
+                    @else if (d.images === 0) { {{ vi() ? 'không có ảnh' : 'no photos' }} }
+                    @else { {{ vi() ? 'không đọc được' : 'unreadable' }} }
+                  </span>
+                  @if (d.album) {
+                    <span class="tag">{{ vi() ? 'đã là album' : 'already an album' }}</span>
+                  } @else if (d.images > 0) {
+                    <button class="btn btn-soft btn-sm" (click)="chooseSrc(d)">{{ vi() ? 'Chọn' : 'Select' }}</button>
+                  }
+                </div>
+              }
+              @if (!srcDirs().length) {
+                <p class="muted">{{ vi() ? 'Thư mục này không có thư mục con.' : 'No subfolders here.' }}</p>
+              }
+            </div>
+            @if (srcImages() > 0 && !fSrc()) {
+              <p class="muted mt-2">
+                {{ srcImages() }} {{ vi() ? 'ảnh nằm ngay tại thư mục này.' : 'photos in this folder itself.' }}
+              </p>
+            }
+          }
+
+          <!-- Bước 2: điền thông tin -->
+          @if (fSrc()) {
+            <p class="mg-step mt-3">{{ vi() ? '2. Thông tin album' : '2. Album details' }}</p>
+            <p class="mg-src"><app-icon name="folder" /> {{ fSrc() }}</p>
+
+            <div class="mg-form">
+              <label>
+                {{ vi() ? 'Tên (tiếng Việt)' : 'Title (Vietnamese)' }}
+                <input [ngModel]="fVi()" (ngModelChange)="fVi.set($event)" />
+              </label>
+              <label>
+                {{ vi() ? 'Tên (English)' : 'Title (English)' }}
+                <input [ngModel]="fEn()" (ngModelChange)="fEn.set($event)" />
+              </label>
+              <label>
+                {{ vi() ? 'Đường dẫn (slug)' : 'Slug' }}
+                <input [ngModel]="fSlug()" (ngModelChange)="fSlug.set($event)" />
+              </label>
+              <label>
+                {{ vi() ? 'Năm' : 'Year' }}
+                <input [ngModel]="fDate()" (ngModelChange)="fDate.set($event)" placeholder="2026" />
+              </label>
+              <label>
+                {{ vi() ? 'Nhãn' : 'Label' }}
+                <select [ngModel]="fLabel()" (ngModelChange)="fLabel.set($event)">
+                  @for (l of labels(); track l) { <option [value]="l">{{ labelText(l) }}</option> }
+                </select>
+              </label>
+              <label class="wide">
+                {{ vi() ? 'Mô tả (tiếng Việt)' : 'Description (Vietnamese)' }}
+                <input [ngModel]="fDescVi()" (ngModelChange)="fDescVi.set($event)" />
+              </label>
+              <label class="wide">
+                {{ vi() ? 'Mô tả (English)' : 'Description (English)' }}
+                <input [ngModel]="fDescEn()" (ngModelChange)="fDescEn.set($event)" />
+              </label>
+            </div>
+
+            <div class="mg-actions">
+              <button class="btn btn-primary" (click)="create()" [disabled]="saving() || !fSlug()">
+                <app-icon name="check" /> {{ vi() ? 'Tạo album' : 'Create album' }}
+              </button>
+              <span class="muted">
+                {{ vi()
+                  ? 'Album tạo ra ở trạng thái Bản nháp — chuẩn bị xong bạn mới chuyển sang Công khai.'
+                  : 'New albums start as Draft — publish when you are ready.' }}
+              </span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ======================================================== SUA ==== -->
+      @else if (editing(); as a) {
+        <div class="card">
+          <div class="mg-head">
+            <h3>{{ a.title | tr: lang() }}</h3>
+            <button class="btn btn-ghost btn-sm" (click)="cancel()">{{ vi() ? 'Huỷ' : 'Cancel' }}</button>
+          </div>
+
+          <div class="mg-form">
+            <label>
+              {{ vi() ? 'Tên (tiếng Việt)' : 'Title (Vietnamese)' }}
+              <input [ngModel]="fVi()" (ngModelChange)="fVi.set($event)" />
+            </label>
+            <label>
+              {{ vi() ? 'Tên (English)' : 'Title (English)' }}
+              <input [ngModel]="fEn()" (ngModelChange)="fEn.set($event)" />
+            </label>
+            <label>
+              {{ vi() ? 'Năm' : 'Year' }}
+              <input [ngModel]="fDate()" (ngModelChange)="fDate.set($event)" />
+            </label>
+            <label>
+              {{ vi() ? 'Nhãn' : 'Label' }}
+              <select [ngModel]="fLabel()" (ngModelChange)="fLabel.set($event)">
+                @for (l of labels(); track l) { <option [value]="l">{{ labelText(l) }}</option> }
+              </select>
+            </label>
+            <label>
+              {{ vi() ? 'Cỡ trên trang thư viện' : 'Size on gallery page' }}
+              <select [ngModel]="fSize()" (ngModelChange)="fSize.set($event)">
+                @for (z of sizes(); track z) { <option [value]="z">{{ sizeText(z) }}</option> }
+              </select>
+            </label>
+            <label>
+              {{ vi() ? 'Trạng thái' : 'Status' }}
+              <select [ngModel]="fStatus()" (ngModelChange)="fStatus.set($event)">
+                <option value="draft">{{ vi() ? 'Bản nháp' : 'Draft' }}</option>
+                <option value="public">{{ vi() ? 'Công khai' : 'Public' }}</option>
+                <option value="hidden">{{ vi() ? 'Đang ẩn' : 'Hidden' }}</option>
+              </select>
+            </label>
+            <label>
+              {{ vi() ? 'Thứ tự (số lớn lên trước)' : 'Order (higher first)' }}
+              <input type="number" [ngModel]="fOrder()" (ngModelChange)="fOrder.set(+$event)" />
+            </label>
+            <label class="wide">
+              {{ vi() ? 'Mô tả (tiếng Việt)' : 'Description (Vietnamese)' }}
+              <input [ngModel]="fDescVi()" (ngModelChange)="fDescVi.set($event)" />
+            </label>
+            <label class="wide">
+              {{ vi() ? 'Mô tả (English)' : 'Description (English)' }}
+              <input [ngModel]="fDescEn()" (ngModelChange)="fDescEn.set($event)" />
+            </label>
+          </div>
+
+          <!-- Chọn ảnh bìa bằng cách BẤM, không sửa JSON -->
+          <p class="mg-step mt-3">{{ vi() ? 'Ảnh bìa và ảnh nổi bật' : 'Cover and featured photos' }}</p>
+          @if (pickBusy()) {
+            <p class="muted">{{ vi() ? 'Đang tải ảnh…' : 'Loading photos…' }}</p>
+          } @else if (!photos().length) {
+            <p class="muted">
+              {{ vi()
+                ? 'Chưa có ảnh thu nhỏ — đợi việc sinh ảnh chạy xong rồi quay lại chọn bìa.'
+                : 'No thumbnails yet — come back once the job finishes.' }}
+            </p>
+          } @else {
+            <p class="muted mg-hint">
+              {{ vi()
+                ? 'Bấm một ảnh để đặt làm bìa. Bấm ngôi sao để ghim làm ảnh nổi bật (tối đa 12).'
+                : 'Click a photo to set it as cover. Click the star to feature it (max 12).' }}
+            </p>
+            <div class="mg-pick">
+              @for (p of photos().slice(0, 200); track p.id) {
+                <div class="mg-cell" [class.cover]="fCover() === p.id">
+                  <button class="im" (click)="setCover(p)" [attr.title]="vi() ? 'Đặt làm bìa' : 'Set as cover'">
+                    <img [src]="p.thumb" alt="" loading="lazy" />
+                  </button>
+                  <button class="st" [class.on]="isStar(p)" (click)="toggleStar(p)"
+                          [attr.title]="vi() ? 'Ảnh nổi bật' : 'Feature'">
+                    <app-icon name="star" />
+                  </button>
+                </div>
+              }
+            </div>
+            @if (photos().length > 200) {
+              <p class="muted mt-2">
+                {{ vi() ? 'Hiện 200 ảnh đầu để chọn bìa.' : 'Showing the first 200 photos.' }}
+              </p>
+            }
+          }
+
+          <div class="mg-actions">
+            <button class="btn btn-primary" (click)="save()" [disabled]="saving()">
+              <app-icon name="check" /> {{ vi() ? 'Lưu' : 'Save' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- =================================================== DANH SACH === -->
+      @else {
+        <div class="mg-bar">
+          <button class="btn btn-primary" (click)="startNew()">
+            <app-icon name="images" /> {{ vi() ? 'Thêm album' : 'New album' }}
+          </button>
+        </div>
+
+        @if (loading()) {
+          <p class="muted">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p>
+        } @else if (!albums().length) {
+          <div class="empty"><app-icon name="images" /><p>{{ vi() ? 'Chưa có album nào.' : 'No albums yet.' }}</p></div>
+        } @else {
+          <div class="mg-list">
+            @for (a of albums(); track a.slug) {
+              <div class="mg-row card">
+                <div class="mg-thumb">
+                  @if (a.cover || a.covers.length) { <img [src]="a.cover || a.covers[0]" alt="" loading="lazy" /> }
+                  @else { <app-icon name="images" /> }
+                </div>
+
+                <div class="mg-info">
+                  <h3>{{ a.title | tr: lang() }}</h3>
+                  <p class="muted">{{ a.src }}</p>
+                  <div class="mg-tags">
+                    <span class="pill" [class.ok]="a.status === 'public'" [class.warn]="a.status === 'draft'">
+                      {{ statusText(a.status) }}
+                    </span>
+                    <span class="pill">{{ labelText(a.label) }}</span>
+                    <span class="pill">{{ sizeText(a.size || 'thuong') }}</span>
+                    @if (a.date) { <span class="pill">{{ a.date }}</span> }
+                    <span class="pill">{{ a.count }} {{ vi() ? 'ảnh' : 'photos' }}</span>
+                    <span class="pill">{{ a.thumbs }} {{ vi() ? 'ảnh thu nhỏ' : 'thumbs' }}</span>
+                  </div>
+
+                  <!-- Album nghìn ảnh mất vài phút; không có thanh tiến độ thì
+                       người dùng tưởng treo rồi bấm lại. -->
+                  @if (a.job.state === 'running') {
+                    <div class="mg-job">
+                      <div class="track"><div class="fill" [style.width.%]="pct(a.job)"></div></div>
+                      <span>{{ vi() ? 'Đang tạo ảnh thu nhỏ' : 'Building thumbnails' }} {{ a.job.done }}/{{ a.job.total }}</span>
+                    </div>
+                  } @else if (a.job.state === 'error') {
+                    <p class="mg-err"><app-icon name="alert-triangle" /> {{ a.job.detail }}</p>
+                  }
+                </div>
+
+                <div class="mg-act">
+                  <button class="btn btn-ghost btn-sm" (click)="open(a)">{{ vi() ? 'Xem' : 'View' }}</button>
+                  <button class="btn btn-ghost btn-sm" (click)="startEdit(a)">{{ vi() ? 'Sửa' : 'Edit' }}</button>
+                  <button class="btn btn-ghost btn-sm" (click)="reindex(a)" [disabled]="a.job.state === 'running'">
+                    {{ vi() ? 'Quét lại' : 'Rescan' }}
+                  </button>
+                  <button class="btn btn-ghost btn-sm danger" (click)="remove(a)">{{ vi() ? 'Xoá' : 'Delete' }}</button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <p class="mg-foot">
+            <app-icon name="shield" />
+            {{ vi()
+              ? 'Xoá album chỉ gỡ khỏi portal. Ảnh gốc trên file server không bị đụng tới.'
+              : 'Deleting an album only removes it from the portal. Originals on the file server are untouched.' }}
+          </p>
+        }
+      }
+    }
+  </div>
+</section>

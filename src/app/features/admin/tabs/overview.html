@@ -1,24 +1,21 @@
-<div class="adm-head">
-  <div>
-    <h1>{{ vi() ? 'Tổng quan' : 'Overview' }}</h1>
-    <p>
-      {{ vi()
-        ? 'Portal hôm nay ra sao và có gì cần chạm tay vào. Số liệu tự host, giờ +07.'
-        : 'How the portal is doing today and what needs attention. Self-hosted data, +07.' }}
-    </p>
-  </div>
-  <div class="adm-head-actions">
-    @if (ov()?.buildId) {
-      <span class="adm-pill"><app-icon name="hash" /> build {{ ov()!.buildId }}</span>
-    }
-    <button class="btn btn-ghost btn-sm" (click)="reload()">
-      <app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}
-    </button>
-  </div>
+<!-- Khong co <h1> o day: tieu de tab do khung AdminLTE ve trong .app-content-header
+     (admin.html). Hai h1 tren mot trang la loi cau truc, khong phai kieu dang. -->
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <p class="text-secondary mb-0 me-auto">
+    {{ vi()
+      ? 'Portal hôm nay ra sao và có gì cần chạm tay vào. Số liệu tự host, giờ +07.'
+      : 'How the portal is doing today and what needs attention. Self-hosted data, +07.' }}
+  </p>
+  @if (ov()?.buildId) {
+    <span class="badge text-bg-secondary"><app-icon name="hash" /> build {{ ov()!.buildId }}</span>
+  }
+  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="reload()">
+    <app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}
+  </button>
 </div>
 
 @if (store.failed() && !ov()) {
-  <div class="adm-note warn">
+  <div class="alert alert-warning d-flex gap-2" role="alert">
     <app-icon name="alert-triangle" />
     <div>
       {{ vi()
@@ -27,176 +24,264 @@
     </div>
   </div>
 } @else if (!ov()) {
-  <p class="adm-muted">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p>
+  <p class="text-secondary">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p>
 } @else {
-  <!-- So dan dat: DUY NHAT mot con so lon tren man hinh nay -->
-  <div class="adm-card">
-    <div class="adm-hero">
-      <span class="n">{{ ov()!.today.users.toLocaleString('vi-VN') }}</span>
-      <span class="t">
-        {{ vi() ? 'người đã mở portal hôm nay' : 'people opened the portal today' }}
-        @if (deltaUsers() !== null) {
-          ·
-          <span [style.color]="deltaUsers()! >= 0 ? 'var(--success)' : 'var(--danger)'">
-            {{ deltaUsers()! >= 0 ? '+' : '' }}{{ deltaUsers() }}%
-          </span>
-          {{ vi() ? 'so với hôm qua' : 'vs yesterday' }}
-        }
-      </span>
-    </div>
-  </div>
-
-  <!-- KPI -->
-  <div class="adm-cards mt-3">
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="eye" /> {{ vi() ? 'Lượt xem hôm nay' : 'Page views today' }}</div>
-      <div class="v">{{ fmt(ov()!.today.views) }}</div>
-      @if (deltaViews() !== null) {
-        <div class="d" [class.up]="deltaViews()! >= 0" [class.down]="deltaViews()! < 0">
-          {{ deltaViews()! >= 0 ? '+' : '' }}{{ deltaViews() }}% {{ vi() ? 'so với hôm qua' : 'vs yesterday' }}
+  <!-- O so lieu. Mau KHONG trang tri: xanh = binh thuong, do = co viec phai lam.
+       O "Lỗi chưa xử lý" doi xam khi bang 0 de mau do luon co nghia. -->
+  <div class="row">
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-primary">
+        <div class="inner">
+          <h3>{{ ov()!.today.users.toLocaleString('vi-VN') }}</h3>
+          <p>{{ vi() ? 'Người mở portal hôm nay' : 'People opened the portal today' }}</p>
         </div>
-      }
-    </div>
-
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="alert-triangle" /> {{ vi() ? 'Lỗi chưa xử lý' : 'Unhandled errors' }}</div>
-      <div class="v">{{ errorTotal() }}</div>
-      <div class="d">{{ ov()!.errors24h }} {{ vi() ? 'loại lỗi hoạt động trong 24h' : 'error types active in 24h' }}</div>
-    </div>
-
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="zap" /> {{ vi() ? 'Request 5 phút' : 'Requests / 5 min' }}</div>
-      <div class="v">{{ fmt(ov()!.req5m.n) }}<small>{{ ov()!.req5m.msAvg }} ms</small></div>
-      <div class="d">
-        {{ ov()!.req5m.err5xx }} {{ vi() ? 'lỗi 5xx' : '5xx' }} ·
-        {{ ov()!.req5m.slow }} {{ vi() ? 'chậm >3s' : 'slow >3s' }}
+        <app-icon name="users" class="small-box-icon" />
+        <span class="small-box-footer adm-static">
+          @if (deltaUsers() !== null) {
+            {{ deltaUsers()! >= 0 ? '+' : '' }}{{ deltaUsers() }}%
+            {{ vi() ? 'so với hôm qua' : 'vs yesterday' }}
+          } @else {
+            {{ vi() ? 'chưa có mốc so sánh' : 'no baseline yet' }}
+          }
+        </span>
       </div>
     </div>
 
-    <div class="adm-card adm-stat">
-      <div class="k"><app-icon name="wifi" /> {{ vi() ? 'Đang trực tuyến' : 'Online now' }}</div>
-      <div class="v">{{ ov()!.counts['online'] }}</div>
-      <div class="d">{{ vi() ? 'có mặt trong 2 phút qua' : 'seen in the last 2 minutes' }}</div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-info">
+        <div class="inner">
+          <h3>{{ fmt(ov()!.today.views) }}</h3>
+          <p>{{ vi() ? 'Lượt xem trang hôm nay' : 'Page views today' }}</p>
+        </div>
+        <app-icon name="eye" class="small-box-icon" />
+        <span class="small-box-footer adm-static">
+          @if (deltaViews() !== null) {
+            {{ deltaViews()! >= 0 ? '+' : '' }}{{ deltaViews() }}%
+            {{ vi() ? 'so với hôm qua' : 'vs yesterday' }}
+          } @else {
+            {{ vi() ? 'chưa có mốc so sánh' : 'no baseline yet' }}
+          }
+        </span>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+      <div
+        class="small-box"
+        [class.text-bg-danger]="errorTotal() > 0"
+        [class.text-bg-secondary]="errorTotal() === 0"
+      >
+        <div class="inner">
+          <h3>{{ errorTotal() }}</h3>
+          <p>{{ vi() ? 'Lỗi chưa xử lý' : 'Unhandled errors' }}</p>
+        </div>
+        <app-icon name="alert-triangle" class="small-box-icon" />
+        <a class="small-box-footer link-light link-underline-opacity-0" [routerLink]="['/admin', 'errors']">
+          {{ ov()!.errors24h }} {{ vi() ? 'loại lỗi hoạt động trong 24h' : 'error types active in 24h' }}
+        </a>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-success">
+        <div class="inner">
+          <h3>{{ ov()!.counts['online'] }}</h3>
+          <p>{{ vi() ? 'Đang trực tuyến' : 'Online now' }}</p>
+        </div>
+        <app-icon name="wifi" class="small-box-icon" />
+        <span class="small-box-footer adm-static">
+          {{ vi() ? 'có mặt trong 2 phút qua' : 'seen in the last 2 minutes' }}
+        </span>
+      </div>
     </div>
   </div>
 
-  <!-- Viec can lam -->
-  <div class="adm-card mt-3">
-    <h3>{{ vi() ? 'Việc cần làm' : 'Needs attention' }}</h3>
-    @if (!ov()!.todo.length) {
-      <p class="adm-muted mt-2">
-        {{ vi()
-          ? 'Không có việc nào đang chờ. Lưu ý: im lặng chưa chắc là khoẻ — nếu bảng lỗi trống suốt nhiều ngày, kiểm tra Zabbix xem đường ống telemetry còn sống không.'
-          : 'Nothing pending. Note: silence is not health — if the error table stays empty for days, check Zabbix that the telemetry pipeline is alive.' }}
-      </p>
-    } @else {
-      <div class="adm-todo mt-2">
-        @for (t of ov()!.todo; track t.key) {
-          <button [class]="t.level" (click)="go(t.tab)">
-            <app-icon [name]="todoIcon(t.level)" />
-            <span>{{ todoText(t.key, t.n) }}</span>
-            @if (t.n) { <span class="n">{{ t.n }}</span> }
-          </button>
+  <div class="row">
+    <!-- ------------------------------------------------- viec can lam -- -->
+    <div class="col-lg-6">
+      <div class="card card-primary card-outline mb-4">
+        <div class="card-header">
+          <h2 class="card-title">{{ vi() ? 'Việc cần làm' : 'Needs attention' }}</h2>
+        </div>
+        @if (!ov()!.todo.length) {
+          <div class="card-body text-secondary">
+            {{ vi()
+              ? 'Không có việc nào đang chờ. Lưu ý: im lặng chưa chắc là khoẻ — nếu bảng lỗi trống suốt nhiều ngày, kiểm tra Zabbix xem đường ống telemetry còn sống không.'
+              : 'Nothing pending. Note: silence is not health — if the error table stays empty for days, check Zabbix that the telemetry pipeline is alive.' }}
+          </div>
+        } @else {
+          <div class="list-group list-group-flush">
+            @for (t of ov()!.todo; track t.key) {
+              <button
+                type="button"
+                class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+                [class.list-group-item-danger]="t.level === 'critical'"
+                [class.list-group-item-warning]="t.level === 'warning'"
+                (click)="go(t.tab)"
+              >
+                <app-icon [name]="todoIcon(t.level)" />
+                <span>{{ todoText(t.key, t.n) }}</span>
+                @if (t.n) { <span class="badge text-bg-secondary ms-auto">{{ t.n }}</span> }
+              </button>
+            }
+          </div>
         }
       </div>
-    }
+    </div>
+
+    <!-- ------------------------------------------------- may chu / API -- -->
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="card-title">{{ vi() ? 'Lưu lượng 5 phút gần nhất' : 'Traffic, last 5 minutes' }}</h2>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-4 border-end">
+              <div class="fs-3 fw-bold">{{ fmt(ov()!.req5m.n) }}</div>
+              <div class="text-secondary fs-7">{{ vi() ? 'request' : 'requests' }}</div>
+            </div>
+            <div class="col-4 border-end">
+              <div class="fs-3 fw-bold">{{ ov()!.req5m.msAvg }}<small class="fs-6"> ms</small></div>
+              <div class="text-secondary fs-7">{{ vi() ? 'trung bình' : 'average' }}</div>
+            </div>
+            <div class="col-4">
+              <div class="fs-3 fw-bold" [class.text-danger]="ov()!.req5m.err5xx > 0">{{ ov()!.req5m.err5xx }}</div>
+              <div class="text-secondary fs-7">{{ vi() ? 'lỗi 5xx' : '5xx errors' }}</div>
+            </div>
+          </div>
+          <p class="text-secondary mb-0 mt-3 fs-7">
+            {{ ov()!.req5m.slow }} {{ vi() ? 'request chậm hơn 3 giây.' : 'requests slower than 3 seconds.' }}
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Xu huong: HAI bieu do rieng, khong gop hai truc y vao mot khung -->
-  <div class="adm-grid-2 mt-3">
-    <div class="adm-card pad-0">
-      <div class="adm-card-head">
-        <h3>{{ vi() ? 'Lượt xem trang · 14 ngày' : 'Page views · 14 days' }}</h3>
-      </div>
-      <div class="adm-card-body">
-        <adm-trend [data]="viewSeries()" [unit]="vi() ? 'lượt xem' : 'views'" [title]="vi() ? 'Lượt xem 14 ngày' : 'Page views, 14 days'" />
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="card-title">{{ vi() ? 'Lượt xem trang · 14 ngày' : 'Page views · 14 days' }}</h2>
+        </div>
+        <div class="card-body">
+          <adm-trend
+            [data]="viewSeries()"
+            [unit]="vi() ? 'lượt xem' : 'views'"
+            [title]="vi() ? 'Lượt xem 14 ngày' : 'Page views, 14 days'"
+          />
+        </div>
       </div>
     </div>
-    <div class="adm-card pad-0">
-      <div class="adm-card-head">
-        <h3>{{ vi() ? 'Người dùng riêng biệt · 14 ngày' : 'Unique people · 14 days' }}</h3>
-      </div>
-      <div class="adm-card-body">
-        <adm-trend [data]="userSeries()" [unit]="vi() ? 'người' : 'people'" [title]="vi() ? 'Người dùng 14 ngày' : 'Unique people, 14 days'" />
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="card-title">{{ vi() ? 'Người dùng riêng biệt · 14 ngày' : 'Unique people · 14 days' }}</h2>
+        </div>
+        <div class="card-body">
+          <adm-trend
+            [data]="userSeries()"
+            [unit]="vi() ? 'người' : 'people'"
+            [title]="vi() ? 'Người dùng 14 ngày' : 'Unique people, 14 days'"
+          />
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Noi dung & cong dong -->
-  <div class="adm-grid-2 mt-3">
-    <div class="adm-card pad-0">
-      <div class="adm-card-head"><h3>{{ vi() ? 'Nội dung & cộng đồng' : 'Content & community' }}</h3></div>
-      <div class="adm-tablewrap">
-        <table class="adm-table">
-          <tbody>
-            <tr>
-              <td>{{ vi() ? 'Tin đã đăng' : 'Published news' }}</td>
-              <td class="num">{{ ov()!.counts['newsPublished'] }}</td>
-              <td>{{ vi() ? 'Bản nháp' : 'Drafts' }}</td>
-              <td class="num">{{ ov()!.counts['newsDraft'] }}</td>
-            </tr>
-            <tr>
-              <td>{{ vi() ? 'Hẹn giờ' : 'Scheduled' }}</td>
-              <td class="num">{{ ov()!.counts['newsScheduled'] }}</td>
-              <td>{{ vi() ? 'Đang ẩn' : 'Hidden' }}</td>
-              <td class="num">{{ ov()!.counts['newsHidden'] }}</td>
-            </tr>
-            <tr>
-              <td>{{ vi() ? 'Bài tường 7 ngày' : 'Wall posts, 7 days' }}</td>
-              <td class="num">{{ ov()!.counts['wall7d'] }}</td>
-              <td>{{ vi() ? 'Tin nhắn 24h' : 'Chat, 24h' }}</td>
-              <td class="num">{{ fmt(ov()!.counts['chat24h']) }}</td>
-            </tr>
-            <tr>
-              <td>{{ vi() ? 'Hồ sơ cá nhân' : 'Profiles' }}</td>
-              <td class="num">{{ ov()!.counts['profiles'] }}</td>
-              <td>{{ vi() ? 'Bật thông báo đẩy' : 'Push enabled' }}</td>
-              <td class="num">{{ ov()!.counts['pushSubs'] }}</td>
-            </tr>
-            <tr>
-              <td>{{ vi() ? 'Mục nội dung động' : 'Content items' }}</td>
-              <td class="num">{{ ov()!.counts['contentItems'] }}</td>
-              <td>{{ vi() ? 'Thu thập lỗi' : 'Telemetry' }}</td>
-              <td class="num">
-                <span class="adm-pill" [class.ok]="ov()!.telemetry" [class.bad]="!ov()!.telemetry">
-                  {{ ov()!.telemetry ? (vi() ? 'Đang bật' : 'On') : (vi() ? 'Đang tắt' : 'Off') }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="card-title">{{ vi() ? 'Nội dung & cộng đồng' : 'Content & community' }}</h2>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <tbody>
+                <tr>
+                  <td>{{ vi() ? 'Tin đã đăng' : 'Published news' }}</td>
+                  <td class="adm-num fw-semibold">{{ ov()!.counts['newsPublished'] }}</td>
+                  <td>{{ vi() ? 'Bản nháp' : 'Drafts' }}</td>
+                  <td class="adm-num fw-semibold">{{ ov()!.counts['newsDraft'] }}</td>
+                </tr>
+                <tr>
+                  <td>{{ vi() ? 'Hẹn giờ' : 'Scheduled' }}</td>
+                  <td class="adm-num fw-semibold">{{ ov()!.counts['newsScheduled'] }}</td>
+                  <td>{{ vi() ? 'Đang ẩn' : 'Hidden' }}</td>
+                  <td class="adm-num fw-semibold">{{ ov()!.counts['newsHidden'] }}</td>
+                </tr>
+                <tr>
+                  <td>{{ vi() ? 'Bài tường 7 ngày' : 'Wall posts, 7 days' }}</td>
+                  <td class="adm-num fw-semibold">{{ ov()!.counts['wall7d'] }}</td>
+                  <td>{{ vi() ? 'Tin nhắn 24h' : 'Chat, 24h' }}</td>
+                  <td class="adm-num fw-semibold">{{ fmt(ov()!.counts['chat24h']) }}</td>
+                </tr>
+                <tr>
+                  <td>{{ vi() ? 'Hồ sơ cá nhân' : 'Profiles' }}</td>
+                  <td class="adm-num fw-semibold">{{ ov()!.counts['profiles'] }}</td>
+                  <td>{{ vi() ? 'Bật thông báo đẩy' : 'Push enabled' }}</td>
+                  <td class="adm-num fw-semibold">{{ ov()!.counts['pushSubs'] }}</td>
+                </tr>
+                <tr>
+                  <td>{{ vi() ? 'Mục nội dung động' : 'Content items' }}</td>
+                  <td class="adm-num fw-semibold">{{ ov()!.counts['contentItems'] }}</td>
+                  <td>{{ vi() ? 'Thu thập lỗi' : 'Telemetry' }}</td>
+                  <td class="adm-num">
+                    <span class="badge" [class.text-bg-success]="ov()!.telemetry" [class.text-bg-danger]="!ov()!.telemetry">
+                      {{ ov()!.telemetry ? (vi() ? 'Đang bật' : 'On') : (vi() ? 'Đang tắt' : 'Off') }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="adm-card pad-0">
-      <div class="adm-card-head">
-        <h3>{{ vi() ? 'Sửa nội dung gần đây' : 'Recent content edits' }}</h3>
-        <a class="btn btn-ghost btn-sm" [routerLink]="['/admin', 'content']">{{ vi() ? 'Mở' : 'Open' }}</a>
-      </div>
-      @if (!ov()!.recentContent.length) {
-        <div class="adm-empty">{{ vi() ? 'Chưa có ai sửa nội dung.' : 'No content edits yet.' }}</div>
-      } @else {
-        <div class="adm-tablewrap">
-          <table class="adm-table">
-            <thead>
-              <tr>
-                <th>{{ vi() ? 'Mục' : 'Item' }}</th>
-                <th>{{ vi() ? 'Người sửa' : 'By' }}</th>
-                <th>{{ vi() ? 'Lúc' : 'When' }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (c of ov()!.recentContent; track c.at) {
-                <tr>
-                  <td class="strong">{{ c.module }} · {{ c.key }}</td>
-                  <td>{{ c.by || '—' }}</td>
-                  <td>{{ when(c.at) }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="card-title">{{ vi() ? 'Sửa nội dung gần đây' : 'Recent content edits' }}</h2>
+          <!-- .card-tools la cho AdminLTE danh cho nut o goc phai tieu de the -->
+          <div class="card-tools">
+            <a class="btn btn-sm btn-outline-secondary" [routerLink]="['/admin', 'content']">
+              {{ vi() ? 'Mở' : 'Open' }}
+            </a>
+          </div>
         </div>
-      }
+        @if (!ov()!.recentContent.length) {
+          <div class="card-body text-center text-secondary py-5">
+            {{ vi() ? 'Chưa có ai sửa nội dung.' : 'No content edits yet.' }}
+          </div>
+        } @else {
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>{{ vi() ? 'Mục' : 'Item' }}</th>
+                    <th>{{ vi() ? 'Người sửa' : 'By' }}</th>
+                    <th>{{ vi() ? 'Lúc' : 'When' }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (c of ov()!.recentContent; track c.at) {
+                    <tr>
+                      <td class="fw-semibold">{{ c.module }} · {{ c.key }}</td>
+                      <td>{{ c.by || '—' }}</td>
+                      <td class="text-secondary">{{ when(c.at) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      </div>
     </div>
   </div>
 }
