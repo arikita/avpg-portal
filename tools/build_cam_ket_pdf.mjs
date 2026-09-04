@@ -36,7 +36,6 @@ const FIELDS = [
   { id: 'v-chucdanh', key: 'chuc_danh', type: 'TEXT',      label: 'Chức danh',          prefill: true },
   { id: 'v-phongban', key: 'phong_ban', type: 'TEXT',      label: 'Phòng / Ban',        prefill: true },
   { id: 'v-email',    key: 'email',     type: 'EMAIL',     label: 'Email công ty' },
-  { id: 'v-taikhoan', key: 'tai_khoan', type: 'TEXT',      label: 'Tài khoản hệ thống', prefill: true },
   { id: 'v-ngayky',   key: 'ngay_ky',   type: 'DATE',      label: 'Ngày ký' },
   { id: 'v-chuky',    key: 'chu_ky',    type: 'SIGNATURE', label: 'Chữ ký' },
   { id: 'v-hoten2',   key: 'ho_ten_2',  type: 'NAME',      label: 'Họ tên dưới chữ ký' },
@@ -51,7 +50,13 @@ await page.evaluate(() => document.fonts.ready);
 
 const measured = await page.evaluate((defs) => {
   const pages = [...document.querySelectorAll('.page')];
-  const out = { pageCount: pages.length, tran: [], fields: [], missing: [] };
+  const out = { pageCount: pages.length, tran: [], fields: [], missing: [], logo: null };
+
+  // Logo nap bang duong dan tuong doi. Anh hong/sai duong dan thi Chrome ve o
+  // trong, PDF van ra 3 trang "binh thuong" — khong co gi bao. Hoi thang.
+  const lg = document.getElementById('logo');
+  out.logo = lg ? { ok: lg.complete && lg.naturalWidth > 0, w: lg.naturalWidth, h: lg.naturalHeight,
+                    hienW: Math.round(lg.getBoundingClientRect().width) } : { ok: false, thieu: true };
 
   // Trang nao bi tran noi dung? overflow:hidden nen PDF trong van "sach" —
   // phai hoi thang scrollHeight, khong thi mat chu ma khong ai biet.
@@ -87,6 +92,8 @@ await browser.close();
 
 let loi = 0;
 if (measured.missing.length) { console.log('LOI  thieu o trong HTML:', measured.missing.join(', ')); loi++; }
+if (!measured.logo.ok) { console.log('LOI  logo khong nap duoc —', JSON.stringify(measured.logo)); loi++; }
+else console.log(`logo ok (${measured.logo.w}x${measured.logo.h}px, in ra rong ${measured.logo.hienW}px)`);
 for (const t of measured.tran) { console.log(`LOI  trang ${t.trang} TRAN noi dung ${t.thua_px}px — chu bi cat`); loi++; }
 for (const f of measured.fields) {
   if (f.width < 3 || f.height < 1)

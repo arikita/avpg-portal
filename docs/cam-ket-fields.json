@@ -8,7 +8,7 @@
       "label": "Họ và tên",
       "pageNumber": 1,
       "pageX": 30.475,
-      "pageY": 23.949,
+      "pageY": 28.663,
       "width": 60.954,
       "height": 2.812
     },
@@ -20,7 +20,7 @@
       "prefill": true,
       "pageNumber": 1,
       "pageX": 30.475,
-      "pageY": 26.76,
+      "pageY": 31.475,
       "width": 60.954,
       "height": 2.812
     },
@@ -32,7 +32,7 @@
       "prefill": true,
       "pageNumber": 1,
       "pageX": 30.475,
-      "pageY": 29.572,
+      "pageY": 34.287,
       "width": 60.954,
       "height": 2.812
     },
@@ -43,19 +43,7 @@
       "label": "Email công ty",
       "pageNumber": 1,
       "pageX": 30.475,
-      "pageY": 32.384,
-      "width": 60.954,
-      "height": 2.812
-    },
-    {
-      "id": "v-taikhoan",
-      "key": "tai_khoan",
-      "type": "TEXT",
-      "label": "Tài khoản hệ thống",
-      "prefill": true,
-      "pageNumber": 1,
-      "pageX": 30.475,
-      "pageY": 35.196,
+      "pageY": 37.099,
       "width": 60.954,
       "height": 2.812
     },
