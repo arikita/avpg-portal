@@ -435,6 +435,19 @@ def _dong_bo(conn, dong: dict) -> dict:
         return dong
     try:
         status, signed_at = _trang_thai_documenso(int(dong["documentId"]))
+    except HTTPException as exc:
+        # Tai lieu khong con ben Documenso (bi xoa khi don du lieu thu, hoac
+        # nguoi quan tri huy). Khong xu ly thi nguoi dung KET VINH VIEN voi mot
+        # token chet: `bat_dau_ky` thay dong cu con token nen tra lai dung cai
+        # token do, khung ky mo ra la trang 404, va khong co duong nao thoat.
+        # Xoa dong di de ho bam Ky lai duoc — ban DA_KY thi khong bao gio dung
+        # toi day (da return o tren) va cau lenh van co dieu kien de chac.
+        if isinstance(exc.detail, str) and "404" in exc.detail:
+            conn.execute("DELETE FROM cam_ket WHERE username = %s "
+                         "AND status <> 'DA_KY'", (dong["username"],))
+            conn.commit()
+            return {**dong, "status": "CHUA_KY", "token": "", "signedAt": ""}
+        return dong
     except Exception:                                          # noqa: BLE001
         return dong
     if status == "SIGNED":

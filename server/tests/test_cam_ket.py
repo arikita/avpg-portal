@@ -268,6 +268,52 @@ class TestTokenKhongRoRi:
         assert "SELECT *" not in nguon.upper().replace("SELECT  *", "SELECT *")
 
 
+
+class TestTaiLieuBienMat:
+    """Tai lieu bi xoa ben Documenso thi nguoi dung phai bam Ky lai duoc."""
+
+    def test_dong_bo_xoa_dong_khi_documenso_tra_404(self, monkeypatch):
+        """Khong xoa thi nguoi dung ket vinh vien: `bat_dau_ky` thay dong cu
+        con token nen tra lai dung token chet do, khung ky mo ra la trang 404,
+        khong co duong nao thoat."""
+        from fastapi import HTTPException
+
+        def _chet(_doc_id):
+            raise HTTPException(status_code=502, detail="Documenso tra 404: khong thay")
+        monkeypatch.setattr(camket, "_trang_thai_documenso", _chet)
+
+        da_xoa = []
+
+        class Conn:
+            def execute(self, sql, args=None): da_xoa.append((sql, args))
+            def commit(self): pass
+
+        dong = {"username": "haivl", "status": "DANG_KY", "documentId": 7,
+                "token": "TOKEN-CHET", "signedAt": ""}
+        ra = camket._dong_bo(Conn(), dong)
+        assert ra["status"] == "CHUA_KY"
+        assert ra["token"] == ""
+        assert da_xoa and "DELETE FROM cam_ket" in da_xoa[0][0]
+        # Cau lenh xoa PHAI loai tru ban da ky — mot dau '=' nham o day la
+        # xoa mat bang chung chu ky cua nguoi ta.
+        assert "status <> 'DA_KY'" in da_xoa[0][0]
+
+    def test_loi_khac_404_thi_giu_nguyen_dong(self, monkeypatch):
+        """Documenso chet hay mang hong KHONG duoc lam mat dong dang ky do."""
+        from fastapi import HTTPException
+
+        def _chet(_doc_id):
+            raise HTTPException(status_code=502, detail="khong goi duoc Documenso: timeout")
+        monkeypatch.setattr(camket, "_trang_thai_documenso", _chet)
+
+        class Conn:
+            def execute(self, *a): raise AssertionError("khong duoc dong vao DB")
+            def commit(self): raise AssertionError("khong duoc commit")
+
+        dong = {"username": "haivl", "status": "DANG_KY", "documentId": 7,
+                "token": "T", "signedAt": ""}
+        assert camket._dong_bo(Conn(), dong)["status"] == "DANG_KY"
+
 # ---------------------------------------------------------------------- cau hinh --
 class TestCauHinh:
     def test_ngay_chot_dung_dinh_dang(self):
