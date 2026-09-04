@@ -40,6 +40,23 @@
   li { margin-bottom: 4px; }
 }
 
+/* Khoi ky THOAT KHOI cot doc 900px.
+ *
+ * `.ck-narrow` gioi han 900px de doan van ban khong dai ca sai tay — dung cho
+ * chu, sai cho khung xem PDF. Do that tren man 1920: iframe chi rong 804px,
+ * thua 1020px le trong hai ben; Documenso chia 804px do cho ca trang PDF lan
+ * bang ky nen trang A4 con ~450px, tuc nua co that, chu ~7pt khong doc noi.
+ *
+ * `margin-left: 50%` + `translateX(-50%)` neo theo TAM cua cot cha roi keo
+ * nguoc lai nua chieu rong cua chinh no — canh giua man hinh bat ke cot cha
+ * rong bao nhieu, khong can biet gia tri 900px o cho khac.
+ */
+.ck-rong {
+  width: min(1500px, calc(100vw - 40px));
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+
 /* Khung ky cua Documenso.
  *
  * CHIEU CAO CO DINH, khong `aspect-ratio`: ben trong iframe la mot trang co
