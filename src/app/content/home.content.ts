@@ -65,8 +65,11 @@ export const QUICK_LINKS: PortalLink[] = [
   },
   {
     label: { vi: 'Kết nối Wi-Fi', en: 'Connect Wi-Fi' },
-    desc: { vi: 'SSID, mật khẩu & cách kết nối', en: 'SSID, password & how to connect' },
-    url: '/onboarding#wifi',
+    desc: { vi: 'Tên mạng, mật khẩu & cách kết nối', en: 'Network name, password & how to connect' },
+    // /onboarding khong con chua cac muc huong dan nua (04/09/2026) — chung
+    // da doi sang /onboarding/it. Bo qua cho nay thi bam vao chi... khong
+    // cuon di dau ca: khong 404, khong loi, khong ai bao.
+    url: '/onboarding/it#wifi',
     icon: 'wifi',
     tone: 'teal',
   },
@@ -79,7 +82,7 @@ export const QUICK_LINKS: PortalLink[] = [
     tone: 'coral',
   },
   {
-    label: { vi: 'Liên hệ nội bộ', en: 'Internal Contacts' },
+    label: { vi: 'Danh bạ nội bộ', en: 'Internal Directory' },
     desc: { vi: 'Số máy nhánh & đầu mối liên hệ', en: 'Extensions & key contacts' },
     url: '/directory',
     icon: 'users',

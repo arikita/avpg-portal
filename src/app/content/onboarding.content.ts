@@ -39,7 +39,7 @@ export const CHECKLIST: ChecklistItem[] = [
   },
   {
     id: 'phone',
-    text: { vi: 'Ghi lại số máy nhánh (extension) của bạn', en: 'Note your desk phone extension' },
+    text: { vi: 'Ghi lại số máy nhánh của bạn', en: 'Note your desk phone number' },
   },
   {
     id: 'workit',
@@ -84,7 +84,7 @@ export const SECTIONS: GuideSection[] = [
         tone: 'tip',
         title: { vi: 'Mẹo', en: 'Tip' },
         text: {
-          vi: 'Lưu trang này vào bookmark. Bạn có thể quay lại bất cứ lúc nào để tra cứu nhanh.',
+          vi: 'Lưu trang này vào mục yêu thích của trình duyệt. Bạn quay lại tra cứu bất cứ lúc nào.',
           en: 'Bookmark this page. Come back any time for a quick reference.',
         },
       },
@@ -106,8 +106,8 @@ export const SECTIONS: GuideSection[] = [
       {
         kind: 'p',
         text: {
-          vi: 'Bộ phận IT tạo tài khoản của bạn theo họ tên. Tài khoản đăng nhập máy tính và email dùng CHUNG một tài khoản (tích hợp Active Directory) — được bàn giao trong ngày đầu tiên.',
-          en: 'IT creates your account from your full name. Your computer login and email use ONE shared account (integrated with Active Directory) — handed to you on day one.',
+          vi: 'Phòng IT tạo tài khoản cho bạn theo họ tên và bàn giao ngay trong ngày đầu. Bạn chỉ có MỘT tài khoản duy nhất — dùng chung cho cả việc đăng nhập máy tính lẫn email.',
+          en: 'IT creates your account from your full name and hands it over on day one. You have ONE account only — the same one for both your computer login and your email.',
         },
       },
       {
@@ -131,15 +131,15 @@ export const SECTIONS: GuideSection[] = [
         tone: 'info',
         title: { vi: 'Một mật khẩu cho tất cả', en: 'One password for everything' },
         text: {
-          vi: 'Hệ thống tích hợp Active Directory nên bạn chỉ cần ĐỔI MẬT KHẨU một lần — mật khẩu đăng nhập máy tính và email (Outlook) sẽ tự đổi theo.',
-          en: 'Because the system is integrated with Active Directory, you only change your password ONCE — your computer and email (Outlook) passwords update together.',
+          vi: 'Bạn chỉ cần ĐỔI MẬT KHẨU một lần trên máy tính — mật khẩu email cũng tự đổi theo. Không phải nhớ hai mật khẩu khác nhau.',
+          en: 'You only change your password ONCE, on your computer — your email password changes with it. No need to remember two different passwords.',
         },
       },
       {
         kind: 'steps',
         items: [
           { vi: 'Nhận tài khoản + mật khẩu tạm từ IT/Nhân sự.', en: 'Receive your account + temporary password from IT/HR.' },
-          { vi: 'Đăng nhập máy tính lần đầu, nhấn Ctrl+Alt+Del → “Change a password” để đặt mật khẩu riêng.', en: 'Log in to your PC, press Ctrl+Alt+Del → “Change a password” to set your own.' },
+          { vi: 'Đăng nhập máy tính lần đầu, nhấn cùng lúc ba phím Ctrl + Alt + Delete rồi chọn “Change a password” (Đổi mật khẩu) để đặt mật khẩu riêng của bạn.', en: 'Log in to your PC, press Ctrl+Alt+Del → “Change a password” to set your own.' },
           { vi: 'Mật khẩu mới áp dụng luôn cho email — mở Outlook và đăng nhập lại nếu được hỏi.', en: 'The new password also applies to email — open Outlook and re-sign in if prompted.' },
           { vi: 'Gửi/nhận một email thử để kiểm tra.', en: 'Send and receive a test email to confirm.' },
         ],
@@ -149,7 +149,7 @@ export const SECTIONS: GuideSection[] = [
         tone: 'warning',
         title: { vi: 'Mật khẩu mạnh', en: 'Strong passwords' },
         text: {
-          vi: 'Tối thiểu 8–12 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt. Không dùng chung mật khẩu với tài khoản cá nhân và không chia sẻ cho bất kỳ ai.',
+          vi: 'Tối thiểu 8–12 ký tự, có cả chữ hoa, chữ thường, số và ký tự đặc biệt (ví dụ @ # $ !). Không dùng chung mật khẩu với tài khoản cá nhân và không chia sẻ cho bất kỳ ai.',
           en: 'At least 8–12 characters with upper/lowercase, numbers and symbols. Never reuse personal passwords or share them with anyone.',
         },
       },
@@ -174,14 +174,14 @@ export const SECTIONS: GuideSection[] = [
           { vi: 'Mở Outlook trên máy tính → nhập email công ty → làm theo hướng dẫn tự động.', en: 'Open Outlook on your PC → enter your company email → follow the automatic setup.' },
           { vi: 'Trên điện thoại: cài app “Microsoft Outlook”, đăng nhập bằng email công ty.', en: 'On mobile: install the “Microsoft Outlook” app and sign in with your company email.' },
           { vi: 'Thiết lập chữ ký email theo mẫu công ty (xem mục Tải về ở trang Công cụ).', en: 'Set your email signature using the company template (see Downloads on the Tools page).' },
-          { vi: 'Ghim (pin) lịch để không bỏ lỡ cuộc họp.', en: 'Pin your calendar so you never miss a meeting.' },
+          { vi: 'Ghim mục Lịch để không bỏ lỡ cuộc họp.', en: 'Pin your calendar so you never miss a meeting.' },
         ],
       },
       {
         kind: 'callout',
         tone: 'info',
         text: {
-          vi: 'Truy cập email trên trình duyệt bất cứ đâu qua Outlook Web — xem liên kết ở trang Công cụ.',
+          vi: 'Không có máy công ty bên cạnh? Bạn vẫn mở được email bằng trình duyệt web trên bất kỳ máy nào — xem đường dẫn ở trang Công cụ.',
           en: 'Access email from any browser via Outlook Web — see the link on the Tools page.',
         },
       },
@@ -190,7 +190,7 @@ export const SECTIONS: GuideSection[] = [
         items: [
           { vi: 'Dùng Lịch (Calendar) để đặt và nhận lời mời họp.', en: 'Use Calendar to schedule and accept meeting invites.' },
           { vi: 'Bật thông báo để không bỏ lỡ email quan trọng.', en: 'Enable notifications so you never miss important email.' },
-          { vi: 'Gõ đúng tên đồng nghiệp — hệ thống gợi ý địa chỉ nội bộ.', en: 'Start typing a colleague’s name — internal addresses auto-suggest.' },
+          { vi: 'Gõ tên đồng nghiệp vào ô người nhận — Outlook tự gợi ý địa chỉ email nội bộ.', en: 'Start typing a colleague’s name — internal addresses auto-suggest.' },
         ],
       },
     ],
@@ -203,8 +203,8 @@ export const SECTIONS: GuideSection[] = [
     eyebrow: { vi: 'Liên lạc', en: 'Communication' },
     title: { vi: 'Điện thoại nội bộ', en: 'Desk Phone & Extensions' },
     intro: {
-      vi: 'Mỗi chỗ ngồi có một số máy nhánh (extension) để gọi nội bộ nhanh chóng.',
-      en: 'Each desk has an extension number for quick internal calls.',
+      vi: 'Mỗi chỗ ngồi có một số máy nhánh riêng — gọi nội bộ chỉ cần bấm vài chữ số thay vì cả số điện thoại.',
+      en: 'Each desk has its own short extension number, so internal calls need just a few digits.',
     },
     readMin: 2,
     blocks: [
@@ -213,7 +213,6 @@ export const SECTIONS: GuideSection[] = [
         items: [
           { vi: 'Gọi nội bộ: bấm số máy nhánh của người cần gặp (ví dụ 1234).', en: 'Internal call: dial the person’s extension (e.g. 1234).' },
           { vi: 'Gọi ra ngoài: bấm trực tiếp số cần gọi — không cần đầu số.', en: 'External call: just dial the number directly — no prefix needed.' },
-          { vi: 'Tổng đài / Lễ tân: bấm 0.', en: 'Reception / switchboard: dial 0.' },
         ],
       },
       {
@@ -243,15 +242,15 @@ export const SECTIONS: GuideSection[] = [
         kind: 'fields',
         title: { vi: 'Thông tin Wi-Fi', en: 'Wi-Fi details' },
         items: [
-          { label: { vi: 'Wi-Fi nhân viên (SSID)', en: 'Staff Wi-Fi (SSID)' }, value: 'An Viet Phat', copy: true },
-          { label: { vi: 'Wi-Fi khách (SSID)', en: 'Guest Wi-Fi (SSID)' }, value: 'An Viet Phat - Customer', copy: true },
+          { label: { vi: 'Tên mạng Wi-Fi nhân viên', en: 'Staff Wi-Fi network name' }, value: 'An Viet Phat', copy: true },
+          { label: { vi: 'Tên mạng Wi-Fi khách', en: 'Guest Wi-Fi network name' }, value: 'An Viet Phat - Customer', copy: true },
           { label: { vi: 'Mật khẩu Wi-Fi khách', en: 'Guest Wi-Fi password' }, value: 'anvietphat', copy: true },
         ],
       },
       {
         kind: 'steps',
         items: [
-          { vi: 'Nhân viên: chọn mạng “An Viet Phat”, đăng nhập bằng tài khoản AD (giống đăng nhập máy tính — ví dụ tungnh + mật khẩu).', en: 'Staff: choose “An Viet Phat” and sign in with your AD account (same as your PC login — e.g. tungnh + password).' },
+          { vi: 'Nhân viên: chọn mạng “An Viet Phat”, rồi đăng nhập bằng chính tài khoản công ty của bạn — giống hệt lúc đăng nhập máy tính.', en: 'Staff: choose “An Viet Phat” and sign in with your AD account (same as your PC login — e.g. tungnh + password).' },
           { vi: 'Khách: chọn mạng “An Viet Phat - Customer”, nhập mật khẩu: anvietphat.', en: 'Guests: choose “An Viet Phat - Customer” and enter the password: anvietphat.' },
           { vi: 'Không kết nối được? Gửi yêu cầu hỗ trợ IT.', en: 'Can’t connect? Open an IT support ticket.' },
         ],
@@ -309,12 +308,6 @@ export const SECTIONS: GuideSection[] = [
           en: 'WorkIT is also used for purchase requests, leave, business trips and more. Explore it during your first week.',
         },
       },
-      {
-        kind: 'image',
-        src: '/img/onboarding/workit-phonghop.png',
-        alt: { vi: 'Quy trình đặt phòng họp trên WorkIT', en: 'Meeting-room booking process on WorkIT' },
-        caption: { vi: 'Quy trình đặt phòng họp trên WorkIT', en: 'Booking a meeting room on WorkIT' },
-      },
     ],
   },
 
@@ -334,9 +327,9 @@ export const SECTIONS: GuideSection[] = [
         kind: 'bullets',
         items: [
           { vi: 'Bộ Office (Outlook, Word, Excel, PowerPoint).', en: 'Office suite (Outlook, Word, Excel, PowerPoint).' },
-          { vi: 'Ứng dụng chat nội bộ (Teams / Telegram).', en: 'Internal chat app (Teams / Telegram).' },
-          { vi: 'SAP GUI (nếu công việc của bạn cần).', en: 'SAP GUI (if your role needs it).' },
-          { vi: 'Phần mềm diệt virus & VPN (do IT cấu hình).', en: 'Antivirus & VPN (configured by IT).' },
+          { vi: 'Ứng dụng chat nội bộ (AVP Portal / Telegram).', en: 'Internal chat app (AVP Portal / Telegram).' },
+          { vi: 'SAP — phần mềm quản trị của công ty (nếu công việc của bạn cần).', en: 'SAP GUI (if your role needs it).' },
+          { vi: 'Phần mềm diệt virus và phần mềm kết nối từ xa (VPN) — IT cài sẵn, bạn không phải làm gì.', en: 'Antivirus and remote-access software (VPN) — IT sets these up for you.' },
         ],
       },
       {
@@ -344,7 +337,7 @@ export const SECTIONS: GuideSection[] = [
         tone: 'danger',
         title: { vi: 'Quy định cài đặt phần mềm', en: 'Software install policy' },
         text: {
-          vi: 'Chỉ cài phần mềm có bản quyền và được IT phê duyệt. Không tự tải phần mềm lậu — hãy gửi yêu cầu để IT hỗ trợ cài đặt.',
+          vi: 'Chỉ cài phần mềm có bản quyền và được IT phê duyệt. Đừng tự tải phần mềm bẻ khoá hay tải từ nguồn không rõ — gửi yêu cầu để IT cài giúp.',
           en: 'Only install licensed, IT-approved software. Never download pirated apps — open a request and IT will install it for you.',
         },
       },
@@ -376,7 +369,7 @@ export const SECTIONS: GuideSection[] = [
         tone: 'tip',
         title: { vi: '🔒 Khoá màn hình: Windows + L', en: '🔒 Lock your screen: Windows + L' },
         text: {
-          vi: 'Nhấn Windows + L mỗi khi rời khỏi chỗ ngồi — kể cả chỉ đi vài phút. Thói quen nhỏ, an toàn lớn.',
+          vi: 'Mỗi khi rời chỗ ngồi — kể cả chỉ đi vài phút — hãy bấm cùng lúc phím Windows (phím có hình cửa sổ) và phím L. Thói quen nhỏ, an toàn lớn.',
           en: 'Press Windows + L whenever you step away — even for a few minutes. A small habit, big protection.',
         },
       },
@@ -384,9 +377,9 @@ export const SECTIONS: GuideSection[] = [
         kind: 'bullets',
         items: [
           { vi: 'USB ở chế độ CHỈ ĐỌC: đọc dữ liệu từ USB thì được, nhưng KHÔNG được sao chép dữ liệu RA USB (để bảo vệ dữ liệu công ty).', en: 'USB is READ-ONLY: you can read from a USB drive, but you CANNOT copy data ONTO USB (to protect company data).' },
-          { vi: 'Cảnh giác email lạ, đường link và tệp đính kèm đáng ngờ (phishing).', en: 'Beware of unknown emails, suspicious links and attachments (phishing).' },
+          { vi: 'Cảnh giác email lạ, đường dẫn và tệp đính kèm đáng ngờ — đây là cách phổ biến nhất để kẻ xấu chiếm tài khoản của bạn.', en: 'Beware of unknown emails, suspicious links and attachments — this is the most common way attackers take over accounts.' },
           { vi: 'Không cắm USB/thiết bị lạ vào máy công ty.', en: 'Do not plug unknown USB drives/devices into company computers.' },
-          { vi: 'Lưu tài liệu công việc lên ổ mạng/hệ thống công ty, không để riêng trên máy.', en: 'Store work files on company drives/systems, not just on your machine.' },
+          { vi: 'Lưu tài liệu công việc lên ổ đĩa chung của công ty, đừng để riêng trên máy mình — máy hỏng là mất hết.', en: 'Store work files on company drives/systems, not just on your machine.' },
         ],
       },
       {

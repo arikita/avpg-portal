@@ -186,6 +186,32 @@ for (const [path, frags] of theoTrang) {
       `thiếu id: ${thieu.join(', ')} — bấm vào chỉ đứng yên, không báo lỗi`);
 }
 
+// MOI duong dan co #fragment tro vao /onboarding, o BAT KY file noi dung nao.
+// Phep do o muc 6 chi soi quiz.content.ts nen da bo sot `/onboarding#wifi`
+// trong home.content.ts (QUICK_LINKS) khi doi bo cuc 04/09/2026 — bam vao chi
+// dung yen, khong 404, khong loi.
+console.log('\n6b) Mọi đường dẫn #fragment vào /onboarding trong file nội dung');
+{
+  const { readdir } = await import('node:fs/promises');
+  const thuMuc = 'src/app/content';
+  const files = (await readdir(thuMuc)).filter(f => f.endsWith('.ts'));
+  const link = [];
+  for (const f of files) {
+    const nd = await readFile(`${thuMuc}/${f}`, 'utf8');
+    for (const m of nd.matchAll(/'(\/onboarding[^'#]*)#([a-z0-9-]+)'/g))
+      link.push({ f, path: m[1], frag: m[2] });
+  }
+  say(true, `tìm thấy ${link.length} đường dẫn có #fragment`);
+  const theo = new Map();
+  for (const l of link) (theo.get(l.path) ?? theo.set(l.path, []).get(l.path)).push(l);
+  for (const [path, ls] of theo) {
+    await go(path);
+    const thieu = await p.evaluate(fs => fs.filter(f => !document.getElementById(f)), ls.map(l => l.frag));
+    say(thieu.length === 0, `${path}: đủ ${ls.length} đích đến`,
+        `thiếu ${thieu.join(', ')} — khai ở ${[...new Set(ls.map(l => l.f))].join(', ')}`);
+  }
+}
+
 console.log('\n7) Lỗi JavaScript');
 say(errs.length === 0, 'không có lỗi JS trong suốt phép đo', errs.slice(0, 3).join(' | '));
 

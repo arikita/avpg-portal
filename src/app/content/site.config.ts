@@ -40,7 +40,7 @@ export const NAV: NavItem[] = [
   // Tạm ẩn 20/08/2026 (theo yêu cầu): rút khỏi menu + chân trang + menu điện thoại.
   // Route /portal vẫn còn nên link cũ / bookmark không gãy. Bỏ comment để hiện lại.
   // { id: 'portal', label: { vi: 'Công cụ', en: 'Tools' }, path: '/portal', icon: 'grid' },
-  { id: 'directory', label: { vi: 'Liên hệ', en: 'Contact' }, path: '/directory', icon: 'users' },
+  { id: 'directory', label: { vi: 'Danh bạ', en: 'Directory' }, path: '/directory', icon: 'users' },
   { id: 'help', label: { vi: 'Hỗ trợ', en: 'Help' }, path: '/help', icon: 'life-buoy' },
 ];
 
