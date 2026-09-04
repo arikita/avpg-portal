@@ -119,6 +119,11 @@ say((await p.locator('article[data-sec]').count()) === 0,
 say(/Đang cập nhật/.test(t), 'thẻ Nhân sự ghi rõ đang cập nhật');
 const theIT = await p.locator('a[href="/onboarding/it"]').count();
 say(theIT === 1, 'thẻ IT dẫn đúng /onboarding/it', String(theIT));
+// Hai the bat buoc da chuyen xuong trang phong (04/09/2026): bai kiem tra gan
+// voi noi dung vua doc nen phai nam ngay duoi noi dung do.
+say((await p.locator('a[href="/onboarding/kiem-tra"]').count()) === 0
+    && (await p.locator('a[href="/onboarding/cam-ket"]').count()) === 0,
+    'thẻ bài kiểm tra / cam kết KHÔNG còn ở trang trung tâm');
 
 // ------------------------------------------------------- 2) trang phong -----
 console.log('\n2) /onboarding/it — phòng đã có nội dung');
@@ -138,6 +143,10 @@ await p.locator('button.check').first().click();
 await p.waitForTimeout(300);
 say((await txt()).includes('1/8'), 'bấm một mục thì tiến độ lên 1/8',
     'tiến độ không đổi — ProgressService không nối đúng');
+say((await p.locator('a[href="/onboarding/kiem-tra"]').count()) === 1,
+    'trang IT có thẻ làm bài kiểm tra');
+say((await p.locator('a[href="/onboarding/cam-ket"]').count()) === 1,
+    'trang IT có thẻ ký cam kết');
 
 console.log('\n3) /onboarding/nhan-su — phòng chưa có nội dung');
 await go('/onboarding/nhan-su');
@@ -148,6 +157,11 @@ say(/Đang cập nhật/.test(t), 'nói rõ đang cập nhật, không phải tr
 say((await p.locator('article[data-sec]').count()) === 0, 'chưa render mục nào');
 say(!/Danh sách việc cần làm/.test(t),
     'Nhân sự chưa khai việc cần làm thì không hiện khối rỗng');
+// Phong chua co bai kiem tra rieng thi KHONG duoc bay the dan toi bai cua IT.
+say((await p.locator('a[href="/onboarding/kiem-tra"]').count()) === 0,
+    'Nhân sự chưa có bài kiểm tra riêng thì không bày thẻ dẫn tới bài của IT');
+say((await p.locator('a[href="/onboarding/cam-ket"]').count()) === 0,
+    'thẻ ký cam kết chỉ nằm ở trang IT');
 
 console.log('\n4) /onboarding/khong-co-that — slug sai');
 await go('/onboarding/khong-co-that');

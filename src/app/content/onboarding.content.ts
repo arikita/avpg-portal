@@ -422,6 +422,21 @@ export interface PhongBan {
   sectionsKey: string;
   intro: L;
   sections: GuideSection[];
+  /** Bài kiểm tra sau buổi hội nhập của RIÊNG phòng này.
+   *
+   *  Đặt ở đây chứ không phải trang trung tâm: bài kiểm tra gắn với nội dung
+   *  vừa đọc, nên nó phải nằm ngay dưới nội dung đó. Phòng nào chưa có bài thì
+   *  bỏ trống, trang tự không hiện thẻ — hiện một thẻ dẫn tới bài của phòng
+   *  khác còn tệ hơn là không có gì. */
+  quiz?: { path: string; title: L; desc: L };
+
+  /** Có phải ký cam kết bảo mật sau khi đọc xong phần này không.
+   *
+   *  Chỉ IT bật: mọi nhân viên mới đều đi qua phần hội nhập của IT (tài khoản,
+   *  email, Wi-Fi) bất kể họ thuộc phòng nào, nên đó là chỗ duy nhất chắc chắn
+   *  ai cũng thấy. */
+  camKet?: boolean;
+
   /** Danh sách việc cần làm của RIÊNG phòng này — hiện ngay trên trang phòng.
    *  Việc cần làm thuộc về phòng đặt ra nó, không phải thứ chung của cả hành
    *  trình: 8 mục hiện có đều là việc của IT (kích hoạt tài khoản, Wi-Fi,
@@ -449,6 +464,15 @@ export const PHONG_BAN: PhongBan[] = [
     sections: SECTIONS,
     checklist: CHECKLIST,
     checklistKey: 'CHECKLIST',
+    quiz: {
+      path: '/onboarding/kiem-tra',
+      title: { vi: 'Kiểm tra lại xem bạn nhớ được bao nhiêu', en: 'Check how much you remember' },
+      desc: {
+        vi: '10 câu trắc nghiệm, khoảng 5 phút. Làm sau khi phòng IT đã hướng dẫn bạn.',
+        en: '10 questions, about 5 minutes. Take it after your IT induction session.',
+      },
+    },
+    camKet: true,
   },
   {
     slug: 'nhan-su',

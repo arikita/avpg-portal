@@ -137,4 +137,47 @@
       </div>
     </section>
   }
+
+  <!-- Buoc sau khi doc xong: kiem tra -> ky cam ket. Thu tu do la co y — ky
+       mot ban cam ket ma chua kiem lai xem minh nho duoc gi thi chu ky do
+       khong dua tren gi ca. -->
+  @if (pb()!.quiz || pb()!.camKet) {
+    <section class="section-sm">
+      <div class="container">
+        @if (pb()!.quiz; as q) {
+          <div class="card card-pad-lg">
+            <div class="row between wrap" style="gap:18px">
+              <div class="row" style="gap:14px;align-items:flex-start">
+                <div class="icon-badge violet"><app-icon name="list-checks" /></div>
+                <div>
+                  <h3>{{ q.title | tr: lang() }}</h3>
+                  <p class="muted-3">{{ q.desc | tr: lang() }}</p>
+                </div>
+              </div>
+              <a class="btn btn-primary" [routerLink]="q.path">
+                <app-icon name="arrow-right" /> {{ vi() ? 'Làm bài kiểm tra' : 'Take the check' }}
+              </a>
+            </div>
+          </div>
+        }
+
+        @if (pb()!.camKet) {
+          <div class="card card-pad-lg" [class.mt-3]="pb()!.quiz">
+            <div class="row between wrap" style="gap:18px">
+              <div class="row" style="gap:14px;align-items:flex-start">
+                <div class="icon-badge"><app-icon name="shield-check" /></div>
+                <div>
+                  <h3>{{ vi() ? 'Ký cam kết bảo mật thông tin' : 'Sign the security commitment' }}</h3>
+                  <p class="muted-3">{{ vi() ? 'Ký điện tử ngay trên portal, khoảng 2 phút. Dành cho nhân viên mới.' : 'Sign electronically on the portal, about 2 minutes. For new employees.' }}</p>
+                </div>
+              </div>
+              <a class="btn btn-primary" routerLink="/onboarding/cam-ket">
+                <app-icon name="arrow-right" /> {{ vi() ? 'Ký cam kết' : 'Sign now' }}
+              </a>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
 }

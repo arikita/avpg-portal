@@ -275,9 +275,13 @@ Bài trắc nghiệm cho nhân viên làm **sau buổi training của phòng IT*
 
 ## Hội nhập nhiều phòng ban (04/09/2026)
 
-Từ 04/09 hội nhập không còn của riêng IT. **`/onboarding` là trang trung tâm** (thẻ dẫn sang từng
-phòng + hai thẻ bắt buộc: bài kiểm tra và ký cam kết); **nội dung hướng dẫn VÀ danh sách việc cần làm
-nằm ở `/onboarding/<slug>`**, mỗi phòng một trang. Việc cần làm là **thuộc tính của phòng**
+Từ 04/09 hội nhập không còn của riêng IT. **`/onboarding` chỉ còn là bảng chỉ đường** — thẻ dẫn sang
+từng phòng, không chứa nội dung nào. **Mọi thứ khác nằm ở `/onboarding/<slug>`**: nội dung hướng dẫn,
+danh sách việc cần làm, bài kiểm tra và ký cam kết. Bài kiểm tra gắn với nội dung vừa đọc nên phải
+nằm ngay dưới nội dung đó; `PhongBan.quiz` là **suất riêng của từng phòng**, phòng nào chưa có bài
+thì không hiện thẻ — dẫn người của Nhân sự sang làm bài của IT còn tệ hơn là không có gì.
+`PhongBan.camKet` chỉ IT bật: mọi nhân viên mới đều đi qua phần hội nhập của IT (tài khoản, email,
+Wi-Fi) bất kể phòng nào, nên đó là chỗ duy nhất chắc chắn ai cũng thấy. Việc cần làm là **thuộc tính của phòng**
 (`PhongBan.checklist`) chứ không phải thứ chung: 8 mục hiện có đều là việc của IT, để ở trang trung
 tâm là bắt Nhân sự nhìn việc của IT. Tiến độ vẫn lưu `localStorage` theo id từng mục nên chuyển trang
 không làm ai mất đánh dấu đã có. Hiện có `it` và `nhan-su` (Nhân sự chưa có nội
@@ -300,7 +304,7 @@ dung, trang tự hiện "đang cập nhật" chứ không ra trang trắng).
   Chúng gom trong **một map `REFS`** ở `quiz.content.ts`. Đổi id mục hay đổi đường dẫn mà quên sửa thì
   bấm vào chỉ **đứng yên**, không 404, không lỗi. `audit_onboarding.mjs` mở từng trang đích và kiểm
   từng id có thật trong DOM.
-- **Kiểm**: `CHROME_BIN=... node tools/audit_onboarding.mjs <dist>` — 28 phép đo, gồm 6 phép đo tĩnh
+- **Kiểm**: `CHROME_BIN=... node tools/audit_onboarding.mjs <dist>` — 34 phép đo, gồm 6 phép đo tĩnh
   chạy không cần trình duyệt.
 - **Đã biết, chưa sửa**: `.c-hint` trong checklist là `display:inline` nên dòng gợi ý dính liền tiêu đề
   ("…email công ty**Đổi mật khẩu lần đầu**"). Lỗi có sẵn từ trước, không phải do đợt tách trang.
