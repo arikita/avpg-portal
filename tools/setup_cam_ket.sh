@@ -10,7 +10,7 @@
 #   2. font co tieng Viet          — thieu la ten nguoi ky ra dau hoi
 #   3. bang cam_ket + DOI CHU SO HUU sang avpportal
 #   4. DOCUMENSO_API_KEY vao env file
-#   5. copy PDF goc + toa do o ky sang canh module
+#   5. copy MA NGUON API (server/app/*.py) + PDF goc + toa do o ky
 #   6. restart (KHONG reload) roi goi thu API
 #
 # VI SAO BUOC 3 CO HAI LENH: chay schema bang `sudo -u postgres psql` thi bang
@@ -72,9 +72,16 @@ else
   die "chua co DOCUMENSO_API_KEY trong $ENV_FILE va cung khong truyen vao"
 fi
 
-say "5/6  nguon ban cam ket sang canh module"
+say "5/6  ma nguon API + nguon ban cam ket sang $APP_DIR"
+# BUOC NAY TUNG BI BO SOT (04/09/2026): tools/deploy.sh chi lo frontend va
+# tools/, con ma Python thi README ghi la mot lenh `cp` chay tay. Bo qua no
+# thi camket.py khong bao gio toi duoc /opt, va /api/cam-ket tra 404 trong khi
+# moi thu khac nhin deu "da deploy xong" — dung kieu hong im lang ma ca file
+# nay sinh ra de chan. Nay script tu lam, khong de ai phai nho.
+cp "$SRC"/server/app/*.py "$APP_DIR"/
 install -m 644 "$SRC/docs/cam-ket-bao-mat.pdf" "$SRC/docs/cam-ket-fields.json" "$APP_DIR/"
-echo "    $APP_DIR/cam-ket-bao-mat.pdf"
+[ -f "$APP_DIR/camket.py" ] || die "camket.py van chua toi $APP_DIR"
+echo "    $(ls "$APP_DIR"/*.py | wc -l) module Python + PDF + toa do o ky"
 
 say "6/6  restart (KHONG reload — xem dau file) va goi thu"
 systemctl restart avp-portal-api
@@ -86,7 +93,17 @@ MA=$(curl -sS -o /tmp/camket-thu.json -w '%{http_code}' \
      -H 'X-Remote-User: smoke-test' http://127.0.0.1:8000/api/cam-ket || true)
 echo "    GET /api/cam-ket -> HTTP $MA"
 [ "$MA" = "200" ] || die "API khong tra 200, xem /tmp/camket-thu.json"
-grep -q '"apDung"' /tmp/camket-thu.json || die "hinh dang tra ve khong dung"
+grep -q '"apDung"' /tmp/camket-thu.json || die "hinh dang tra ve khong dung — route co ton tai khong?"
+
+# Sau moi lan deploy API phai goi THAT cac endpoint chinh: /api/health = 200
+# khong chung minh duoc gi (lan hong 25/08 health van 200 trong khi /api/news
+# tra 500 vi mot NameError).
+for E in /api/news /api/notifications /api/rail /api/quiz; do
+  M=$(curl -sS -o /dev/null -w '%{http_code}' -H 'X-Remote-User: smoke-test' \
+      "http://127.0.0.1:8000$E" || true)
+  echo "    GET $E -> HTTP $M"
+  [ "$M" = "200" ] || die "$E tra $M — module API vua chep len co the hong"
+done
 echo "    $(head -c 200 /tmp/camket-thu.json)"
 
 say "XONG"
