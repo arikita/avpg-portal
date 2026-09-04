@@ -131,7 +131,12 @@ export class Recruit {
   /** Mở Outlook với thư đã soạn sẵn. Xem ghi chú (3) và (4) đầu file. */
   moOutlook(): void {
     const url =
-      `mailto:${encodeURIComponent(this.email().trim())}` +
+      // DIA CHI KHONG DUOC MA HOA. `encodeURIComponent` doi `@` thanh `%40`,
+      // ma Outlook khong giai ma phan dia chi cua `mailto:` — no nhan mot
+      // nguoi nhan vo nghia roi khong mo gi ca. Ban tinh cu de nguyen dia chi
+      // va chay duoc; toi them ma hoa vao va lam hong (user bao 04/09/2026).
+      // Chi bo khoang trang va xuong dong, thu chan chen them tham so vao URL.
+      `mailto:${this.email().trim().replace(/[\s<>"]/g, '')}` +
       `?subject=${encodeURIComponent(this.tieuDe())}` +
       // Outlook can \r\n moi xuong dong dung; chi \n thi cac doan dinh lien nhau.
       `&body=${encodeURIComponent(this.noiDung().replace(/\n/g, '\r\n'))}`;

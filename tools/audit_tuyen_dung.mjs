@@ -169,6 +169,37 @@ await go('/tuyen-dung');
 say((await p.locator('.td-form').count()) === 2, 'IT cũng dùng được trang này (2 công cụ)');
 
 // ------------------------------------------- 5b) anh chao mung --------------
+// -------------------------------------------- 3b) chuoi mailto -------------
+console.log('\n3b) Chuỗi mailto gửi sang Outlook');
+phong = 'Human Resources';
+await go('/tuyen-dung');
+{
+  const tt = p.locator('.card:has(.td-noidung)');
+  await tt.locator('.td-form input').nth(0).fill('ungvien@example.com');
+  await tt.locator('.td-form input').nth(1).fill('Nguyễn Thị Mai');
+  await tt.locator('.td-form input').nth(2).fill('Chuyên viên');
+  await p.waitForTimeout(300);
+  // Bat lai src ma component gan cho iframe an, thay vi de trinh duyet mo that.
+  await p.evaluate(() => {
+    window.__mailto = [];
+    const d = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'src');
+    Object.defineProperty(HTMLIFrameElement.prototype, 'src', {
+      set(v) { window.__mailto.push(String(v)); },
+      get() { return this.getAttribute('src'); }, configurable: true });
+  });
+  await p.getByRole('button', { name: /Mở trong Outlook/ }).click();
+  await p.waitForTimeout(600);
+  const url = (await p.evaluate(() => window.__mailto))[0] || '';
+  say(url.startsWith('mailto:'), 'có dựng chuỗi mailto', url.slice(0, 60));
+  // Day la loi da lam nut khong hoat dong (04/09/2026): `encodeURIComponent`
+  // doi `@` thanh `%40`, Outlook khong giai ma phan dia chi.
+  say(url.startsWith('mailto:ungvien@example.com?'),
+      'địa chỉ người nhận KHÔNG bị mã hoá (@ phải nguyên vẹn)', url.slice(0, 60));
+  say(url.includes('subject=') && url.includes('&body='), 'có cả tiêu đề và thân thư');
+  // Than thu VAN phai ma hoa — khong thi dau `&` trong ten se cat mat noi dung.
+  say(!/[\r\n]/.test(url), 'thân thư đã mã hoá, không còn xuống dòng thô trong URL');
+}
+
 console.log('\n5b) Ảnh chào mừng nhân viên mới');
 phong = 'Human Resources';
 await go('/tuyen-dung');
