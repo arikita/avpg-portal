@@ -311,6 +311,8 @@ dung, trang tự hiện "đang cập nhật" chứ không ra trang trắng).
 
 ## Công cụ tuyển dụng `/tuyen-dung` (04/09/2026)
 
+**ĐÃ CHẠY PRODUCTION 04/09/2026** — build `nogit-20260904-164521`. Nghiệm thu: ghép ảnh thật qua API trên `.136` rồi đối chiếu md5 với bản ghép trên clasvr — **giống hệt byte-for-byte**.
+
 Chuyển từ **site tĩnh cũ ở nhánh `main`** (GitHub Pages, `arikita.github.io/avpg-portal`) vào portal.
 Bản cũ là một trang flip-card với hai nút: *New employee* (dẫn sang app Vercel) và *Fail the interview*
 (soạn thư từ chối ứng viên rồi mở Outlook bằng `mailto:`). Nút *Pass the interview* **chưa bao giờ có
