@@ -270,8 +270,8 @@ export const SECTIONS: GuideSection[] = [
     eyebrow: { vi: 'Hệ thống nội bộ', en: 'Internal system' },
     title: { vi: 'Sử dụng WorkIT', en: 'Using WorkIT' },
     intro: {
-      vi: 'WorkIT là hệ thống nội bộ để gửi đề nghị, phê duyệt và đặt phòng họp.',
-      en: 'WorkIT is the internal system for submitting requests, approvals and booking meeting rooms.',
+      vi: 'WorkIT là phần mềm văn phòng số nội bộ để gửi đề nghị, phê duyệt và đặt phòng họp.',
+      en: 'WorkIT is the internal digital-office software for submitting requests, approvals and booking meeting rooms.',
     },
     readMin: 4,
     blocks: [
