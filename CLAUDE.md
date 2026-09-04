@@ -275,9 +275,12 @@ Bài trắc nghiệm cho nhân viên làm **sau buổi training của phòng IT*
 
 ## Hội nhập nhiều phòng ban (04/09/2026)
 
-Từ 04/09 hội nhập không còn của riêng IT. **`/onboarding` là trang trung tâm** (danh sách việc cần
-làm + thẻ dẫn sang từng phòng + hai thẻ bắt buộc: bài kiểm tra và ký cam kết); **nội dung hướng dẫn
-nằm ở `/onboarding/<slug>`**, mỗi phòng một trang. Hiện có `it` và `nhan-su` (Nhân sự chưa có nội
+Từ 04/09 hội nhập không còn của riêng IT. **`/onboarding` là trang trung tâm** (thẻ dẫn sang từng
+phòng + hai thẻ bắt buộc: bài kiểm tra và ký cam kết); **nội dung hướng dẫn VÀ danh sách việc cần làm
+nằm ở `/onboarding/<slug>`**, mỗi phòng một trang. Việc cần làm là **thuộc tính của phòng**
+(`PhongBan.checklist`) chứ không phải thứ chung: 8 mục hiện có đều là việc của IT, để ở trang trung
+tâm là bắt Nhân sự nhìn việc của IT. Tiến độ vẫn lưu `localStorage` theo id từng mục nên chuyển trang
+không làm ai mất đánh dấu đã có. Hiện có `it` và `nhan-su` (Nhân sự chưa có nội
 dung, trang tự hiện "đang cập nhật" chứ không ra trang trắng).
 
 - **Thêm một phòng = thêm một phần tử vào `PHONG_BAN`** trong `onboarding.content.ts`. Không sửa
@@ -297,7 +300,7 @@ dung, trang tự hiện "đang cập nhật" chứ không ra trang trắng).
   Chúng gom trong **một map `REFS`** ở `quiz.content.ts`. Đổi id mục hay đổi đường dẫn mà quên sửa thì
   bấm vào chỉ **đứng yên**, không 404, không lỗi. `audit_onboarding.mjs` mở từng trang đích và kiểm
   từng id có thật trong DOM.
-- **Kiểm**: `CHROME_BIN=... node tools/audit_onboarding.mjs <dist>` — 24 phép đo, gồm 6 phép đo tĩnh
+- **Kiểm**: `CHROME_BIN=... node tools/audit_onboarding.mjs <dist>` — 28 phép đo, gồm 6 phép đo tĩnh
   chạy không cần trình duyệt.
 - **Đã biết, chưa sửa**: `.c-hint` trong checklist là `display:inline` nên dòng gợi ý dính liền tiêu đề
   ("…email công ty**Đổi mật khẩu lần đầu**"). Lỗi có sẵn từ trước, không phải do đợt tách trang.

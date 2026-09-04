@@ -432,6 +432,13 @@ export interface PhongBan {
   sectionsKey: string;
   intro: L;
   sections: GuideSection[];
+  /** Danh sách việc cần làm của RIÊNG phòng này — hiện ngay trên trang phòng.
+   *  Việc cần làm thuộc về phòng đặt ra nó, không phải thứ chung của cả hành
+   *  trình: 8 mục hiện có đều là việc của IT (kích hoạt tài khoản, Wi-Fi,
+   *  WorkIT…), để ở trang trung tâm là bắt Nhân sự phải nhìn việc của IT.
+   *  Phòng nào chưa có thì bỏ trống, trang tự không hiện khối này. */
+  checklist?: ChecklistItem[];
+  checklistKey?: string;
 }
 
 /** Đường dẫn con của /onboarding đã có chủ — không phòng nào được chiếm.
@@ -450,6 +457,8 @@ export const PHONG_BAN: PhongBan[] = [
     sectionsKey: 'SECTIONS',
     intro: ONBOARDING_INTRO,
     sections: SECTIONS,
+    checklist: CHECKLIST,
+    checklistKey: 'CHECKLIST',
   },
   {
     slug: 'nhan-su',

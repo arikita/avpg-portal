@@ -104,7 +104,11 @@ console.log('\n1) /onboarding — trang trung tâm');
 await go('/onboarding');
 let t = await txt();
 say(/Hành trình nhân viên mới/.test(t), 'mở được trang hội nhập');
-say(/Danh sách việc cần làm/.test(t), 'vẫn có danh sách việc cần làm');
+// Danh sach viec can lam da chuyen sang trang tung phong (04/09/2026): 8 muc
+// hien co deu la viec cua IT, de o trang trung tam la bat Nhan su nhin viec
+// cua IT.
+say(!/Danh sách việc cần làm/.test(t),
+    'danh sách việc cần làm KHÔNG còn ở trang trung tâm', 'vẫn còn ở đây');
 say(/Công nghệ thông tin/.test(t) && /Nhân sự/.test(t), 'có thẻ cả hai phòng ban', t.slice(0, 300));
 // Noi dung huong dan KHONG duoc con nam o day nua — de lai la hai ban song song.
 // Do bang SO KHOI `article[data-sec]`, khong so chuoi: checklist o trang nay
@@ -126,6 +130,14 @@ const soMuc = await p.locator('article[data-sec]').count();
 say(soMuc >= 8, `có ${soMuc} mục (mong đợi ≥ 8)`);
 const soNav = await p.locator('aside.side a').count();
 say(soNav === soMuc, 'mục lục bên cạnh khớp số mục', `${soNav} mục lục / ${soMuc} mục`);
+say(/Danh sách việc cần làm/.test(t), 'danh sách việc cần làm nằm ở trang IT');
+const soViec = await p.locator('button.check').count();
+say(soViec === 8, `có ${soViec} việc cần làm (mong đợi 8)`);
+// Bam mot muc phai doi tien do — day la thu nguoi dung thuc su dung.
+await p.locator('button.check').first().click();
+await p.waitForTimeout(300);
+say((await txt()).includes('1/8'), 'bấm một mục thì tiến độ lên 1/8',
+    'tiến độ không đổi — ProgressService không nối đúng');
 
 console.log('\n3) /onboarding/nhan-su — phòng chưa có nội dung');
 await go('/onboarding/nhan-su');
@@ -134,6 +146,8 @@ say(/Nhân sự/.test(t), 'mở được trang Nhân sự');
 // Phep do (3) dau file.
 say(/Đang cập nhật/.test(t), 'nói rõ đang cập nhật, không phải trang trắng', t.slice(0, 200));
 say((await p.locator('article[data-sec]').count()) === 0, 'chưa render mục nào');
+say(!/Danh sách việc cần làm/.test(t),
+    'Nhân sự chưa khai việc cần làm thì không hiện khối rỗng');
 
 console.log('\n4) /onboarding/khong-co-that — slug sai');
 await go('/onboarding/khong-co-that');

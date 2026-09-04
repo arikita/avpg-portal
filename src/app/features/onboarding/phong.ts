@@ -14,10 +14,12 @@ import { map } from 'rxjs';
 
 import { PHONG_BAN, PhongBan } from '../../content/onboarding.content';
 import { ContentService } from '../../core/services/content.service';
+import { ProgressService } from '../../core/services/progress.service';
 import { LanguageService } from '../../core/services/language.service';
 import { ContentBlocksComponent } from '../../shared/components/content-blocks/content-blocks';
 import { IconComponent } from '../../shared/components/icon/icon';
 import { TrPipe } from '../../shared/pipes/tr.pipe';
+import { celebrate } from '../../shared/util/confetti';
 
 /**
  * Trang hoi nhap cua MOT phong ban — /onboarding/<slug>.
@@ -84,6 +86,39 @@ export class OnboardingPhong implements AfterViewInit {
     const p = this.pb();
     return p ? this.content.pick(p.module, p.sectionsKey, p.sections) : [];
   });
+
+  /** Viec can lam cua rieng phong nay. Phong khong khai thi mang rong. */
+  readonly checklist = computed(() => {
+    const p = this.pb();
+    return p?.checklist && p.checklistKey
+      ? this.content.pick(p.module, p.checklistKey, p.checklist)
+      : [];
+  });
+
+  private readonly progress = inject(ProgressService);
+  readonly total = computed(() => this.checklist().length);
+  readonly doneCount = computed(
+    () => this.checklist().filter((i) => this.progress.done().has(i.id)).length,
+  );
+  readonly percent = computed(() =>
+    this.total() ? Math.round((this.doneCount() / this.total()) * 100) : 0,
+  );
+
+  private celebrated = false;
+
+  isDone(id: string): boolean {
+    return this.progress.isDone(id);
+  }
+
+  toggle(id: string): void {
+    this.progress.toggle(id);
+    const done = this.doneCount();
+    if (done === this.total() && !this.celebrated) {
+      this.celebrated = true;
+      celebrate();
+    }
+    if (done < this.total()) this.celebrated = false;
+  }
 
   readonly activeId = signal('');
 

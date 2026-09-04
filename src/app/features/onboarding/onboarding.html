@@ -8,51 +8,6 @@
   </div>
 </section>
 
-<!-- Progress + checklist -->
-<section class="section-sm">
-  <div class="container">
-    <div class="card card-pad-lg" appReveal>
-      <div class="row between wrap">
-        <div class="row">
-          <div class="icon-badge"><app-icon name="list-checks" /></div>
-          <div>
-            <h3>{{ lang() === 'vi' ? 'Danh sách việc cần làm' : 'Your checklist' }}</h3>
-            <p class="muted-3">{{ lang() === 'vi' ? 'Tiến độ được lưu trên máy của bạn' : 'Progress saved on your device' }}</p>
-          </div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:1.7rem;font-weight:800;line-height:1">{{ doneCount() }}<span class="muted-3" style="font-size:1rem">/{{ total() }}</span></div>
-          <div class="muted-3" style="font-size:.85rem">{{ percent() }}%</div>
-        </div>
-      </div>
-
-      <div class="progress-track mt-3"><div class="progress-fill" [style.width.%]="percent()"></div></div>
-
-      @if (percent() === 100) {
-        <div class="callout success mt-3">
-          <span class="ic"><app-icon name="award" /></span>
-          <div>
-            <strong>{{ lang() === 'vi' ? 'Tuyệt vời! 🎉' : 'All done! 🎉' }}</strong>
-            <p>{{ lang() === 'vi' ? 'Bạn đã hoàn thành onboarding. Chúc bạn khởi đầu thật suôn sẻ!' : 'You have completed onboarding. Have a great start!' }}</p>
-          </div>
-        </div>
-      }
-
-      <div class="grid grid-2 mt-3">
-        @for (item of checklist(); track item.id) {
-          <button type="button" class="check" [class.done]="isDone(item.id)" (click)="toggle(item.id)">
-            <span class="box"><app-icon name="check" /></span>
-            <span>
-              <span class="c-title">{{ item.text | tr: lang() }}</span>
-              @if (item.hint) { <span class="c-hint">{{ item.hint | tr: lang() }}</span> }
-            </span>
-          </button>
-        }
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- Thẻ dẫn sang từng phòng ban. Nội dung hướng dẫn KHÔNG còn nằm ở trang
      này nữa — mỗi phòng một trang /onboarding/<slug>. -->
 <section class="section-sm">
