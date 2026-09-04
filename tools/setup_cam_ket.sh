@@ -89,6 +89,19 @@ else
   die "chua co DOCUMENSO_API_KEY trong $ENV_FILE va cung khong truyen vao"
 fi
 
+# CAM_KET_MO_THEM: danh sach tai khoan LUON thuoc dien, bat ke ngay tao. Dat
+# rong (CAM_KET_MO_THEM="") de xoa han dong nay — dung de quen mo cho ai do
+# vinh vien sau khi chay thu xong.
+if [ "${CAM_KET_MO_THEM+co}" = "co" ]; then
+  sed -i '/^CAM_KET_MO_THEM=/d' "$ENV_FILE"
+  if [ -n "$CAM_KET_MO_THEM" ]; then
+    printf 'CAM_KET_MO_THEM=%s\n' "$CAM_KET_MO_THEM" >> "$ENV_FILE"
+    echo "    mo them cho: $CAM_KET_MO_THEM"
+  else
+    echo "    da xoa CAM_KET_MO_THEM — khong mo them cho ai"
+  fi
+fi
+
 say "5/6  ma nguon API + nguon ban cam ket sang $APP_DIR"
 # BUOC NAY TUNG BI BO SOT (04/09/2026): tools/deploy.sh chi lo frontend va
 # tools/, con ma Python thi README ghi la mot lenh `cp` chay tay. Bo qua no

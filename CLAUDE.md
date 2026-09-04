@@ -316,6 +316,13 @@ Chuỗi hội nhập: đọc `/regulations` → làm `/onboarding/kiem-tra` → 
 - **Ai phải ký**: tài khoản AD tạo **từ `CAM_KET_TU_NGAY` trở đi** (mặc định `2026-09-04`). Không đọc
   được `whenCreated` thì trả False — thà bỏ sót một người còn hơn đưa cả 850 người vào diện phải ký vì
   một lỗi tra cứu LDAP.
+- **`CAM_KET_MO_THEM` — mở cho đúng một người mà không hạ ngày chốt.** Luật chính chỉ có MỘT mốc
+  ngày, không lọc được theo người; muốn cho một người ký thì cách duy nhất còn lại là hạ ngày chốt,
+  tức mở cho cả 850 nhân viên cùng lúc. Biến này nhận danh sách ngăn bằng dấu phẩy, **nhận cả
+  `haivl` lẫn `haivl@anvietenergy.com`** (người đặt biến nghĩ bằng email, `REMOTE_USER` lại là
+  sAMAccountName — bắt hai bên khớp nhau là cái bẫy không bao giờ báo lỗi, chỉ im lặng không mở cho
+  ai cả). `/api/admin/cam-ket` cũng ghép họ vào bảng "chưa ký", nếu không thì hai chỗ trong portal
+  trả lời khác nhau cho cùng câu hỏi "ai còn thiếu". Xoá bằng `CAM_KET_MO_THEM=""` khi chạy setup.
 - **`distributionMethod: NONE` chỉ chặn email MỜI ký**, không chặn email báo hoàn tất (kèm bản đã ký).
   Mặc định không gửi email mời; bật bằng `CAM_KET_GUI_EMAIL=1`.
 - **Chuẩn bị máy chủ**: `DOCUMENSO_API_KEY=api_... sudo -E bash tools/setup_cam_ket.sh` **chạy trên

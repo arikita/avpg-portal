@@ -84,6 +84,22 @@ GUI_EMAIL = os.environ.get("CAM_KET_GUI_EMAIL", "").strip().lower() in ("1", "tr
 #: Ai phai ky: tai khoan AD tao tu ngay nay tro di (YYYY-MM-DD).
 TU_NGAY = os.environ.get("CAM_KET_TU_NGAY", "2026-09-04")
 
+#: Cua mo them: tai khoan LUON thuoc dien, bat ke ngay tao tai khoan.
+#:
+#: VI SAO CAN: luat chinh chi co MOT moc ngay, khong loc duoc theo nguoi. Muon
+#: cho dung mot nguoi ky (chay thu, hoac mot truong hop le ma HR yeu cau) thi
+#: cach duy nhat con lai la ha ngay chot xuong — va lam vay la mo cho ca 850
+#: nhan vien cung luc. Danh sach nay cho phep mo dung ai can mo.
+#:
+#: Nhan ca `haivl` lan `haivl@anvietenergy.com` — nguoi dat bien nay nghi bang
+#: email, con REMOTE_USER lai la sAMAccountName; bat hai ben phai khop nhau la
+#: mot cai bay khong bao gio bao loi, chi im lang khong mo cho ai ca.
+def _doc_mo_them(raw: str) -> set[str]:
+    return {u.strip().split("@")[0].lower() for u in raw.split(",") if u.strip()}
+
+
+MO_THEM = _doc_mo_them(os.environ.get("CAM_KET_MO_THEM", ""))
+
 # --- File nguon --------------------------------------------------------------
 _HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -142,12 +158,15 @@ def _ngay_tao(info: dict) -> str:
     return f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else ""
 
 
-def _thuoc_dien(info: dict) -> bool:
-    """Nguoi nay co phai ky khong: tai khoan AD tao tu TU_NGAY tro di.
+def _thuoc_dien(info: dict, username: str = "") -> bool:
+    """Nguoi nay co phai ky khong: tai khoan AD tao tu TU_NGAY tro di,
+    HOAC nam trong danh sach mo them.
 
     Khong doc duoc whenCreated thi tra False — tha bo sot con hon dua ca cong
     ty vao dien phai ky vi mot loi tra cuu LDAP.
     """
+    if username and username.split("@")[0].strip().lower() in MO_THEM:
+        return True
     ngay = _ngay_tao(info)
     return bool(ngay) and ngay >= TU_NGAY
 
@@ -447,7 +466,7 @@ def trang_thai(username: str = Depends(current_user)) -> dict:
     /api/admin/cam-ket.
     """
     info = get_user(username) or {}
-    thuoc = _thuoc_dien(info)
+    thuoc = _thuoc_dien(info, username)
     dong = None
     try:
         with _conn() as conn:
@@ -472,7 +491,7 @@ def bat_dau_ky(username: str = Depends(current_user)) -> dict:
     if not _SAFE_USER.fullmatch(username):
         raise HTTPException(status_code=400, detail="ten dang nhap khong hop le")
     info = get_user(username) or {}
-    if not _thuoc_dien(info):
+    if not _thuoc_dien(info, username):
         raise HTTPException(
             status_code=403,
             detail=f"ban cam ket ap dung cho tai khoan tao tu {TU_NGAY} tro di")

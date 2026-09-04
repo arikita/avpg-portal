@@ -31,7 +31,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 
 from .ad import (CONTENT_ADMIN_USERS, can_admin_content, can_manage_post,
                  get_user, is_editor, recent_accounts)
-from .camket import TU_NGAY as CAM_KET_TU_NGAY
+from .camket import MO_THEM as CAM_KET_MO_THEM_USERS, TU_NGAY as CAM_KET_TU_NGAY
 from .quiz import DRAW as QUIZ_DRAW, PASS as QUIZ_PASS, POOL as QUIZ_POOL
 from .telemetry import ENABLED as TELEMETRY_ENABLED, _build_id
 
@@ -722,6 +722,23 @@ def cam_ket(username: str = Depends(_require_admin)) -> dict:
                and p["username"].lower() not in da_ky]
     except Exception:                                          # noqa: BLE001
         moi = []                                               # AD khong tra loi -> bo o nay
+
+    # Nguoi duoc mo them (CAM_KET_MO_THEM) khong nam trong recent_accounts vi
+    # tai khoan ho tao tu lau. Khong ghep vao day thi ho ky duoc nhung khong
+    # bao gio hien o bang "chua ky" — hai cho trong portal tra loi khac nhau
+    # cho cung mot cau hoi "ai con thieu".
+    co_roi = {p["username"].lower() for p in moi} | da_ky
+    for u in sorted(CAM_KET_MO_THEM_USERS):
+        if u in co_roi:
+            continue
+        try:
+            info = get_user(u) or {}
+        except Exception:                                      # noqa: BLE001
+            info = {}
+        moi.append({"username": u, "name": info.get("fullName") or u,
+                    "title": (info.get("title") or "").strip(),
+                    "department": (info.get("department") or "").strip(),
+                    "joinedAt": ""})
 
     return {
         "tuNgay": CAM_KET_TU_NGAY,

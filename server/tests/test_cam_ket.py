@@ -66,6 +66,46 @@ class TestDienApDung:
         assert camket._ngay_tao({}) == ""
 
 
+
+class TestCuaMoThem:
+    """CAM_KET_MO_THEM — mo cho dung mot nguoi ma khong ha ngay chot.
+
+    Luat chinh chi co MOT moc ngay: muon cho mot nguoi ky thi cach duy nhat
+    con lai la ha ngay chot, tuc mo cho ca 850 nhan vien cung luc. Danh sach
+    nay ton tai de khong phai lam vay.
+    """
+
+    def test_nguoi_trong_danh_sach_luon_thuoc_dien(self, monkeypatch):
+        monkeypatch.setattr(camket, "MO_THEM", {"haivl"})
+        cu = _ad("20190301000000.0Z")          # tai khoan tu 2019
+        assert camket._thuoc_dien(cu, "haivl") is True
+        assert camket._thuoc_dien(cu, "nguoikhac") is False
+
+    def test_nhan_ca_dang_email(self, monkeypatch):
+        """Nguoi dat bien nghi bang email, REMOTE_USER lai la sAMAccountName.
+        Bat hai ben khop nhau la mot cai bay khong bao gio bao loi — chi im
+        lang khong mo cho ai ca."""
+        monkeypatch.setattr(camket, "MO_THEM",
+                            camket._doc_mo_them("haivl@anvietenergy.com"))
+        assert camket.MO_THEM == {"haivl"}
+        assert camket._thuoc_dien(_ad("20190301000000.0Z"), "haivl") is True
+        # REMOTE_USER doi khi cung mang dang UPN
+        assert camket._thuoc_dien(_ad("20190301000000.0Z"),
+                                  "haivl@anvietenergy.com") is True
+
+    def test_nhieu_nguoi_ngan_bang_dau_phay(self):
+        assert camket._doc_mo_them(" haivl , huybg@anvietenergy.com ,, ") == {
+            "haivl", "huybg"}
+
+    def test_rong_thi_khong_mo_cho_ai(self):
+        assert camket._doc_mo_them("") == set()
+        assert camket._doc_mo_them("  ,  ") == set()
+
+    def test_khong_co_username_thi_van_theo_ngay(self, monkeypatch):
+        """Goi thieu username khong duoc bien thanh 'mo cho tat ca'."""
+        monkeypatch.setattr(camket, "MO_THEM", {"haivl"})
+        assert camket._thuoc_dien(_ad("20190301000000.0Z")) is False
+
 # ------------------------------------------------------------- hai file lech nhau --
 class TestOKyKhongLech:
     """docs/cam-ket-fields.json (script sinh) vs phan loai trong camket.py."""
