@@ -313,11 +313,12 @@ Chuỗi hội nhập: đọc `/regulations` → làm `/onboarding/kiem-tra` → 
   một lỗi tra cứu LDAP.
 - **`distributionMethod: NONE` chỉ chặn email MỜI ký**, không chặn email báo hoàn tất (kèm bản đã ký).
   Mặc định không gửi email mời; bật bằng `CAM_KET_GUI_EMAIL=1`.
-- **Cần trước khi deploy**: `pip install reportlab pypdf` trong venv `/opt/avp-portal-api`;
-  `apt install fonts-liberation`; đặt `DOCUMENSO_API_KEY` trong `/etc/avp-portal-api.env`
-  (**`systemctl restart`, KHÔNG `reload`**); chạy `server/schema_camket.sql` rồi
-  **`ALTER TABLE cam_ket OWNER TO avpportal`** — đúng cái bẫy đã nuốt mất dữ liệu `quiz_attempt`.
-  `tools/deploy.sh` bước **6c** tự copy `cam-ket-bao-mat.pdf` + `cam-ket-fields.json` sang cạnh module.
+- **Chuẩn bị máy chủ**: `DOCUMENSO_API_KEY=api_... sudo -E bash tools/setup_cam_ket.sh` **chạy trên
+  .136** — 6 bước idempotent: gói `reportlab`+`pypdf`, `fonts-liberation`, tạo bảng **và
+  `ALTER TABLE cam_ket OWNER TO avpportal`** (đúng cái bẫy đã nuốt mất dữ liệu `quiz_attempt`), ghi
+  env, copy PDF, rồi **`systemctl restart` — KHÔNG `reload`** (reload chỉ thay worker, master
+  gunicorn giữ môi trường cũ nên biến mới không được đọc). Kết thúc bằng một lượt gọi thật
+  `/api/cam-ket`. `tools/deploy.sh` bước **6c** cũng tự copy PDF + toạ độ ô ký sau mỗi lần deploy.
 - **Kiểm**: `python3 -m pytest server/tests/test_cam_ket.py` (22 phép đo) và
   `CHROME_BIN=... node tools/audit_cam_ket.mjs <dist>` (32 phép đo, API giả nên không tạo tài liệu
   thật trên Documenso). `smoke_test.py` đã thêm `/api/admin/cam-ket = 403`.
