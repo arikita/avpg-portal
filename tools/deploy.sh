@@ -106,6 +106,15 @@ install -d -o root -g root -m 755 /opt/avp-portal-api/tools
 install -m 755 "$SRC/tools/smoke_test.py" "$SRC/tools/prune_telemetry.py" \
         "$SRC/tools/decode_stack.py" /opt/avp-portal-api/tools/
 
+say "6c/8  chep nguon ban cam ket sang canh module API"
+# camket.py doc PDF goc + toa do o ky tu canh chinh no. Trong kho git chung
+# nam o docs/, nhung /opt/avp-portal-api/app khong co thu muc do. Quen buoc
+# nay thi nguoi dau tien bam Ky gap 500, va khong mot test nao bat duoc.
+if [ -f "$SRC/docs/cam-ket-bao-mat.pdf" ] && [ -d /opt/avp-portal-api/app ]; then
+  install -m 644 "$SRC/docs/cam-ket-bao-mat.pdf" "$SRC/docs/cam-ket-fields.json" \
+          /opt/avp-portal-api/app/
+fi
+
 say "7/8  smoke test"
 if ! python3 "$SRC/tools/smoke_test.py"; then
   rollback

@@ -12,6 +12,7 @@ export const routes: Routes = [
   // Bai kiem tra sau buoi hoi nhap IT. Duong dan tieng Viet vi link nay duoc
   // doc len trong buoi training va dan trong email moi nhan vien moi.
   { path: 'onboarding/kiem-tra', loadComponent: () => import('./features/onboarding/quiz').then((m) => m.Quiz), title: title('Kiểm tra hội nhập IT') },
+  { path: 'onboarding/cam-ket', loadComponent: () => import('./features/onboarding/cam-ket').then((m) => m.CamKet), title: title('Cam kết bảo mật') },
   { path: 'portal', loadComponent: () => import('./features/portal/portal').then((m) => m.Portal), title: title('Công cụ') },
   { path: 'directory', loadComponent: () => import('./features/directory/directory').then((m) => m.Directory), title: title('Liên hệ') },
   { path: 'policies', loadComponent: () => import('./features/policies/policies').then((m) => m.Policies), title: title('Chính sách') },

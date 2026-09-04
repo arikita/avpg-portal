@@ -1,0 +1,155 @@
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <p class="text-secondary mb-0 me-auto">
+    {{ vi()
+      ? 'Cam kết bảo mật ký điện tử (/onboarding/cam-ket). Áp dụng cho tài khoản tạo từ ' + (data()?.tuNgay || '') + ' trở đi.'
+      : 'Electronically signed security commitment (/onboarding/cam-ket). Applies to accounts created from ' + (data()?.tuNgay || '') + ' onwards.' }}
+  </p>
+  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="tai()">
+    <app-icon name="undo" /> {{ vi() ? 'Tải lại' : 'Reload' }}
+  </button>
+</div>
+
+@if (dangTai() && !data()) {
+  <p class="text-secondary">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p>
+} @else if (!data()) {
+  <div class="alert alert-warning d-flex gap-2" role="alert">
+    <app-icon name="alert-triangle" />
+    <div>{{ vi() ? 'Không đọc được dữ liệu cam kết.' : 'Could not load commitment data.' }}</div>
+  </div>
+} @else {
+
+  <div class="row">
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-success">
+        <div class="inner">
+          <h3>{{ daKy().length }}</h3>
+          <p>{{ vi() ? 'Đã ký' : 'Signed' }}</p>
+        </div>
+        <app-icon name="shield-check" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? 'có bản lưu kèm nhật ký' : 'stored with audit log' }}</span>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-warning">
+        <div class="inner">
+          <h3>{{ chuaKy().length }}</h3>
+          <p>{{ vi() ? 'Chưa ký' : 'Not signed' }}</p>
+        </div>
+        <app-icon name="alert-triangle" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? 'thuộc diện phải ký' : 'in scope' }}</span>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-info">
+        <div class="inner">
+          <h3>{{ tiLe() }}<small>%</small></h3>
+          <p>{{ vi() ? 'Tỉ lệ hoàn thành' : 'Completion' }}</p>
+        </div>
+        <app-icon name="zap" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? 'trên tổng số thuộc diện' : 'of everyone in scope' }}</span>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box text-bg-secondary">
+        <div class="inner">
+          <h3>{{ dangDo().length }}</h3>
+          <p>{{ vi() ? 'Đang ký dở' : 'In progress' }}</p>
+        </div>
+        <app-icon name="edit" class="small-box-icon" />
+        <span class="small-box-footer adm-static">{{ vi() ? 'đã mở nhưng chưa hoàn tất' : 'opened but not completed' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bang chua ky dung TRUOC: day moi la thu phong IT can nhin. -->
+  <div class="card mb-3">
+    <div class="card-header">
+      <h3 class="card-title">
+        <app-icon name="alert-triangle" /> {{ vi() ? 'Chưa ký' : 'Not signed yet' }}
+      </h3>
+    </div>
+    <div class="card-body p-0">
+      @if (!chuaKy().length) {
+        <p class="text-secondary p-3 mb-0">
+          {{ vi() ? 'Mọi người thuộc diện đều đã ký.' : 'Everyone in scope has signed.' }}
+        </p>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th>{{ vi() ? 'Họ tên' : 'Name' }}</th>
+                <th>{{ vi() ? 'Tài khoản' : 'Account' }}</th>
+                <th>{{ vi() ? 'Chức danh' : 'Job title' }}</th>
+                <th>{{ vi() ? 'Phòng / Ban' : 'Department' }}</th>
+                <th>{{ vi() ? 'Vào từ' : 'Joined' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of chuaKy(); track p.username) {
+                <tr>
+                  <td>{{ p.name }}</td>
+                  <td><code>{{ p.username }}</code></td>
+                  <td>{{ p.title || '—' }}</td>
+                  <td>{{ p.department || '—' }}</td>
+                  <td>{{ p.joinedAt }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title"><app-icon name="check" /> {{ vi() ? 'Đã ký' : 'Signed' }}</h3>
+    </div>
+    <div class="card-body p-0">
+      @if (!data()!.people.length) {
+        <p class="text-secondary p-3 mb-0">
+          {{ vi() ? 'Chưa có ai ký.' : 'Nobody has signed yet.' }}
+        </p>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th>{{ vi() ? 'Họ tên' : 'Name' }}</th>
+                <th>{{ vi() ? 'Tài khoản' : 'Account' }}</th>
+                <th>{{ vi() ? 'Phòng / Ban' : 'Department' }}</th>
+                <th>{{ vi() ? 'Trạng thái' : 'Status' }}</th>
+                <th>{{ vi() ? 'Ký lúc' : 'Signed at' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of data()!.people; track p.username) {
+                <tr>
+                  <td>{{ p.fullName }}</td>
+                  <td><code>{{ p.username }}</code></td>
+                  <td>{{ p.department || '—' }}</td>
+                  <td>
+                    <span class="badge"
+                          [class.text-bg-success]="p.status === 'DA_KY'"
+                          [class.text-bg-danger]="p.status === 'TU_CHOI'"
+                          [class.text-bg-secondary]="p.status === 'DANG_KY'">
+                      {{ nhan(p.status) }}
+                    </span>
+                  </td>
+                  <td>{{ p.signedAt ? khiNao(p.signedAt) : '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <p class="text-secondary small mt-3 mb-0">
+    {{ vi()
+      ? 'Bản PDF đã ký nằm trên hệ thống ký của Tập đoàn (sign.anvietphatgroup.com) kèm nhật ký kiểm toán có IP và mốc thời gian — portal chỉ ghi trạng thái, không giữ bản thứ hai.'
+      : 'Signed PDFs live on the Group signing system (sign.anvietphatgroup.com) with an IP- and time-stamped audit log — the portal only records status, it keeps no second copy.' }}
+  </p>
+}

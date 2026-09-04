@@ -2,7 +2,7 @@
 
 Truoc 24/08/2026 co hai trang roi rac: /admin (sua noi dung) va /admin/errors
 (loi ung dung). Nguoi quan tri muon biet "portal dang the nao" phai mo them
-Zabbix, GA4, va psql. File nay gom cac cau tra loi do vao 7 endpoint doc.
+Zabbix, GA4, va psql. File nay gom cac cau tra loi do vao 8 endpoint doc.
 
 LUAT CUNG:
   1. MOI endpoint o day deu di qua _require_admin(). Bang app_page_view ghi kem
@@ -31,6 +31,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 
 from .ad import (CONTENT_ADMIN_USERS, can_admin_content, can_manage_post,
                  get_user, is_editor, recent_accounts)
+from .camket import TU_NGAY as CAM_KET_TU_NGAY
 from .quiz import DRAW as QUIZ_DRAW, PASS as QUIZ_PASS, POOL as QUIZ_POOL
 from .telemetry import ENABLED as TELEMETRY_ENABLED, _build_id
 
@@ -678,3 +679,53 @@ def quiz(days: int = 180, username: str = Depends(_require_admin)) -> dict:
         "newcomers": newcomers[:30],
     }
 
+
+@router.get("/cam-ket")
+def cam_ket(username: str = Depends(_require_admin)) -> dict:
+    """Ai da ky cam ket bao mat, ai chua — xem server/app/camket.py.
+
+    KHONG BAO GIO tra ve cot `token`. Token la thu duy nhat can de ky thay
+    nguoi khac; no chi duoc di ve cho chinh chu qua GET /api/cam-ket. Mot
+    `SELECT *` o day la du de bien trang quan tri thanh cong cu mao danh chu
+    ky. Co test khoa dieu nay trong test_cam_ket.py.
+
+    `chuaKy` la danh sach nguoi THUOC DIEN ma chua ky — dung recent_accounts
+    roi loc theo CAM_KET_TU_NGAY, chu khong liet ke ca 850 nhan vien: ban cam
+    ket nay chi ap dung cho tai khoan tao tu ngay do tro di.
+    """
+    with _conn() as conn:
+        # Bang co the chua ton tai neu chua ai ky lan nao — dung de no lam
+        # hong ca tab.
+        try:
+            rows = _rows(conn, """
+                SELECT username, full_name, department, email, joined_at,
+                       status, created_at, signed_at
+                  FROM cam_ket ORDER BY coalesce(signed_at, created_at) DESC
+                 LIMIT 300""")
+        except Exception:                                      # noqa: BLE001
+            rows = []
+
+    people = [{"username": u, "fullName": fn or u, "department": dept,
+               "email": mail, "joinedAt": j.isoformat() if j else "",
+               "status": st,
+               "createdAt": c.isoformat() if c else "",
+               "signedAt": sg.isoformat() if sg else ""}
+              for u, fn, dept, mail, j, st, c, sg in rows]
+
+    da_ky = {p["username"].lower() for p in people if p["status"] == "DA_KY"}
+
+    # Nguoi thuoc dien nhung chua ky. `recent_accounts` da loc tai khoan da tat
+    # va tai khoan dung chung; loc them theo ngay chot.
+    try:
+        moi = [p for p in recent_accounts(days=365, limit=400)
+               if p.get("joinedAt", "") >= CAM_KET_TU_NGAY
+               and p["username"].lower() not in da_ky]
+    except Exception:                                          # noqa: BLE001
+        moi = []                                               # AD khong tra loi -> bo o nay
+
+    return {
+        "tuNgay": CAM_KET_TU_NGAY,
+        "people": people,
+        "signed": len(da_ky),
+        "chuaKy": moi[:100],
+    }

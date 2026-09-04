@@ -25,6 +25,7 @@ import { AdminErrors } from './errors/errors';
 import { AdminNews } from './tabs/news';
 import { AdminUsers } from './tabs/users';
 import { AdminQuiz } from './tabs/quiz';
+import { AdminCamKet } from './tabs/cam-ket';
 import { AdminSystem } from './tabs/system';
 
 /** Mot muc tren thanh ben. `id` la doan duong dan: /admin/<id>. */
@@ -43,6 +44,7 @@ const TABS: Tab[] = [
   { id: 'news', icon: 'newspaper', vi: 'Tin tức', en: 'News' },
   { id: 'users', icon: 'users', vi: 'Người dùng', en: 'People' },
   { id: 'quiz', icon: 'graduation-cap', vi: 'Kiểm tra hội nhập', en: 'Induction check' },
+  { id: 'cam-ket', icon: 'shield-check', vi: 'Cam kết bảo mật', en: 'Security commitment' },
   { id: 'analytics', icon: 'zap', vi: 'Lượt truy cập', en: 'Traffic', group: 'watch' },
   { id: 'errors', icon: 'alert-triangle', vi: 'Lỗi ứng dụng', en: 'Errors' },
   { id: 'system', icon: 'settings', vi: 'Hệ thống', en: 'System' },
@@ -53,7 +55,7 @@ const TABS: Tab[] = [
 const LG = 992;
 
 /**
- * Bang dieu khien quan tri — MOT trang, 8 tab, khung AdminLTE v4.
+ * Bang dieu khien quan tri — MOT trang, 9 tab, khung AdminLTE v4.
  *
  * Duong dan la /admin/<tab> chu khong phai trang thai trong bo nho: nguoi quan
  * tri phai gui duoc link "xem cai loi nay" cho nhau, va thong bao loi tu server
@@ -85,6 +87,7 @@ const LG = 992;
     AdminNews,
     AdminUsers,
     AdminQuiz,
+    AdminCamKet,
     AdminSystem,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

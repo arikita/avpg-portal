@@ -75,12 +75,12 @@ Kiến trúc: `Browser --Kerberos--> Apache (GSSAPI) ├─ / → SPA tĩnh └�
 
 ## Module đã có
 
-**Bảng điều khiển quản trị `/admin`** (8 tab, xem mục riêng bên dưới) · Nội dung động (content+history) · Danh bạ từ AD · Tin tức (news: react/comment lồng/poll/thông báo/Web Push/**hẹn giờ phát hành** — timer `avp-news-publish` mỗi phút) · Hồ sơ cá nhân + tường (wall) · Bảng tin `/feed` (**2 cột bên** từ 20/08: thẻ cá nhân, mosaic ảnh AVP Cup, đang trực tuyến, tin mới, poll bỏ phiếu tại chỗ, thành viên mới — gộp trong `GET /api/rail`) · Chat realtime (WebSocket qua vé, PostgreSQL LISTEN/NOTIFY, Web Push cho người đã đóng portal) · Hero slideshow · Auto-login WorkIT · **Kiểm tra hội nhập IT** `/onboarding/kiem-tra` (xem mục riêng).
+**Bảng điều khiển quản trị `/admin`** (9 tab, xem mục riêng bên dưới) · Nội dung động (content+history) · Danh bạ từ AD · Tin tức (news: react/comment lồng/poll/thông báo/Web Push/**hẹn giờ phát hành** — timer `avp-news-publish` mỗi phút) · Hồ sơ cá nhân + tường (wall) · Bảng tin `/feed` (**2 cột bên** từ 20/08: thẻ cá nhân, mosaic ảnh AVP Cup, đang trực tuyến, tin mới, poll bỏ phiếu tại chỗ, thành viên mới — gộp trong `GET /api/rail`) · Chat realtime (WebSocket qua vé, PostgreSQL LISTEN/NOTIFY, Web Push cho người đã đóng portal) · Hero slideshow · Auto-login WorkIT · **Kiểm tra hội nhập IT** `/onboarding/kiem-tra` · **Ký cam kết bảo mật** `/onboarding/cam-ket` (đều có mục riêng).
 
 ## Bảng điều khiển quản trị `/admin` (24/08/2026)
 
-Một component `features/admin/admin.ts` + 8 component tab con; đường dẫn là **`/admin/<tab>`**
-(`overview` `content` `news` `users` `quiz` `analytics` `errors` `system`). `/admin` trần = Tổng quan.
+Một component `features/admin/admin.ts` + 9 component tab con; đường dẫn là **`/admin/<tab>`**
+(`overview` `content` `news` `users` `quiz` `cam-ket` `analytics` `errors` `system`). `/admin` trần = Tổng quan.
 
 - **ĐỪNG đổi `/admin/errors`**: thông báo lỗi tự động gửi link `/admin/errors?id=123` (xem `telemetry.py`),
   đổi đường dẫn là hỏng mọi thông báo đã nằm trong hộp thư người dùng. Tab lỗi đọc `?id=` để mở thẳng.
@@ -272,6 +272,55 @@ Bài trắc nghiệm cho nhân viên làm **sau buổi training của phòng IT*
   `test_quiz.py` khoá: cùng bộ id, đáp án phải là một lựa chọn có thật, `QUIZ_PASS`/`QUIZ_DRAW` khớp
   hai bên, mọi câu có chủ đề đã khai báo, **không chủ đề nào rỗng**, và **số chủ đề ≤ số câu bốc**
   (11 chủ đề mà bốc 10 thì có chủ đề không bao giờ được hỏi, và không có gì báo).
+
+## Ký cam kết bảo mật `/onboarding/cam-ket` (04/09/2026)
+
+**CHƯA DEPLOY** — code xong, chờ user duyệt nội dung bản cam kết rồi mới đưa lên.
+
+Nhân viên mới ký cam kết bảo mật ngay trên portal, nhúng khung ký của **Documenso self-hosted**
+(`sign.anvietphatgroup.com`, trên `hcm-procsvr` **10.10.100.130**, sau Caddy, build `f1dd1471`).
+Chuỗi hội nhập: đọc `/regulations` → làm `/onboarding/kiem-tra` → ký `/onboarding/cam-ket`.
+
+- **BẪY LỚN NHẤT — font Documenso không có tiếng Việt.** Font nó dùng để dập chữ vào PDF chỉ phủ
+  Latin-1: `â ê ô` chạy, còn `ă ư ử ệ ễ` ra **dấu hỏi**. "Nguyễn Văn Thử" thành **"Nguy?n V?n Th?"**.
+  Đo trên bản đã ký thật 04/09/2026, không phải suy đoán. Vì vậy **portal tự dập 5 dòng danh tính vào
+  PDF** bằng `reportlab` + LiberationSerif TRƯỚC khi đẩy lên; Documenso chỉ còn dập **ảnh chữ ký** và
+  **ngày `dd/MM/yyyy`** (toàn ASCII). Lợi thêm: danh tính nằm hẳn trong PDF, không ai sửa được.
+  `test_cam_ket.py::TestDapChuTiengViet` đọc ngược chữ ra khỏi PDF và so từng ký tự.
+- **Mỗi người một tài liệu riêng, KHÔNG dùng template.** Hệ quả trực tiếp của điều trên. Template #4
+  trên Documenso chỉ để **người** xem trước trong giao diện Documenso — **portal không dùng nó**, sửa
+  nó không đổi được gì. Nội dung nằm ở `docs/cam-ket-bao-mat.pdf`.
+- **Nguồn nội dung là `docs/cam-ket-bao-mat.html`**, không phải file PDF. Sửa xong chạy
+  `CHROME_BIN=... node tools/build_cam_ket_pdf.mjs` → sinh lại PDF **và tự đo lại toạ độ ô ký** vào
+  `docs/cam-ket-fields.json`. Script cũng bắt **trang tràn nội dung** (`overflow:hidden` làm chữ bị
+  cắt mà PDF vẫn trông sạch — đã bắt thật 2 lần) và bắt **logo không nạp được**.
+  Đổi nội dung rồi thì chạy `DOCUMENSO_API_KEY=... python3 tools/documenso_camket.py --lam-lai`.
+- **`readOnly` + `required` cùng bật ⇒ Documenso trả 500 LÚC MỞ TRANG KÝ**, khung ký trắng. API tạo
+  template vẫn 200, không một dòng lỗi nào. Chỉ thấy khi mở bằng trình duyệt thật.
+- **Documenso không có tiếng Việt** (enum ngôn ngữ chỉ de/en/fr/es/it/nl/pl/pt-BR/ja/ko/zh) ⇒ nút bên
+  trong khung ký là tiếng Anh. Hướng dẫn tiếng Việt **bắt buộc nằm ngoài iframe** — `audit_cam_ket.mjs`
+  đo đúng chuyện này, bỏ nó đi thì nhân viên mới nhìn thấy một bảng tiếng Anh không ai giải thích.
+- **`/embed/sign/<token>` và `/sign/<token>` trả `frame-ancestors *`** nên nhúng iframe được; riêng
+  **trang chủ Documenso là `'self'`** — trỏ nhầm là iframe trắng trơn, không một dòng lỗi nào.
+  Portal đặt `X-Frame-Options: SAMEORIGIN` nhưng đó là luật portal **bị** nhúng, không chặn.
+- **KHÔNG dùng webhook.** Trạng thái đọc thẳng từ `GET /api/v2/document/{id}` →
+  `recipients[].signingStatus` + `signedAt`. Đổi lại: trạng thái chỉ cập nhật khi có ai đó nhìn vào.
+- **`token` chỉ đi về cho chính chủ** qua `GET /api/cam-ket`. Nó là thứ duy nhất cần để ký **thay**
+  người khác — một `SELECT *` ở `/api/admin/cam-ket` là đủ biến trang quản trị thành công cụ mạo danh
+  chữ ký. Có test khoá cả hai chiều.
+- **Ai phải ký**: tài khoản AD tạo **từ `CAM_KET_TU_NGAY` trở đi** (mặc định `2026-09-04`). Không đọc
+  được `whenCreated` thì trả False — thà bỏ sót một người còn hơn đưa cả 850 người vào diện phải ký vì
+  một lỗi tra cứu LDAP.
+- **`distributionMethod: NONE` chỉ chặn email MỜI ký**, không chặn email báo hoàn tất (kèm bản đã ký).
+  Mặc định không gửi email mời; bật bằng `CAM_KET_GUI_EMAIL=1`.
+- **Cần trước khi deploy**: `pip install reportlab pypdf` trong venv `/opt/avp-portal-api`;
+  `apt install fonts-liberation`; đặt `DOCUMENSO_API_KEY` trong `/etc/avp-portal-api.env`
+  (**`systemctl restart`, KHÔNG `reload`**); chạy `server/schema_camket.sql` rồi
+  **`ALTER TABLE cam_ket OWNER TO avpportal`** — đúng cái bẫy đã nuốt mất dữ liệu `quiz_attempt`.
+  `tools/deploy.sh` bước **6c** tự copy `cam-ket-bao-mat.pdf` + `cam-ket-fields.json` sang cạnh module.
+- **Kiểm**: `python3 -m pytest server/tests/test_cam_ket.py` (22 phép đo) và
+  `CHROME_BIN=... node tools/audit_cam_ket.mjs <dist>` (32 phép đo, API giả nên không tạo tài liệu
+  thật trên Documenso). `smoke_test.py` đã thêm `/api/admin/cam-ket = 403`.
 
 ## Quyền trên bài đăng (25/08/2026)
 

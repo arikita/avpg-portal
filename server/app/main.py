@@ -25,6 +25,7 @@ log = logging.getLogger("avp.main")
 
 from .ad import can_admin_content, get_user, is_editor, is_news_author, list_directory
 from .admin import router as admin_router
+from .camket import router as camket_router
 from .gallery import GALLERY_DIR, manage_router as gallery_manage_router, router as gallery_router
 from .news import router as news_router, notif_router, push_router
 from .profile import avatar_router, router as profile_router
@@ -68,6 +69,7 @@ app.include_router(gallery_manage_router)
 app.include_router(gallery_router)
 app.include_router(admin_router)
 app.include_router(quiz_router)
+app.include_router(camket_router)
 # Gan middleware do thoi gian + bat exception toan cuc. Dat SAU cung de
 # no boc het cac router o tren. Tat bang env TELEMETRY_ENABLED=0.
 telemetry_install(app)

@@ -103,7 +103,7 @@ for path, want in [("/api/me", 200), ("/api/content", 200), ("/api/directory", 2
                    ("/api/admin/overview", 403), ("/api/admin/analytics", 403),
                    ("/api/admin/ga4", 403), ("/api/admin/news", 403),
                    ("/api/admin/users", 403), ("/api/admin/system", 403),
-                   ("/api/admin/quiz", 403)]:
+                   ("/api/admin/quiz", 403), ("/api/admin/cam-ket", 403)]:
     st, body = get(path)
     ok = st == want
     detail = f"HTTP {st}"

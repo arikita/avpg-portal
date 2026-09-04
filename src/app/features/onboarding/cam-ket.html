@@ -1,0 +1,133 @@
+<section class="hero" style="padding-block: clamp(40px,6vw,72px)">
+  <div class="hero-blobs"><span class="blob b1"></span><span class="blob b2"></span></div>
+  <div class="container">
+    <span class="eyebrow"><app-icon name="shield-check" /> {{ vi() ? 'Sau buổi hội nhập' : 'After your induction' }}</span>
+    <h1 class="mt-3">{{ vi() ? 'Cam kết bảo mật thông tin' : 'Information security commitment' }}</h1>
+    <p class="lead mt-2">
+      {{ vi()
+          ? 'Ký bản cam kết bảo mật ngay tại đây. Chữ ký điện tử trên hệ thống nội bộ của Tập đoàn, có giá trị như bản ký tay.'
+          : 'Sign the security commitment here. An electronic signature on the Group’s internal system, equivalent to a wet signature.' }}
+    </p>
+  </div>
+</section>
+
+<section class="section-sm">
+  <div class="container ck-narrow">
+
+    @if (dangTai()) {
+      <div class="card card-pad-lg"><p class="muted-3">{{ vi() ? 'Đang tải…' : 'Loading…' }}</p></div>
+    } @else if (!data()) {
+      <div class="callout warning">
+        <span class="ic"><app-icon name="alert-triangle" /></span>
+        <div><strong>{{ vi() ? 'Không đọc được trạng thái' : 'Cannot read status' }}</strong>
+          <p>{{ vi() ? 'Thử tải lại trang. Nếu vẫn vậy, báo phòng Công nghệ thông tin.' : 'Reload the page. If it persists, contact IT.' }}</p></div>
+      </div>
+    }
+
+    <!-- ============================================ KHONG THUOC DIEN === -->
+    @else if (!apDung()) {
+      <div class="callout">
+        <span class="ic"><app-icon name="info" /></span>
+        <div>
+          <strong>{{ vi() ? 'Bạn không thuộc diện phải ký bản cam kết này' : 'This commitment does not apply to you' }}</strong>
+          <p>
+            {{ vi()
+                ? 'Bản cam kết áp dụng cho nhân viên có tài khoản tạo từ ngày ' + data()!.tuNgay + ' trở đi.'
+                : 'It applies to accounts created from ' + data()!.tuNgay + ' onwards.' }}
+            {{ vi()
+                ? 'Quy định bảo mật thì vẫn áp dụng với tất cả mọi người — bạn đọc lại ở trang Quy định IT.'
+                : 'The security rules still apply to everyone — see the IT Regulations page.' }}
+          </p>
+          <p class="mt-2"><a routerLink="/regulations" class="btn btn-ghost btn-sm">
+            <app-icon name="book-open" /> {{ vi() ? 'Xem Quy định IT' : 'IT Regulations' }}</a></p>
+        </div>
+      </div>
+    }
+
+    <!-- ==================================================== DA KY === -->
+    @else if (daKy()) {
+      <div class="callout success">
+        <span class="ic"><app-icon name="award" /></span>
+        <div>
+          <strong>{{ vi() ? 'Bạn đã ký bản cam kết' : 'You have signed the commitment' }}</strong>
+          <p>
+            {{ vi() ? 'Ký lúc' : 'Signed at' }}
+            <strong>{{ data()!.signedAt ? (data()!.signedAt | date: 'HH:mm · dd/MM/yyyy') : '' }}</strong>.
+            {{ vi()
+                ? 'Bản đã ký được lưu trên hệ thống ký của Tập đoàn, kèm nhật ký kiểm toán.'
+                : 'The signed copy is stored on the Group signing system with a full audit log.' }}
+          </p>
+          <p class="mt-2">
+            <a href="/api/cam-ket/ban-da-ky" class="btn btn-primary btn-sm">
+              <app-icon name="download" /> {{ vi() ? 'Tải bản đã ký' : 'Download signed copy' }}</a>
+          </p>
+        </div>
+      </div>
+    }
+
+    <!-- =============================================== CHUA KY === -->
+    @else {
+      <div class="card card-pad-lg">
+        <h2 class="h4">{{ vi() ? 'Thông tin của bạn' : 'Your details' }}</h2>
+        <p class="muted-3" style="font-size:.92rem">
+          {{ vi()
+              ? 'Lấy từ Active Directory và điền sẵn vào bản cam kết — bạn không cần gõ lại, và cũng không sửa được. Sai chỗ nào thì báo phòng Công nghệ thông tin sửa trên AD trước khi ký.'
+              : 'Taken from Active Directory and pre-filled into the document — you cannot edit them. If anything is wrong, ask IT to fix it in AD before you sign.' }}
+        </p>
+        <dl class="ck-info mt-3">
+          <div><dt>{{ vi() ? 'Họ và tên' : 'Full name' }}</dt><dd>{{ data()!.fullName || '—' }}</dd></div>
+          <div><dt>{{ vi() ? 'Chức danh' : 'Job title' }}</dt><dd>{{ data()!.title || '—' }}</dd></div>
+          <div><dt>{{ vi() ? 'Phòng / Ban' : 'Department' }}</dt><dd>{{ data()!.department || '—' }}</dd></div>
+          <div><dt>{{ vi() ? 'Email công ty' : 'Company email' }}</dt><dd>{{ data()!.email || '—' }}</dd></div>
+        </dl>
+
+        @if (loi()) {
+          <div class="callout danger mt-3">
+            <span class="ic"><app-icon name="alert-triangle" /></span>
+            <div><p>{{ loi() }}</p></div>
+          </div>
+        }
+
+        @if (!dangKy()) {
+          <p class="mt-3">
+            <button type="button" class="btn btn-primary" (click)="ky()" [disabled]="dangTao()">
+              <app-icon name="edit" />
+              {{ dangTao()
+                  ? (vi() ? 'Đang chuẩn bị bản cam kết…' : 'Preparing document…')
+                  : (vi() ? 'Đọc và ký bản cam kết' : 'Read and sign') }}
+            </button>
+          </p>
+        }
+      </div>
+
+      <!-- Khung ky. Huong dan tieng Viet BAT BUOC nam ngoai khung: giao dien
+           ben trong la tieng Anh, Documenso khong co ban tieng Viet. -->
+      @if (dangKy() && khungKy()) {
+        <div class="card card-pad mt-4">
+          <h2 class="h4">{{ vi() ? 'Ký tại đây' : 'Sign here' }}</h2>
+          <ol class="ck-buoc">
+            <li>{{ vi() ? 'Đọc hết 3 trang bản cam kết ở khung bên dưới.' : 'Read all 3 pages below.' }}</li>
+            <li>{{ vi() ? 'Bấm ô Signature, ký bằng chuột hoặc gõ tên, rồi bấm Next.' : 'Click the Signature box, draw or type your name, then Next.' }}</li>
+            <li>{{ vi() ? 'Bấm vào từng ô còn trống trên tài liệu, cuối cùng bấm Complete.' : 'Click each remaining field, then Complete.' }}</li>
+          </ol>
+          <p class="muted-3" style="font-size:.88rem">
+            {{ vi()
+                ? 'Khung ký là hệ thống ký nội bộ của Tập đoàn nên hiển thị bằng tiếng Anh.'
+                : 'The signing panel is the Group signing system and is shown in English.' }}
+          </p>
+
+          <div class="ck-khung mt-3">
+            <iframe [src]="khungKy()" title="Ký cam kết bảo mật" allow="clipboard-write"></iframe>
+          </div>
+
+          <p class="mt-3">
+            <button type="button" class="btn btn-ghost" (click)="daXong()">
+              <app-icon name="check" /> {{ vi() ? 'Tôi đã ký xong' : 'I have finished signing' }}
+            </button>
+          </p>
+        </div>
+      }
+    }
+
+  </div>
+</section>

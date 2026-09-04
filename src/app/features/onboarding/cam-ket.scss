@@ -1,0 +1,70 @@
+/* Ky cam ket bao mat — /onboarding/cam-ket.
+ *
+ * Encapsulation mac dinh (khong phai admin.scss voi ViewEncapsulation.None),
+ * nen ten lop khong can tien to `.adm`/`.lte`.
+ */
+
+.ck-narrow {
+  max-width: 900px;
+}
+
+/* Bang danh tinh lay tu AD. Hai cot tren man rong, mot cot tren dien thoai —
+   nhan vien moi thuong mo portal lan dau tren dien thoai ngay sau buoi
+   training, chua kip nhan may. */
+.ck-info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+  margin: 0;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    /* minmax(0,1fr) o tren + min-width:0 o day: email dai khong duoc dan
+       cot ra ngoai khung. */
+    min-width: 0;
+  }
+  dt { color: var(--text-3); font-size: .78rem; font-weight: 600; }
+  dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+}
+
+.ck-buoc {
+  margin: 12px 0 8px;
+  padding-left: 20px;
+
+  li { margin-bottom: 4px; }
+}
+
+/* Khung ky cua Documenso.
+ *
+ * CHIEU CAO CO DINH, khong `aspect-ratio`: ben trong iframe la mot trang co
+ * cuon rieng, ti le khac han giua may ban va dien thoai. Dat 78vh de luon con
+ * thay duoc nut "Toi da ky xong" ben duoi ma khong phai cuon di tim.
+ *
+ * `min-height` chan truong hop man hinh rat thap (laptop 768px, hoac dien
+ * thoai xoay ngang): duoi 520px thi bang ky cua Documenso bi cat mat nut Next.
+ */
+.ck-khung {
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--surface-2);
+
+  iframe {
+    display: block;
+    width: 100%;
+    height: 78vh;
+    min-height: 520px;
+    border: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .ck-info { grid-template-columns: minmax(0, 1fr); }
+  .ck-khung iframe { height: 72vh; }
+}
