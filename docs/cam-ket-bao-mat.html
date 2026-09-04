@@ -1,0 +1,172 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bản cam kết bảo mật thông tin — An Việt Phát</title>
+<!--
+  Nguon de sinh PDF template Documenso. Sua NOI DUNG o day, dung sua toa do o ky:
+  tools/build_cam_ket_pdf.mjs tu do lai vi tri cac o <span class="fld"> sau moi lan render.
+
+  Moi .page la MOT trang A4 dung bang 210x297mm, @page margin 0 — nho vay toa do
+  % cua o field trong .page anh xa 1:1 sang pageX/pageY cua Documenso.
+-->
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Liberation Serif", "Times New Roman", serif;
+    font-size: 12.5pt; line-height: 1.35; color: #000;
+  }
+  .page {
+    position: relative;
+    width: 210mm; height: 297mm;
+    padding: 17mm 18mm 15mm 22mm;
+    page-break-after: always; overflow: hidden;
+  }
+  .page:last-child { page-break-after: auto; }
+  .body { position: relative; height: 100%; }
+
+  .org { text-align: center; font-weight: bold; text-transform: uppercase; letter-spacing: .3px; }
+  .org .line { display: inline-block; border-bottom: 1px solid #000; padding: 0 14mm 1.5mm; }
+  h1 { font-size: 14.5pt; text-align: center; text-transform: uppercase; margin: 8mm 0 2mm; line-height: 1.3; }
+  .sub { text-align: center; font-style: italic; font-size: 11pt; margin: 0 0 6mm; }
+
+  table.who { width: 100%; border-collapse: collapse; margin: 0 0 5mm; }
+  table.who td { padding: 1.2mm 2mm; vertical-align: top; }
+  table.who td.k { width: 42mm; }
+  table.who td.v { border-bottom: 1px dotted #444; }
+
+  p { margin: 0 0 2.5mm; text-align: justify; }
+  h2 { font-size: 12.5pt; margin: 4mm 0 1.5mm; }
+  ol.d { margin: 0 0 2.5mm; padding-left: 7mm; }
+  ol.d li { margin-bottom: 1.1mm; text-align: justify; }
+  .tight { margin-bottom: 2mm; }
+
+  /* O Documenso — vien nhat de nguoi duyet thay cho ky nam o dau; Documenso ve de len tren. */
+  .fld { position: absolute; border-bottom: 1px solid #000; }
+  .sig-wrap { position: absolute; right: 8mm; bottom: 14mm; width: 78mm; text-align: center; }
+  .sig-wrap .role { font-weight: bold; text-transform: uppercase; }
+  .sig-wrap .hint { font-style: italic; font-size: 10.5pt; color: #333; }
+  .sig-box { height: 26mm; margin: 2mm 0 1mm; }
+  .foot { position: absolute; left: 0; bottom: 4mm; width: 100%; text-align: center;
+          font-size: 9.5pt; color: #555; font-style: italic; }
+</style>
+
+<!-- ======================= TRANG 1 ======================= -->
+<section class="page"><div class="body">
+  <div class="org"><span class="line">TẬP ĐOÀN AN VIỆT PHÁT</span></div>
+
+  <h1>Bản cam kết<br>bảo mật thông tin<br>và sử dụng hệ thống công nghệ thông tin</h1>
+  <p class="sub">Áp dụng cho toàn bộ nhân viên — ban hành theo Quy định Hệ thống thông tin (03.IT)<br>
+     và Quy định sử dụng phương tiện truyền thông &amp; trao đổi thông tin (02)</p>
+
+  <table class="who">
+    <tr><td class="k">Họ và tên</td><td class="v" id="v-hoten"></td></tr>
+    <tr><td class="k">Chức danh</td><td class="v" id="v-chucdanh"></td></tr>
+    <tr><td class="k">Phòng / Ban</td><td class="v" id="v-phongban"></td></tr>
+    <tr><td class="k">Email công ty</td><td class="v" id="v-email"></td></tr>
+    <tr><td class="k">Tài khoản hệ thống</td><td class="v" id="v-taikhoan"></td></tr>
+  </table>
+
+  <p>Sau khi được phòng Công nghệ thông tin phổ biến nội dung <i>Quy định Hệ thống thông tin</i> và
+     <i>Quy định sử dụng phương tiện truyền thông &amp; trao đổi thông tin</i> của Tập đoàn An Việt Phát,
+     tôi đã đọc, hiểu rõ và tự nguyện cam kết các nội dung sau:</p>
+
+  <h2>Điều 1. Về tài sản và phương tiện làm việc</h2>
+  <p>Tôi hiểu rằng máy tính, điện thoại, email, mạng nội bộ, Internet và các phương tiện khác được
+     Công ty trang bị là <b>tài sản của Công ty, cấp cho tôi để phục vụ công việc</b>. Tôi có trách
+     nhiệm bảo quản và sử dụng đúng mục đích; không tự ý tháo lắp, di chuyển thiết bị hoặc thay đổi
+     cấu hình máy. Mọi thao tác kỹ thuật về phần cứng do phòng IT thực hiện khi được quản lý cho phép.</p>
+
+  <h2>Điều 2. Về quyền sở hữu dữ liệu</h2>
+  <p>Tôi hiểu và chấp nhận rằng <b>Công ty sở hữu toàn bộ dữ liệu và thư điện tử</b> được tạo, gửi
+     hoặc nhận trên bất kỳ máy tính, mạng hay hệ thống nào của Công ty; và <b>Công ty có quyền kiểm
+     tra, giám sát</b> dữ liệu lưu trong thư mục cá nhân trên mạng, trên máy tính hoặc trên phương
+     tiện lưu trữ do Công ty cấp, nhằm bảo đảm việc tuân thủ chính sách.</p>
+
+  <h2>Điều 3. Về bảo mật tài khoản</h2>
+  <ol class="d">
+    <li>Không cho người khác mượn hoặc dùng chung tài khoản, mật khẩu của mình; không dùng tài khoản
+        của người khác để đăng nhập.</li>
+    <li>Không ghi mật khẩu ra giấy hay bất kỳ nơi nào dễ bị phát hiện.</li>
+    <li>Đổi mật khẩu định kỳ theo hướng dẫn của quản trị hệ thống.</li>
+    <li><b>Khóa máy mỗi khi rời khỏi vị trí làm việc.</b></li>
+  </ol>
+
+  <div class="foot">Trang 1/3 — Bản cam kết bảo mật thông tin · Tập đoàn An Việt Phát</div>
+</div></section>
+
+<!-- ======================= TRANG 2 ======================= -->
+<section class="page"><div class="body">
+  <h2 style="margin-top:0">Điều 4. Về thông tin mật</h2>
+  <p class="tight">Tôi cam kết giữ bí mật mọi thông tin, tài liệu, dữ liệu của Công ty, của khách hàng
+     và của đồng nghiệp mà tôi biết được trong quá trình làm việc. Cụ thể:</p>
+  <ol class="d">
+    <li>Không sao chép, sửa đổi hoặc chuyển tiếp tài liệu khi chưa được người sở hữu cho phép.</li>
+    <li><b>Không tự ý chuyển tài liệu, thông tin nội bộ ra ngoài Công ty</b> dưới bất kỳ hình thức nào.</li>
+    <li>Không truy cập máy tính, dữ liệu hoặc email của nhân viên khác khi chưa được phép.</li>
+    <li>Không dùng hộp thư công cộng (Gmail, Yahoo, Hotmail…) để trao đổi thông tin công việc.</li>
+    <li>Mã hóa bằng mật khẩu đối với dữ liệu nhạy cảm khi trao đổi ra ngoài mạng nội bộ, và
+        <b>chuyển mật khẩu qua một kênh khác</b> với kênh gửi tệp.</li>
+    <li>Với các nhóm tài liệu bắt buộc mã hóa — báo cáo tài chính, số liệu chuyển ngân hàng, thông
+        tin lương thưởng, thông tin quản trị hệ thống — tôi thực hiện đúng quy định về mã hóa.</li>
+  </ol>
+
+  <h2>Điều 5. Về thiết bị lưu trữ và phần mềm</h2>
+  <ol class="d">
+    <li><b>Không tự ý dùng USB, HDD box, CD/DVD-RW hay vật ghi cá nhân</b> để sao chép, chuyển dữ
+        liệu ra/vào máy; khi có nhu cầu, phải được Trưởng bộ phận cho phép.</li>
+    <li>Không tải hoặc cài đặt phần mềm không hợp pháp; chỉ vận hành phần mềm do Công ty cài đặt và
+        đã đăng ký bản quyền. Có nhu cầu phần mềm nào, tôi liên hệ phòng IT.</li>
+    <li>Cài và cập nhật thường xuyên phần mềm diệt virus theo hướng dẫn của phòng IT.</li>
+    <li>Không mang máy tính cá nhân vào Công ty; trường hợp cần thiết phải được Trưởng bộ phận và
+        phòng IT đồng ý, đăng ký với bảo vệ.</li>
+    <li>Thiết bị di động dùng để truy cập email Công ty phải được khóa mã (passcode).</li>
+    <li>Không để laptop hoặc thiết bị ở nơi dễ thấy ngoài giờ làm việc.</li>
+  </ol>
+
+  <h2>Điều 6. Những việc tôi cam kết KHÔNG làm</h2>
+  <ol class="d">
+    <li>Không dùng phương tiện Công ty cho hoạt động thương mại, tài chính cá nhân.</li>
+    <li>Không truy cập, gửi hoặc nhận nội dung khiêu dâm; không chơi game trên máy Công ty.</li>
+    <li>Không cố ý phát tán virus, phần mềm gián điệp hoặc mã độc.</li>
+    <li>Không phá hoại, xóa hoặc che giấu dữ liệu của Công ty.</li>
+    <li>Không gây ách tắc, gián đoạn, vô hiệu hóa hoặc làm hư hỏng hệ thống mạng.</li>
+    <li><b>Không tìm cách phá vỡ các biện pháp bảo mật</b> trên hệ thống và ứng dụng của Công ty;
+        không xâm nhập hệ thống mà tôi không có quyền.</li>
+    <li>Không gửi thư điện tử nặc danh hoặc giả mạo địa chỉ người gửi.</li>
+  </ol>
+
+  <div class="foot">Trang 2/3 — Bản cam kết bảo mật thông tin · Tập đoàn An Việt Phát</div>
+</div></section>
+
+<!-- ======================= TRANG 3 ======================= -->
+<section class="page"><div class="body">
+  <h2 style="margin-top:0">Điều 7. Trách nhiệm báo cáo</h2>
+  <p>Khi phát hiện hoặc nghi ngờ có sự cố bảo mật — mất thiết bị, lộ mật khẩu, thư lừa đảo, phần mềm
+     lạ, dữ liệu bị truy cập trái phép — tôi cam kết <b>báo ngay cho phòng Công nghệ thông tin</b>,
+     kể cả khi sự việc do chính tôi gây ra. Tôi hiểu rằng che giấu sự cố gây thiệt hại lớn hơn nhiều
+     so với bản thân sự cố.</p>
+
+  <h2>Điều 8. Khi chấm dứt công việc</h2>
+  <p>Khi nghỉ việc, chuyển công tác hoặc khi Công ty yêu cầu, tôi cam kết bàn giao đầy đủ thiết bị,
+     dữ liệu, tài khoản và mật khẩu do Công ty cấp; <b>không sao chép, mang theo hoặc giữ lại</b>
+     bất kỳ tài liệu, dữ liệu nào của Công ty. Nghĩa vụ bảo mật tại Điều 4 <b>vẫn tiếp tục có hiệu
+     lực sau khi tôi không còn làm việc tại Công ty</b>.</p>
+
+  <h2>Điều 9. Hiệu lực và chế tài</h2>
+  <p>Tôi cam kết thực hiện đầy đủ các nội dung trên kể từ ngày ký. Tôi hiểu rằng nếu vi phạm, tôi sẽ
+     <b>chịu kỷ luật từ khiển trách, cảnh cáo cho đến buộc thôi việc</b>, phải bồi thường thiệt hại
+     phát sinh, và có thể <b>bị truy cứu trách nhiệm trước pháp luật</b>.</p>
+  <p>Bản cam kết này được ký bằng chữ ký điện tử trên hệ thống nội bộ của Tập đoàn An Việt Phát và
+     có giá trị như bản ký tay.</p>
+
+  <div class="sig-wrap">
+    <div class="hint" id="v-ngayky">Ngày&nbsp;……&nbsp;tháng&nbsp;……&nbsp;năm&nbsp;………</div>
+    <div class="role">Người cam kết</div>
+    <div class="hint">(ký và ghi rõ họ tên)</div>
+    <div class="sig-box" id="v-chuky"></div>
+    <div id="v-hoten2" style="height:6mm"></div>
+  </div>
+
+  <div class="foot">Trang 3/3 — Bản cam kết bảo mật thông tin · Tập đoàn An Việt Phát</div>
+</div></section>

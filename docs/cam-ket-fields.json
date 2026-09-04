@@ -1,0 +1,96 @@
+{
+  "pageCount": 3,
+  "fields": [
+    {
+      "id": "v-hoten",
+      "key": "ho_ten",
+      "type": "NAME",
+      "label": "Họ và tên",
+      "pageNumber": 1,
+      "pageX": 30.475,
+      "pageY": 23.949,
+      "width": 60.954,
+      "height": 2.812
+    },
+    {
+      "id": "v-chucdanh",
+      "key": "chuc_danh",
+      "type": "TEXT",
+      "label": "Chức danh",
+      "prefill": true,
+      "pageNumber": 1,
+      "pageX": 30.475,
+      "pageY": 26.76,
+      "width": 60.954,
+      "height": 2.812
+    },
+    {
+      "id": "v-phongban",
+      "key": "phong_ban",
+      "type": "TEXT",
+      "label": "Phòng / Ban",
+      "prefill": true,
+      "pageNumber": 1,
+      "pageX": 30.475,
+      "pageY": 29.572,
+      "width": 60.954,
+      "height": 2.812
+    },
+    {
+      "id": "v-email",
+      "key": "email",
+      "type": "EMAIL",
+      "label": "Email công ty",
+      "pageNumber": 1,
+      "pageX": 30.475,
+      "pageY": 32.384,
+      "width": 60.954,
+      "height": 2.812
+    },
+    {
+      "id": "v-taikhoan",
+      "key": "tai_khoan",
+      "type": "TEXT",
+      "label": "Tài khoản hệ thống",
+      "prefill": true,
+      "pageNumber": 1,
+      "pageX": 30.475,
+      "pageY": 35.196,
+      "width": 60.954,
+      "height": 2.812
+    },
+    {
+      "id": "v-ngayky",
+      "key": "ngay_ky",
+      "type": "DATE",
+      "label": "Ngày ký",
+      "pageNumber": 3,
+      "pageX": 50.476,
+      "pageY": 73.085,
+      "width": 37.143,
+      "height": 1.683
+    },
+    {
+      "id": "v-chuky",
+      "key": "chu_ky",
+      "type": "SIGNATURE",
+      "label": "Chữ ký",
+      "pageNumber": 3,
+      "pageX": 50.476,
+      "pageY": 79.128,
+      "width": 37.143,
+      "height": 8.754
+    },
+    {
+      "id": "v-hoten2",
+      "key": "ho_ten_2",
+      "type": "NAME",
+      "label": "Họ tên dưới chữ ký",
+      "pageNumber": 3,
+      "pageX": 50.476,
+      "pageY": 88.217,
+      "width": 37.143,
+      "height": 2.02
+    }
+  ]
+}
