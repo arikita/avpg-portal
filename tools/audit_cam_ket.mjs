@@ -180,6 +180,30 @@ say(/tiếng Anh/.test(t), 'nói trước cho người dùng biết khung ký l�
 say(await p.getByRole('button', { name: /Tôi đã ký xong/ }).count() > 0,
     'có nút tự báo đã ký xong (iframe khác origin nên portal không tự biết)');
 
+// PHEP DO QUAN TRONG NHAT o day (them 04/09/2026 sau khi user bao loi that):
+// khung ky KHONG DUOC tai lai trong luc nguoi ta dang ky.
+//
+// Trang nay hoi lai trang thai moi 5 giay. `bypassSecurityTrustResourceUrl()`
+// tra ve OBJECT MOI moi lan goi, ke ca khi chuoi URL y het — nen neu computed
+// goi lai no sau moi luot hoi, Angular so sanh theo THAM CHIEU, thay "doi",
+// va gan lai src. Iframe tai lai moi 5 giay, nguoi dang ky do mat sach thao
+// tac. Khong mot dong loi nao trong console.
+//
+// Do bang MutationObserver dem so lan thuoc tinh `src` bi gan lai — do la
+// dung dinh nghia cua loi, khong phai mot dau hieu gian tiep.
+await p.evaluate(() => {
+  const f = document.querySelector('iframe');
+  window.__lanGanSrc = 0;
+  new MutationObserver(ms => { for (const m of ms) if (m.attributeName === 'src') window.__lanGanSrc++; })
+    .observe(f, { attributes: true, attributeFilter: ['src'] });
+});
+// Doi qua 2 luot hoi (5s/luot) roi moi ket luan.
+await p.waitForTimeout(12000);
+const ganLai = await p.evaluate(() => window.__lanGanSrc);
+say(ganLai === 0, `khung ký KHÔNG bị gán lại src trong 12s (qua 2 lượt hỏi lại)`,
+    `bị gán lại ${ganLai} lần — iframe tải lại, người đang ký mất thao tác`);
+say((await p.locator('iframe').count()) === 1, 'vẫn đúng một khung ký sau khi hỏi lại');
+
 // ------------------------------------------------- 3) da ky ---------------
 console.log('\n3) Đã ký xong');
 kichBan = 'daKy';

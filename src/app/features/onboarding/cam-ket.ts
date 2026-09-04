@@ -81,9 +81,24 @@ export class CamKet {
   readonly daKy = computed(() => this.data()?.status === 'DA_KY');
   readonly apDung = computed(() => this.data()?.apDung === true);
 
+  /**
+   * URL ky duoi dang CHUOI. Tach rieng khong phai cho dep — day la thu giu cho
+   * khung ky khoi tai lai.
+   *
+   * `bypassSecurityTrustResourceUrl()` tra ve OBJECT MOI moi lan goi, ke ca
+   * khi chuoi y het. Vong hoi lai moi 5 giay gan `data` moi; neu computed ben
+   * duoi doc thang tu `data` thi no sinh object moi moi luot, Angular so sanh
+   * `[src]` theo THAM CHIEU, thay "doi", va gan lai src => iframe tai lai moi
+   * 5 giay, nguoi dang ky do mat sach thao tac (user bao that 04/09/2026).
+   *
+   * Computed cua Angular so sanh bang `Object.is`, nen khi chuoi URL khong
+   * doi thi computed nay KHONG bao cho ai ca, va `khungKy` khong chay lai.
+   */
+  private readonly urlKy = computed(() => this.data()?.signUrl ?? '');
+
   /** Angular chan src cua iframe neu chua qua sanitizer. */
   readonly khungKy = computed<SafeResourceUrl | null>(() => {
-    const url = this.data()?.signUrl;
+    const url = this.urlKy();
     return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
   });
 
