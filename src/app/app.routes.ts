@@ -21,6 +21,7 @@ export const routes: Routes = [
   { path: 'portal', loadComponent: () => import('./features/portal/portal').then((m) => m.Portal), title: title('Công cụ') },
   { path: 'directory', loadComponent: () => import('./features/directory/directory').then((m) => m.Directory), title: title('Liên hệ') },
   { path: 'policies', loadComponent: () => import('./features/policies/policies').then((m) => m.Policies), title: title('Chính sách') },
+  { path: 'tuyen-dung', loadComponent: () => import('./features/recruit/recruit').then((m) => m.Recruit), title: title('Tuyển dụng') },
   { path: 'regulations', loadComponent: () => import('./features/regulations/regulations').then((m) => m.Regulations), title: title('Quy định IT') },
   { path: 'help', loadComponent: () => import('./features/help/help').then((m) => m.Help), title: title('Hỗ trợ') },
   { path: 'faq', loadComponent: () => import('./features/faq/faq').then((m) => m.Faq), title: title('FAQ') },

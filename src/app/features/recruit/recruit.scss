@@ -1,0 +1,73 @@
+/* Cong cu tuyen dung — /tuyen-dung. Encapsulation mac dinh, khong can tien to. */
+
+.td-narrow { max-width: 860px; }
+
+/* Chon mau thu. Hai nut, cai dang chon to ro — bo cuc cu dung radio an di roi
+   to mau nen; o day dung button that de bam bang ban phim cung duoc. */
+.td-mau {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  button {
+    border: 0;
+    background: transparent;
+    color: var(--text-2);
+    font: inherit;
+    font-weight: 600;
+    font-size: .86rem;
+    padding: 7px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+
+    &.on { background: var(--brand); color: #fff; }
+  }
+}
+
+.td-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+
+  label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  label > span { color: var(--text-3); font-size: .8rem; font-weight: 600; }
+  .td-rong { grid-column: 1 / -1; }
+
+  input, select {
+    font: inherit;
+    padding: 9px 11px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    background: var(--surface);
+    color: var(--text-1);
+  }
+}
+
+.td-noidung {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  > span { color: var(--text-3); font-size: .8rem; font-weight: 600; }
+
+  textarea {
+    font: inherit;
+    /* Thu di ra ngoai la van ban thuan — hien dung co chu se doc o day the nao
+       thi ben Outlook the ay. Dung font chu nhat de nguoi soan uoc luong duoc
+       do dai dong. */
+    line-height: 1.5;
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    background: var(--surface);
+    color: var(--text-1);
+    resize: vertical;
+  }
+}
+
+@media (max-width: 640px) {
+  .td-form { grid-template-columns: minmax(0, 1fr); }
+}

@@ -309,6 +309,36 @@ dung, trang tự hiện "đang cập nhật" chứ không ra trang trắng).
 - **Đã biết, chưa sửa**: `.c-hint` trong checklist là `display:inline` nên dòng gợi ý dính liền tiêu đề
   ("…email công ty**Đổi mật khẩu lần đầu**"). Lỗi có sẵn từ trước, không phải do đợt tách trang.
 
+## Công cụ tuyển dụng `/tuyen-dung` (04/09/2026)
+
+Chuyển từ **site tĩnh cũ ở nhánh `main`** (GitHub Pages, `arikita.github.io/avpg-portal`) vào portal.
+Bản cũ là một trang flip-card với hai nút: *New employee* (dẫn sang app Vercel) và *Fail the interview*
+(soạn thư từ chối ứng viên rồi mở Outlook bằng `mailto:`). Nút *Pass the interview* **chưa bao giờ có
+chức năng** — `class="btn-pass"` mà không có handler; user chọn giữ nguyên để tính sau.
+
+- **`main` vẫn phục vụ GitHub Pages** — đừng merge, đừng đẩy đè (luật cũ vẫn nguyên).
+- **Phân quyền ở đây là HÀNG RÀO GIẤY.** Toàn bộ công cụ chạy trong trình duyệt, mã nằm trong bundle
+  mà cả 850 người tải về, gõ thẳng `/tuyen-dung` vẫn vào được. Nó chỉ để trang không bày ra trước mắt
+  người không liên quan. Chấp nhận được vì mẫu thư không phải bí mật và `mailto:` mở Outlook **của
+  chính người bấm** nên không ai mạo danh Nhân sự. **Thêm việc thật sự nhạy cảm (danh sách ứng viên,
+  lưu hồ sơ) thì PHẢI có hàng rào ở server** — đừng tin vào cái `@if`.
+- Lọc theo **`department` của AD** (`Information System`, `Human Resources`), không theo nhóm bảo mật —
+  cùng lý do với nút Báo lỗi: nhóm `Human Resources` chứa người ngoài phòng và 40 tài khoản đã nghỉ.
+- **Nút vào trang đặt trong `.nav-actions`, ẩn dưới 900px** (`.only-wide`). Navbar đã tràn ngang trên
+  điện thoại (59px @390px, lỗi có sẵn) — thêm nút vào đó là làm nặng thêm. Đo trước/sau: **thêm 0px**.
+  Soạn thư dù sao cũng là việc trên máy tính, `mailto:` cần Outlook desktop.
+- **Nội dung thư là DỮ LIỆU** (`src/app/content/recruit.content.ts`, module `recruit`) chứ không nhét
+  trong mã như bản cũ. Chỗ điền viết bằng `{xungHo} {hoTen} {anhChi} {viTri}`; gõ sai tên một chỗ điền
+  thì thư vẫn soạn ra, vẫn gửi được, chỉ là **ứng viên nhận một lá thư còn nguyên dấu ngoặc**.
+- **`mailto:` nhét vào iframe ẩn**, không `window.open` — trên HTTPS `window.open('mailto:')` bị chặn
+  hoặc mở một tab trắng rồi treo. Giữ nguyên thủ thuật của bản cũ.
+- **KHÔNG có dấu vết**: `mailto:` chỉ mở sẵn thư nháp, người dùng vẫn phải tự bấm Gửi. Portal không
+  biết thư đã gửi hay chưa, cho ai, lúc nào. Quyết định của user để khỏi phải dựng SMTP —
+  **portal chưa từng gửi email**, không có `smtplib` ở đâu cả.
+- **Kiểm**: `CHROME_BIN=... node tools/audit_tuyen_dung.mjs <dist>` — 21 phép đo. Quan trọng nhất:
+  soạn thư thật rồi tìm dấu ngoặc còn sót, và đo xưng hô theo giới tính (gửi thư từ chối mà gọi ứng
+  viên nam bằng "Chị" thì còn tệ hơn không gửi).
+
 ## Ký cam kết bảo mật `/onboarding/cam-ket` (04/09/2026)
 
 **ĐÃ CHẠY TRÊN PRODUCTION 04/09/2026** — build `nogit-20260904-111537`.

@@ -29,6 +29,19 @@
       </nav>
 
       <div class="nav-actions">
+        @if (isTuyenDung()) {
+          <!-- Chi Nhan su + IS. An tren man hep: navbar da tran ngang tren dien
+               thoai (loi co san, xem CLAUDE.md), va soan thu tu choi la viec
+               lam tren may tinh — `mailto:` cung can Outlook desktop. -->
+          <a
+            class="icon-btn only-wide"
+            routerLink="/tuyen-dung"
+            routerLinkActive="active"
+            [attr.aria-label]="lang() === 'vi' ? 'Công cụ tuyển dụng' : 'Recruitment tools'"
+            [attr.title]="lang() === 'vi' ? 'Công cụ tuyển dụng' : 'Recruitment tools'"
+            ><app-icon name="users"
+          /></a>
+        }
         @if (canEdit()) {
           <a
             class="icon-btn"

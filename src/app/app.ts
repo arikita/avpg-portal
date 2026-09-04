@@ -64,6 +64,22 @@ export class App {
   readonly isITDept = computed(
     () => (this.userSvc.me()?.department ?? '').trim().toLowerCase() === 'information system',
   );
+  /**
+   * Nut vao cong cu tuyen dung — chi phong Nhan su va Cong nghe thong tin.
+   *
+   * Loc theo `department` cua AD chu khong theo nhom bao mat, cung ly do voi
+   * `isITDept` o tren: nhom `Human Resources` con chua nguoi ngoai phong va 40
+   * tai khoan da nghi.
+   *
+   * Day la LOC HIEN THI, khong phai hang rao quyen — toan bo cong cu chay
+   * trong trinh duyet nen go thang duong dan van vao duoc. Chap nhan duoc vi
+   * no chi soan san van ban roi mo Outlook CUA CHINH NGUOI BAM. Xem ghi chu
+   * dau features/recruit/recruit.ts.
+   */
+  readonly isTuyenDung = computed(() => {
+    const d = (this.userSvc.me()?.department ?? '').trim().toLowerCase();
+    return d === 'information system' || d === 'human resources';
+  });
   readonly unseenNews = inject(NotificationService).unseenNews;
 
   /** Nut len dau trang: chi hien khi da keo gan het trang ("keo het trang"). */

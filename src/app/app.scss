@@ -54,3 +54,13 @@ main {
 /* Nut ho so ca nhan tren navbar — thay cho mot muc menu (navbar da chat). */
 /* Nut tai khoan chuyen sang component app-account-menu (co menu Ho so /
    Dang xuat) — style di theo component do. */
+
+/* Nut chi hien tren man rong. Navbar da tran ngang o 390px/414px (loi co san,
+   ghi trong CLAUDE.md) — them mot nut nua vao `.nav-actions` la lam nang them
+   dung cho dang hong. Cong cu tuyen dung dung sao cung phai lam tren may tinh
+   vi `mailto:` can Outlook desktop, nen an han tren dien thoai la dung viec
+   chu khong phai giau bot. */
+.only-wide { display: none; }
+@media (min-width: 900px) {
+  .only-wide { display: inline-flex; }
+}
