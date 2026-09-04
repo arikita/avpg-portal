@@ -11,6 +11,7 @@ import {
 import { ContentService } from '../../core/services/content.service';
 import { LanguageService } from '../../core/services/language.service';
 import { UserService } from '../../core/services/user.service';
+import { ApiService } from '../../core/services/api';
 import { IconComponent } from '../../shared/components/icon/icon';
 
 /** Phòng ban được dùng trang này. So sau khi trim + hạ chữ thường. */
@@ -56,6 +57,7 @@ const PHONG_DUOC_DUNG = ['information system', 'human resources'];
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Recruit {
+  private readonly api = inject(ApiService);
   private readonly content = inject(ContentService);
   private readonly userSvc = inject(UserService);
   readonly lang = inject(LanguageService).lang;
@@ -139,6 +141,64 @@ export class Recruit {
     iframe.src = url;
     setTimeout(() => iframe.remove(), 2000);
     this.daMo.set(true);
+  }
+
+  // ------------------------------------------------------- anh chao mung --
+  /** Anh chan dung nguoi dung chon. Chi giu trong bo nho, khong tai len cho
+   *  nao khac ngoai chinh portal. */
+  readonly anhGoc = signal<File | null>(null);
+  readonly anhKetQua = signal<string>('');
+  readonly dangVe = signal(false);
+  readonly loiAnh = signal('');
+  readonly acmTen = signal('');
+  readonly acmChucVu = signal('');
+  readonly acmPhongBan = signal('');
+  readonly acmDienThoai = signal('');
+  readonly acmNgay = signal('');
+  readonly acmGioiTinh = signal<'' | 'Nam' | 'Nữ'>('');
+
+  chonAnh(ev: Event): void {
+    const f = (ev.target as HTMLInputElement).files?.[0] ?? null;
+    this.anhGoc.set(f);
+    this.loiAnh.set('');
+  }
+
+  readonly duVeAnh = computed(() => !!this.anhGoc() && !!this.acmTen().trim());
+
+  /**
+   * Goi server ghep anh. Anh chan dung KHONG roi mang noi bo — day la ly do
+   * chinh keo viec nay ve tu Render (xem ghi chu dau server/app/welcome_anh.py).
+   */
+  async veAnh(): Promise<void> {
+    const f = this.anhGoc();
+    if (!f || this.dangVe()) return;
+    this.dangVe.set(true);
+    this.loiAnh.set('');
+    // Thu cu roi moi tao cai moi — moi blob URL giu mot anh trong bo nho cho
+    // toi khi bi thu hoi; bam ve 20 lan la 20 anh nam lai.
+    if (this.anhKetQua()) URL.revokeObjectURL(this.anhKetQua());
+    this.anhKetQua.set('');
+    try {
+      const fd = new FormData();
+      fd.append('image', f);
+      fd.append('name', this.acmTen().trim());
+      fd.append('position', this.acmChucVu().trim());
+      fd.append('department', this.acmPhongBan().trim());
+      fd.append('phone', this.acmDienThoai().trim());
+      fd.append('startDate', this.acmNgay());
+      fd.append('gender', this.acmGioiTinh());
+      const res = await this.api.fetch('/api/tuyen-dung/anh-chao-mung', { method: 'POST', body: fd });
+      if (!res.ok) {
+        const b = await res.json().catch(() => null);
+        this.loiAnh.set(b?.detail || 'Không tạo được ảnh. Thử lại sau ít phút.');
+        return;
+      }
+      this.anhKetQua.set(URL.createObjectURL(await res.blob()));
+    } catch {
+      this.loiAnh.set('Không gọi được máy chủ. Thử lại sau ít phút.');
+    } finally {
+      this.dangVe.set(false);
+    }
   }
 
   readonly duSoan = computed(

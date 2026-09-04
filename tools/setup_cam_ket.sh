@@ -50,10 +50,10 @@ die() { printf '\nDUNG LAI: %s\n' "$*" >&2; exit 1; }
 say "1/6  goi Python"
 echo "    venv: $VENV"
 [ -x "$VENV/bin/pip" ] || die "khong thay $VENV/bin/pip — dat bien VENV tro dung cho"
-"$VENV/bin/pip" install --quiet --no-cache-dir reportlab pypdf
+"$VENV/bin/pip" install --quiet --no-cache-dir reportlab pypdf Pillow
 "$VENV/bin/python" - <<'EOF'
-import reportlab, pypdf
-print(f"    reportlab {reportlab.Version} · pypdf {pypdf.__version__}")
+import reportlab, pypdf, PIL
+print(f"    reportlab {reportlab.Version} · pypdf {pypdf.__version__} · Pillow {PIL.__version__}")
 EOF
 
 say "2/6  font co tieng Viet"
@@ -109,6 +109,10 @@ say "5/6  ma nguon API + nguon ban cam ket sang $APP_DIR"
 # moi thu khac nhin deu "da deploy xong" — dung kieu hong im lang ma ca file
 # nay sinh ra de chan. Nay script tu lam, khong de ai phai nho.
 cp "$SRC"/server/app/*.py "$APP_DIR"/
+# Tai nguyen chay that (nen + logo + font cho anh chao mung nhan vien moi).
+# `cp *.py` khong dong toi thu muc con — quen dong nay thi /api/tuyen-dung
+# tra 500 "thieu tai nguyen" trong khi module van import binh thuong.
+cp -r "$SRC"/server/app/assets "$APP_DIR"/
 install -m 644 "$SRC/docs/cam-ket-bao-mat.pdf" "$SRC/docs/cam-ket-fields.json" "$APP_DIR/"
 [ -f "$APP_DIR/camket.py" ] || die "camket.py van chua toi $APP_DIR"
 echo "    $(ls "$APP_DIR"/*.py | wc -l) module Python + PDF + toa do o ky"
@@ -128,7 +132,7 @@ grep -q '"apDung"' /tmp/camket-thu.json || die "hinh dang tra ve khong dung — 
 # Sau moi lan deploy API phai goi THAT cac endpoint chinh: /api/health = 200
 # khong chung minh duoc gi (lan hong 25/08 health van 200 trong khi /api/news
 # tra 500 vi mot NameError).
-for E in /api/news /api/notifications /api/rail /api/quiz; do
+for E in /api/news /api/notifications /api/rail /api/quiz /api/cam-ket; do
   M=$(curl -sS -o /dev/null -w '%{http_code}' -H 'X-Remote-User: smoke-test' \
       "http://127.0.0.1:8000$E" || true)
   echo "    GET $E -> HTTP $M"

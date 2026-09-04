@@ -44,6 +44,75 @@
       </div>
 
       <div class="card card-pad-lg mt-3">
+        <h2 class="h4" style="margin-top:0">{{ vi() ? 'Ảnh chào mừng nhân viên mới' : 'New employee welcome image' }}</h2>
+        <p class="muted-3" style="font-size:.92rem">
+          {{ vi()
+              ? 'Ghép ảnh chân dung với nền công ty để đăng thông báo. Ảnh xử lý ngay trên máy chủ nội bộ — không gửi ra dịch vụ nào bên ngoài, và không lưu lại ở đâu cả.'
+              : 'Composites a portrait onto the company background. Processed on the internal server — nothing leaves the network and nothing is stored.' }}
+        </p>
+
+        <div class="td-form mt-3">
+          <label>
+            <span>{{ vi() ? 'Họ và tên' : 'Full name' }}</span>
+            <input type="text" [value]="acmTen()" (input)="acmTen.set($any($event.target).value)" />
+          </label>
+          <label>
+            <span>{{ vi() ? 'Chức vụ' : 'Position' }}</span>
+            <input type="text" [value]="acmChucVu()" (input)="acmChucVu.set($any($event.target).value)" />
+          </label>
+          <label>
+            <span>{{ vi() ? 'Phòng ban' : 'Department' }}</span>
+            <input type="text" [value]="acmPhongBan()" (input)="acmPhongBan.set($any($event.target).value)" />
+          </label>
+          <label>
+            <span>{{ vi() ? 'Số điện thoại' : 'Phone' }}</span>
+            <input type="text" [value]="acmDienThoai()" (input)="acmDienThoai.set($any($event.target).value)" />
+          </label>
+          <label>
+            <span>{{ vi() ? 'Ngày bắt đầu' : 'Start date' }}</span>
+            <input type="date" [value]="acmNgay()" (input)="acmNgay.set($any($event.target).value)" />
+          </label>
+          <label>
+            <span>{{ vi() ? 'Giới tính' : 'Gender' }}</span>
+            <select [value]="acmGioiTinh()" (change)="acmGioiTinh.set($any($event.target).value)">
+              <option value="">{{ vi() ? '— chưa chọn —' : '— not set —' }}</option>
+              <option value="Nam">{{ vi() ? 'Nam' : 'Male' }}</option>
+              <option value="Nữ">{{ vi() ? 'Nữ' : 'Female' }}</option>
+            </select>
+          </label>
+          <label class="td-rong">
+            <span>{{ vi() ? 'Ảnh chân dung (tối đa 5MB)' : 'Portrait photo (max 5MB)' }}</span>
+            <input type="file" accept="image/*" (change)="chonAnh($event)" />
+          </label>
+        </div>
+
+        @if (loiAnh()) {
+          <div class="callout danger mt-3">
+            <span class="ic"><app-icon name="alert-triangle" /></span>
+            <div><p>{{ loiAnh() }}</p></div>
+          </div>
+        }
+
+        <p class="mt-3">
+          <button type="button" class="btn btn-primary" (click)="veAnh()" [disabled]="!duVeAnh() || dangVe()">
+            <app-icon name="image" />
+            {{ dangVe() ? (vi() ? 'Đang tạo ảnh…' : 'Generating…') : (vi() ? 'Tạo ảnh' : 'Generate') }}
+          </button>
+        </p>
+
+        @if (anhKetQua()) {
+          <div class="td-anh mt-3">
+            <img [src]="anhKetQua()" [alt]="vi() ? 'Ảnh chào mừng' : 'Welcome image'" />
+          </div>
+          <p class="mt-2">
+            <a class="btn btn-ghost" [href]="anhKetQua()" download="chao-mung.png">
+              <app-icon name="download" /> {{ vi() ? 'Tải ảnh về' : 'Download' }}
+            </a>
+          </p>
+        }
+      </div>
+
+      <div class="card card-pad-lg mt-3">
         <h2 class="h4" style="margin-top:0">{{ vi() ? 'Thư trả lời ứng viên không trúng tuyển' : 'Candidate rejection letter' }}</h2>
 
         <div class="td-mau mt-3" role="group" [attr.aria-label]="vi() ? 'Chọn mẫu thư' : 'Choose template'">

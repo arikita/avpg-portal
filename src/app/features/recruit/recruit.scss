@@ -71,3 +71,14 @@
 @media (max-width: 640px) {
   .td-form { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Anh chao mung sau khi ghep. Anh goc 1000x700 — de nguyen co la tran khung
+   tren laptop, nen thu nho theo be rong the va giu ti le. */
+.td-anh {
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--surface-2);
+
+  img { display: block; width: 100%; height: auto; }
+}

@@ -335,7 +335,26 @@ chức năng** — `class="btn-pass"` mà không có handler; user chọn giữ 
 - **KHÔNG có dấu vết**: `mailto:` chỉ mở sẵn thư nháp, người dùng vẫn phải tự bấm Gửi. Portal không
   biết thư đã gửi hay chưa, cho ai, lúc nào. Quyết định của user để khỏi phải dựng SMTP —
   **portal chưa từng gửi email**, không có `smtplib` ở đâu cả.
-- **Kiểm**: `CHROME_BIN=... node tools/audit_tuyen_dung.mjs <dist>` — 21 phép đo. Quan trọng nhất:
+- **Ảnh chào mừng nhân viên mới** (kéo về 04/09/2026 từ app riêng trên Vercel + Render).
+  **Lý do kéo về: ảnh chân dung nhân viên thật đang được tải lên Render**, dịch vụ miễn phí ở nước
+  ngoài — ảnh không bị lưu (ghép xong trả về ngay) nhưng nó có đi qua. Thêm nữa gói miễn phí ngủ sau
+  15 phút nên lần gọi đầu mất 30–60 giây. Nay ghép ngay trên `.136` bằng **Pillow**.
+  - **`welcome_anh.py` (logic thuần) TÁCH KHỎI `welcome.py` (route) CÓ Ý**: file route khai `Form()`
+    nên kéo theo `python-multipart`, gói chỉ có trong venv trên `.136`. Gộp lại thì `test_welcome.py`
+    **skip im lặng** trên máy dev — đúng cái bẫy ở mục quyền bài đăng.
+  - **Endpoint này có hàng rào THẬT** (`_require_tuyen_dung`), khác trang `/tuyen-dung` chỉ lọc hiển
+    thị: nó nhận file tải lên và tốn CPU để ghép ảnh.
+  - **Bố cục chép nguyên** từ bản Sharp/SVG cũ — cùng toạ độ, cỡ chữ, màu. Toạ độ trong SVG là
+    **đường cơ chữ** nên Pillow phải vẽ bằng `anchor="ls"`/`"ms"`; sai chỗ này thì mọi dòng tụt xuống
+    đúng một khoảng bằng chiều cao chữ. `test_welcome.py` khoá lại bộ toạ độ.
+  - **Font Philosopher có đủ chữ Việt** — đã kiểm trước khi dùng, không tin suông (bài học Documenso).
+  - **Không lưu gì cả**: ảnh vào, ảnh ra, hết. Ảnh chân dung là dữ liệu cá nhân — không lưu thì không
+    phải nghĩ đến giữ bao lâu và ai xoá.
+  - Tài nguyên (nền, logo, 2 font) ở `server/app/assets/welcome/`. **`cp *.py` không động tới thư mục
+    con** — `setup_cam_ket.sh` có thêm `cp -r server/app/assets`; quên là endpoint trả 500 "thiếu tài
+    nguyên" trong khi module vẫn import bình thường.
+- **Kiểm**: `CHROME_BIN=... node tools/audit_tuyen_dung.mjs <dist>` — 37 phép đo, và
+  `pytest server/tests/test_welcome.py` — 22 phép đo. Quan trọng nhất:
   soạn thư thật rồi tìm dấu ngoặc còn sót, và đo xưng hô theo giới tính (gửi thư từ chối mà gọi ứng
   viên nam bằng "Chị" thì còn tệ hơn không gửi).
 
