@@ -25,7 +25,18 @@
 # lai sau ~1 giay.
 set -Eeuo pipefail
 
-VENV=${VENV:-/opt/avp-portal-api}
+# Venv nam o /opt/avp-portal-api/venv, KHONG phai /opt/avp-portal-api —
+# thu muc do la WorkingDirectory, ben trong con co app/ tools/ backups/.
+# Doan sai cho nay lam script chet ngay buoc 1 (04/09/2026). Nay tu do tu
+# chinh unit systemd de khong bao gio phai doan lai.
+VENV=${VENV:-}
+if [ -z "$VENV" ]; then
+  EXEC=$(grep -m1 '^ExecStart=' /etc/systemd/system/avp-portal-api.service 2>/dev/null \
+         | sed 's/^ExecStart=//' | awk '{print $1}')
+  # ExecStart=/opt/avp-portal-api/venv/bin/gunicorn -> /opt/avp-portal-api/venv
+  [ -n "$EXEC" ] && VENV=$(dirname "$(dirname "$EXEC")")
+fi
+[ -n "$VENV" ] || VENV=/opt/avp-portal-api/venv
 ENV_FILE=${ENV_FILE:-/etc/avp-portal-api.env}
 APP_DIR=${APP_DIR:-/opt/avp-portal-api/app}
 SRC=${SRC:-/home/internalsvr/avp-portal}
@@ -37,6 +48,8 @@ die() { printf '\nDUNG LAI: %s\n' "$*" >&2; exit 1; }
 [ "$(id -u)" -eq 0 ] || die "can chay bang sudo"
 
 say "1/6  goi Python"
+echo "    venv: $VENV"
+[ -x "$VENV/bin/pip" ] || die "khong thay $VENV/bin/pip — dat bien VENV tro dung cho"
 "$VENV/bin/pip" install --quiet reportlab pypdf
 "$VENV/bin/python" - <<'EOF'
 import reportlab, pypdf
