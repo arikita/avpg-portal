@@ -1,6 +1,18 @@
 /* ============================================================================
  *  ONBOARDING CONTENT — hướng dẫn nhân viên mới.
- *  Sửa nội dung ở đây. Các chỗ có "TODO" cần điền thông tin THẬT của công ty.
+ *
+ *  Từ 04/09/2026 hội nhập gồm NHIỀU PHÒNG BAN, mỗi phòng một trang riêng
+ *  (/onboarding/<slug>). Trang /onboarding chỉ còn là trang trung tâm: danh
+ *  sách việc cần làm + thẻ dẫn sang từng phòng.
+ *
+ *  THÊM MỘT PHÒNG = thêm một phần tử vào PHONG_BAN ở cuối file. Không phải
+ *  sửa route, không phải sửa component — cả hai đều đọc từ danh sách đó.
+ *
+ *  MỖI PHÒNG KHAI RÕ `module` + tên khoá của mình thay vì suy ra theo quy
+ *  ước: nội dung IT đã nằm sẵn trong DB dưới module `onboarding` với khoá
+ *  `ONBOARDING_INTRO`/`SECTIONS` từ trước, đổi tên khoá là bản trong DB và
+ *  bản dự phòng trong bundle lệch nhau ngay (luật số 1 trong CLAUDE.md).
+ *
  *  Mỗi section gồm các "blocks": p | steps | bullets | callout | fields | table | links
  * ========================================================================== */
 import { ChecklistItem, GuideSection, L } from '../core/models/content.models';
@@ -387,5 +399,67 @@ export const SECTIONS: GuideSection[] = [
         },
       },
     ],
+  },
+];
+
+/* ============================================================================
+ *  NHÂN SỰ — nội dung do phòng Nhân sự gửi, IT cập nhật vào đây.
+ * ========================================================================== */
+
+export const HR_INTRO: L = {
+  vi: 'Những việc về hồ sơ, hợp đồng, chấm công và phúc lợi bạn cần nắm trong tuần đầu.',
+  en: 'Paperwork, contract, timekeeping and benefits you need to know in your first week.',
+};
+
+/** CHƯA CÓ NỘI DUNG — chờ phòng Nhân sự gửi. Trang tự hiện trạng thái
+ *  "đang cập nhật" khi mảng này rỗng, không vỡ bố cục. */
+export const HR_SECTIONS: GuideSection[] = [];
+
+/* ============================================================================
+ *  DANH SÁCH PHÒNG BAN
+ * ========================================================================== */
+
+export interface PhongBan {
+  /** Đoạn đường dẫn: /onboarding/<slug>. KHÔNG được trùng RESERVED. */
+  slug: string;
+  icon: string;
+  name: L;
+  /** Một dòng mô tả trên thẻ ở trang trung tâm. */
+  tagline: L;
+  /** Module + khoá trong bảng `content` — xem ghi chú đầu file. */
+  module: string;
+  introKey: string;
+  sectionsKey: string;
+  intro: L;
+  sections: GuideSection[];
+}
+
+/** Đường dẫn con của /onboarding đã có chủ — không phòng nào được chiếm.
+ *  Thiếu danh sách này thì một phòng đặt slug `kiem-tra` sẽ nuốt mất trang
+ *  bài kiểm tra, và Angular không báo gì cả. */
+export const RESERVED = ['kiem-tra', 'cam-ket'] as const;
+
+export const PHONG_BAN: PhongBan[] = [
+  {
+    slug: 'it',
+    icon: 'monitor',
+    name: { vi: 'Công nghệ thông tin', en: 'Information Technology' },
+    tagline: { vi: 'Tài khoản, email, Wi-Fi, máy tính, phần mềm', en: 'Account, email, Wi-Fi, computer, software' },
+    module: 'onboarding',
+    introKey: 'ONBOARDING_INTRO',
+    sectionsKey: 'SECTIONS',
+    intro: ONBOARDING_INTRO,
+    sections: SECTIONS,
+  },
+  {
+    slug: 'nhan-su',
+    icon: 'users',
+    name: { vi: 'Nhân sự', en: 'Human Resources' },
+    tagline: { vi: 'Hồ sơ, hợp đồng, chấm công, phúc lợi', en: 'Paperwork, contract, timekeeping, benefits' },
+    module: 'onboarding_hr',
+    introKey: 'INTRO',
+    sectionsKey: 'SECTIONS',
+    intro: HR_INTRO,
+    sections: HR_SECTIONS,
   },
 ];

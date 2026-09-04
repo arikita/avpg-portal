@@ -273,6 +273,35 @@ Bài trắc nghiệm cho nhân viên làm **sau buổi training của phòng IT*
   hai bên, mọi câu có chủ đề đã khai báo, **không chủ đề nào rỗng**, và **số chủ đề ≤ số câu bốc**
   (11 chủ đề mà bốc 10 thì có chủ đề không bao giờ được hỏi, và không có gì báo).
 
+## Hội nhập nhiều phòng ban (04/09/2026)
+
+Từ 04/09 hội nhập không còn của riêng IT. **`/onboarding` là trang trung tâm** (danh sách việc cần
+làm + thẻ dẫn sang từng phòng + hai thẻ bắt buộc: bài kiểm tra và ký cam kết); **nội dung hướng dẫn
+nằm ở `/onboarding/<slug>`**, mỗi phòng một trang. Hiện có `it` và `nhan-su` (Nhân sự chưa có nội
+dung, trang tự hiện "đang cập nhật" chứ không ra trang trắng).
+
+- **Thêm một phòng = thêm một phần tử vào `PHONG_BAN`** trong `onboarding.content.ts`. Không sửa
+  route, không sửa component — cả hai đều đọc từ danh sách đó.
+- **Mỗi phòng khai rõ `module` + tên khoá** thay vì suy theo quy ước: nội dung IT đã nằm trong DB
+  dưới module `onboarding` khoá `ONBOARDING_INTRO`/`SECTIONS` từ trước; đổi tên khoá là bản DB và bản
+  dự phòng trong bundle lệch nhau ngay (luật số 1). Nhân sự dùng module mới `onboarding_hr`.
+- **BẪY THỨ TỰ ROUTE**: `onboarding/:phong` **PHẢI khai SAU** `onboarding/kiem-tra` và
+  `onboarding/cam-ket`. Đặt trước thì Angular hiểu `kiem-tra` là tên một phòng ban và **trang bài
+  kiểm tra biến mất** — không một dòng lỗi nào. Cùng cái bẫy `gallery/manage`. Hằng `RESERVED` giữ
+  chỗ hai tên đó; `audit_onboarding.mjs` đo **tĩnh** trên `app.routes.ts` nên bắt được trước cả khi build.
+- **BẪY `input()` không nhận route param**: `input<string>()` chỉ nhận param khi router bật
+  `withComponentInputBinding()`, mà `app.config.ts` **không bật** ⇒ mọi trang phòng ban ra "không có
+  trang này", im lặng. Dùng `ActivatedRoute.paramMap` + `toSignal` (không dùng `snapshot`: đi từ
+  `/onboarding/it` sang `/onboarding/nhan-su` thì Angular dùng lại component, snapshot không đổi).
+- **7 đường dẫn "học lại ở đâu" của bài kiểm tra** trỏ vào các mục của IT — nay là `/onboarding/it`.
+  Chúng gom trong **một map `REFS`** ở `quiz.content.ts`. Đổi id mục hay đổi đường dẫn mà quên sửa thì
+  bấm vào chỉ **đứng yên**, không 404, không lỗi. `audit_onboarding.mjs` mở từng trang đích và kiểm
+  từng id có thật trong DOM.
+- **Kiểm**: `CHROME_BIN=... node tools/audit_onboarding.mjs <dist>` — 24 phép đo, gồm 6 phép đo tĩnh
+  chạy không cần trình duyệt.
+- **Đã biết, chưa sửa**: `.c-hint` trong checklist là `display:inline` nên dòng gợi ý dính liền tiêu đề
+  ("…email công ty**Đổi mật khẩu lần đầu**"). Lỗi có sẵn từ trước, không phải do đợt tách trang.
+
 ## Ký cam kết bảo mật `/onboarding/cam-ket` (04/09/2026)
 
 **ĐÃ CHẠY TRÊN PRODUCTION 04/09/2026** — build `nogit-20260904-111537`.

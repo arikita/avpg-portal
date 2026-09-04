@@ -82,13 +82,13 @@ export const QUIZ_INTRO: L = {
 
 /** Đường dẫn đọc lại, gom sẵn để 50 câu khỏi lặp chữ. */
 const R = {
-  account: { path: '/onboarding', frag: 'account', label: { vi: 'Hội nhập → Tài khoản & Email', en: 'Onboarding → Account & Email' } },
-  outlook: { path: '/onboarding', frag: 'outlook', label: { vi: 'Hội nhập → Sử dụng Outlook', en: 'Onboarding → Using Outlook' } },
-  phone: { path: '/onboarding', frag: 'phone', label: { vi: 'Hội nhập → Điện thoại nội bộ', en: 'Onboarding → Desk Phone' } },
-  wifi: { path: '/onboarding', frag: 'wifi', label: { vi: 'Hội nhập → Kết nối Wi-Fi', en: 'Onboarding → Connect to Wi-Fi' } },
-  workit: { path: '/onboarding', frag: 'workit', label: { vi: 'Hội nhập → Sử dụng WorkIT', en: 'Onboarding → Using WorkIT' } },
-  onbSoftware: { path: '/onboarding', frag: 'software', label: { vi: 'Hội nhập → Phần mềm & Thiết bị', en: 'Onboarding → Software & Devices' } },
-  onbSecurity: { path: '/onboarding', frag: 'security', label: { vi: 'Hội nhập → Bảo mật thông tin', en: 'Onboarding → Information Security' } },
+  account: { path: '/onboarding/it', frag: 'account', label: { vi: 'Hội nhập → Tài khoản & Email', en: 'Onboarding → Account & Email' } },
+  outlook: { path: '/onboarding/it', frag: 'outlook', label: { vi: 'Hội nhập → Sử dụng Outlook', en: 'Onboarding → Using Outlook' } },
+  phone: { path: '/onboarding/it', frag: 'phone', label: { vi: 'Hội nhập → Điện thoại nội bộ', en: 'Onboarding → Desk Phone' } },
+  wifi: { path: '/onboarding/it', frag: 'wifi', label: { vi: 'Hội nhập → Kết nối Wi-Fi', en: 'Onboarding → Connect to Wi-Fi' } },
+  workit: { path: '/onboarding/it', frag: 'workit', label: { vi: 'Hội nhập → Sử dụng WorkIT', en: 'Onboarding → Using WorkIT' } },
+  onbSoftware: { path: '/onboarding/it', frag: 'software', label: { vi: 'Hội nhập → Phần mềm & Thiết bị', en: 'Onboarding → Software & Devices' } },
+  onbSecurity: { path: '/onboarding/it', frag: 'security', label: { vi: 'Hội nhập → Bảo mật thông tin', en: 'Onboarding → Information Security' } },
   regPersonal: { path: '/regulations', frag: 'personal-use', label: { vi: 'Quy định IT → Sử dụng cá nhân', en: 'IT Regulations → Personal use' } },
   regHardware: { path: '/regulations', frag: 'hardware', label: { vi: 'Quy định IT → Phần cứng', en: 'IT Regulations → Hardware' } },
   regSoftware: { path: '/regulations', frag: 'software', label: { vi: 'Quy định IT → Phần mềm', en: 'IT Regulations → Software' } },

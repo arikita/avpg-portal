@@ -1,0 +1,91 @@
+@if (!pb()) {
+  <!-- Slug khong co trong PHONG_BAN. Khong de trang trang: noi ro va chi duong
+       ve, vi day cung la cai nguoi ta gap khi go sai dia chi. -->
+  <section class="section">
+    <div class="container" style="max-width:720px">
+      <div class="callout warning">
+        <span class="ic"><app-icon name="alert-triangle" /></span>
+        <div>
+          <strong>{{ vi() ? 'Không có trang hội nhập này' : 'No such onboarding page' }}</strong>
+          <p>{{ vi() ? 'Đường dẫn không đúng, hoặc phòng ban này chưa có nội dung hội nhập.' : 'Wrong address, or this department has no onboarding page yet.' }}</p>
+          <p class="mt-2">
+            <a routerLink="/onboarding" class="btn btn-primary btn-sm">
+              <app-icon name="arrow-right" /> {{ vi() ? 'Về trang hội nhập' : 'Back to onboarding' }}
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+} @else {
+
+  <section class="hero" style="padding-block: clamp(36px,5vw,64px)">
+    <div class="hero-blobs"><span class="blob b1"></span><span class="blob b2"></span></div>
+    <div class="container">
+      <span class="eyebrow">
+        <a routerLink="/onboarding" style="color:inherit">
+          <app-icon name="compass" /> {{ vi() ? 'Hội nhập' : 'Onboarding' }}
+        </a>
+      </span>
+      <h1 class="mt-3">{{ pb()!.name | tr: lang() }}</h1>
+      @if (intro()) { <p class="lead mt-2">{{ intro()! | tr: lang() }}</p> }
+    </div>
+  </section>
+
+  @if (!sections().length) {
+    <!-- Phong da khai nhung chua gui noi dung. Noi that thay vi de trang. -->
+    <section class="section-sm">
+      <div class="container" style="max-width:720px">
+        <div class="callout">
+          <span class="ic"><app-icon name="info" /></span>
+          <div>
+            <strong>{{ vi() ? 'Đang cập nhật nội dung' : 'Content coming soon' }}</strong>
+            <p>
+              {{ vi()
+                  ? 'Phòng ' + (pb()!.name | tr: lang()) + ' đang hoàn thiện phần hướng dẫn hội nhập. Trong lúc chờ, bạn cứ liên hệ trực tiếp phòng để được hướng dẫn.'
+                  : 'This department is still preparing its onboarding guide. In the meantime, contact them directly.' }}
+            </p>
+            <p class="mt-2">
+              <a routerLink="/onboarding" class="btn btn-ghost btn-sm">
+                <app-icon name="arrow-right" /> {{ vi() ? 'Về trang hội nhập' : 'Back to onboarding' }}
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  } @else {
+    <section class="section" style="padding-top: 6px">
+      <div class="container">
+        <div class="doc">
+          <aside class="side" aria-label="Sections">
+            @for (s of sections(); track s.id) {
+              <a [routerLink]="[]" [fragment]="s.id" [class.active]="activeId() === s.id">
+                <app-icon [name]="s.icon" /> {{ s.title | tr: lang() }}
+              </a>
+            }
+          </aside>
+
+          <div>
+            @for (s of sections(); track s.id) {
+              <article class="section-block" [id]="s.id" data-sec>
+                <div class="row" style="gap:14px;align-items:flex-start">
+                  <div class="icon-badge"><app-icon [name]="s.icon" /></div>
+                  <div>
+                    @if (s.eyebrow) { <span class="tag">{{ s.eyebrow | tr: lang() }}</span> }
+                    <h2 style="margin-top:2px">{{ s.title | tr: lang() }}</h2>
+                  </div>
+                </div>
+                @if (s.intro) { <p class="lead-sm mt-2">{{ s.intro | tr: lang() }}</p> }
+                @if (s.readMin) {
+                  <span class="chip mt-2"><app-icon name="clock" /> {{ s.readMin }} {{ vi() ? 'phút đọc' : 'min read' }}</span>
+                }
+                <div class="mt-3"><app-content-blocks [blocks]="s.blocks" /></div>
+              </article>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+}

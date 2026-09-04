@@ -13,6 +13,11 @@ export const routes: Routes = [
   // doc len trong buoi training va dan trong email moi nhan vien moi.
   { path: 'onboarding/kiem-tra', loadComponent: () => import('./features/onboarding/quiz').then((m) => m.Quiz), title: title('Kiểm tra hội nhập IT') },
   { path: 'onboarding/cam-ket', loadComponent: () => import('./features/onboarding/cam-ket').then((m) => m.CamKet), title: title('Cam kết bảo mật') },
+  // BAT BUOC dat SAU hai route cu the o tren: Angular khop route theo THU TU,
+  // de truoc thi 'kiem-tra' bi hieu la ten mot phong ban va trang bai kiem tra
+  // BIEN MAT ma khong bao gi. Cung cai bay 'gallery/manage' trong CLAUDE.md.
+  // Hang RESERVED trong onboarding.content.ts giu cho hai ten do; co test khoa.
+  { path: 'onboarding/:phong', loadComponent: () => import('./features/onboarding/phong').then((m) => m.OnboardingPhong), title: title('Hội nhập') },
   { path: 'portal', loadComponent: () => import('./features/portal/portal').then((m) => m.Portal), title: title('Công cụ') },
   { path: 'directory', loadComponent: () => import('./features/directory/directory').then((m) => m.Directory), title: title('Liên hệ') },
   { path: 'policies', loadComponent: () => import('./features/policies/policies').then((m) => m.Policies), title: title('Chính sách') },
