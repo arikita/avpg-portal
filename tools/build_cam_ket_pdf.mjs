@@ -74,8 +74,14 @@ const measured = await page.evaluate((defs) => {
     const pr = host.getBoundingClientRect();
     const r = el.getBoundingClientRect();
     const pc = (v, total) => +(v / total * 100).toFixed(3);
+    // Can le do TU CSS, khong go tay: o "ho ten duoi chu ky" nam trong khoi
+    // .sig-wrap co text-align:center, con bang danh tinh o tren thi can trai.
+    // Dap chu can trai vao mot o can giua thi ten lech han sang trai so voi
+    // chu ky ngay tren no — user bao that 04/09/2026.
+    const ta = getComputedStyle(el).textAlign;
     out.fields.push({
       ...d,
+      align: ta === 'center' || ta === 'right' ? ta : 'left',
       pageNumber: pi + 1,
       pageX: pc(r.left - pr.left, pr.width),
       pageY: pc(r.top - pr.top, pr.height),
@@ -105,6 +111,7 @@ console.log(`\n${PDF}\n${OUT}`);
 console.log(`${measured.pageCount} trang, ${measured.fields.length} o:`);
 for (const f of measured.fields)
   console.log(`  ${f.key.padEnd(11)} ${f.type.padEnd(9)} trang ${f.pageNumber}  ` +
-              `x=${f.pageX}% y=${f.pageY}%  ${f.width}%x${f.height}%${f.prefill ? '  (prefill AD)' : ''}`);
+              `x=${f.pageX}% y=${f.pageY}%  ${f.width}%x${f.height}%  ${f.align.padEnd(6)}` +
+              `${f.prefill ? '(prefill AD)' : ''}`);
 console.log(loi ? `\n${loi} LOI — sua truoc khi nap len Documenso.` : '\nKhong loi.');
 process.exit(loi ? 1 : 0);

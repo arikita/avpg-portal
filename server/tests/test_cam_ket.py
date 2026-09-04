@@ -131,6 +131,22 @@ class TestOKyKhongLech:
         ky phai la ngay he thong ghi nhan, khong phai ngay portal doan truoc."""
         assert set(camket.DOCUMENSO_DAP) == {"chu_ky", "ngay_ky"}
 
+    def test_moi_o_deu_co_can_le(self):
+        """Thieu `align` thi camket.py lui ve "left" — dung im lang cho o nam
+        trong khoi can giua, va ten nguoi ky lech han sang trai so voi chu ky
+        ngay tren no (user bao that 04/09/2026)."""
+        for f in camket._o_dap():
+            assert f.get("align") in ("left", "center", "right"), f
+
+    def test_khoi_ky_can_giua_bang_danh_tinh_can_trai(self):
+        """Khoa dung hai nhom. Khoi ky o trang 3 nam trong .sig-wrap
+        (text-align:center); bang danh tinh trang 1 can trai theo net gach."""
+        can = {f["key"]: f["align"] for f in camket._o_dap()}
+        for k in ("ngay_ky", "chu_ky", "ho_ten_2"):
+            assert can[k] == "center", f"{k} phai can giua, dang la {can[k]}"
+        for k in ("ho_ten", "chuc_danh", "phong_ban", "email"):
+            assert can[k] == "left", f"{k} phai can trai, dang la {can[k]}"
+
     def test_toa_do_nam_trong_trang(self):
         for f in camket._o_dap():
             assert 0 <= f["pageX"] < 100 and 0 <= f["pageY"] < 100, f

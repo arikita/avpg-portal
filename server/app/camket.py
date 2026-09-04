@@ -227,11 +227,21 @@ def _dap_pdf(gia_tri: dict[str, str]) -> bytes:
             if not val:
                 continue
             x = f["pageX"] / 100 * W
+            rong = f["width"] / 100 * W
             # pageY tinh tu MEP TREN xuong (goc toa do cua Documenso), con
             # reportlab tinh tu mep duoi len — nen phai lat. 0.78 la duong co
             # chu trong o cao `height`, canh cho chu ngoi tren net gach.
             y = H - (f["pageY"] / 100 * H) - (f["height"] / 100 * H) * 0.78
-            c.drawString(x + 4, y, val)
+            # Can le lay tu CSS (build_cam_ket_pdf.mjs do sang), khong doan:
+            # o "ho ten duoi chu ky" nam trong khoi can giua, dap can trai vao
+            # do thi ten lech han sang trai so voi chu ky ngay tren no.
+            can = f.get("align", "left")
+            if can == "center":
+                c.drawCentredString(x + rong / 2, y, val)
+            elif can == "right":
+                c.drawRightString(x + rong - 4, y, val)
+            else:
+                c.drawString(x + 4, y, val)
         c.showPage()
         c.save()
         buf.seek(0)
@@ -346,6 +356,9 @@ def _tao_tai_lieu(username: str, info: dict) -> tuple[int, str]:
         if f["type"] != "SIGNATURE":
             meta["label"] = f["label"]
             meta["fontSize"] = 11
+            # Cung mot can le voi phan portal tu dap — o ngay ky nam trong khoi
+            # can giua, de mac dinh (trai) thi no lech y het loi cua ho ten.
+            meta["textAlign"] = f.get("align", "left")
         fields.append({"type": f["type"], "fieldMeta": meta, "recipientId": rid,
                        "pageNumber": f["pageNumber"], "pageX": f["pageX"],
                        "pageY": f["pageY"], "width": f["width"], "height": f["height"]})
