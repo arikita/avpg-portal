@@ -12,7 +12,7 @@ export const FAQS: FaqItem[] = [
   {
     tag: { vi: 'Wi-Fi', en: 'Wi-Fi' },
     q: { vi: 'Điện thoại của tôi không kết nối được Wi-Fi nhân viên?', en: 'My phone won’t connect to the staff Wi-Fi?' },
-    a: { vi: 'Kiểm tra bạn chọn đúng SSID “AVP-Staff” và nhập đúng mật khẩu. Nếu vẫn lỗi, gửi yêu cầu hỗ trợ IT kèm tên thiết bị.', en: 'Make sure you selected “AVP-Staff” and entered the correct password. If it still fails, open a ticket and include your device name.' },
+    a: { vi: 'Kiểm tra bạn đã chọn đúng mạng “An Viet Phat”, và đăng nhập bằng chính tài khoản công ty của bạn — giống hệt lúc đăng nhập máy tính. Nếu vẫn không được, gửi yêu cầu hỗ trợ IT kèm tên thiết bị.', en: 'Check that you picked the “An Viet Phat” network and signed in with your company account — the same one you use for your computer. If it still fails, open a ticket and include your device name.' },
   },
   {
     tag: { vi: 'WorkIT', en: 'WorkIT' },

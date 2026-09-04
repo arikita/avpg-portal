@@ -250,7 +250,7 @@ export const SECTIONS: GuideSection[] = [
       {
         kind: 'steps',
         items: [
-          { vi: 'Nhân viên: chọn mạng “An Viet Phat”, rồi đăng nhập bằng chính tài khoản công ty của bạn — giống hệt lúc đăng nhập máy tính.', en: 'Staff: choose “An Viet Phat” and sign in with your AD account (same as your PC login — e.g. tungnh + password).' },
+          { vi: 'Nhân viên: chọn mạng “An Viet Phat”, rồi đăng nhập bằng chính tài khoản công ty của bạn — giống hệt lúc đăng nhập máy tính.', en: 'Staff: choose “An Viet Phat”, then sign in with your company account — exactly the one you use for your computer.' },
           { vi: 'Khách: chọn mạng “An Viet Phat - Customer”, nhập mật khẩu: anvietphat.', en: 'Guests: choose “An Viet Phat - Customer” and enter the password: anvietphat.' },
           { vi: 'Không kết nối được? Gửi yêu cầu hỗ trợ IT.', en: 'Can’t connect? Open an IT support ticket.' },
         ],
