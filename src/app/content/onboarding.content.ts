@@ -173,8 +173,6 @@ export const SECTIONS: GuideSection[] = [
         items: [
           { vi: 'Mở Outlook trên máy tính → nhập email công ty → làm theo hướng dẫn tự động.', en: 'Open Outlook on your PC → enter your company email → follow the automatic setup.' },
           { vi: 'Trên điện thoại: cài app “Microsoft Outlook”, đăng nhập bằng email công ty.', en: 'On mobile: install the “Microsoft Outlook” app and sign in with your company email.' },
-          { vi: 'Thiết lập chữ ký email theo mẫu công ty (xem mục Tải về ở trang Công cụ).', en: 'Set your email signature using the company template (see Downloads on the Tools page).' },
-          { vi: 'Ghim mục Lịch để không bỏ lỡ cuộc họp.', en: 'Pin your calendar so you never miss a meeting.' },
         ],
       },
       {
@@ -188,7 +186,6 @@ export const SECTIONS: GuideSection[] = [
       {
         kind: 'bullets',
         items: [
-          { vi: 'Dùng Lịch (Calendar) để đặt và nhận lời mời họp.', en: 'Use Calendar to schedule and accept meeting invites.' },
           { vi: 'Bật thông báo để không bỏ lỡ email quan trọng.', en: 'Enable notifications so you never miss important email.' },
           { vi: 'Gõ tên đồng nghiệp vào ô người nhận — Outlook tự gợi ý địa chỉ email nội bộ.', en: 'Start typing a colleague’s name — internal addresses auto-suggest.' },
         ],
